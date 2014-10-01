@@ -11,16 +11,41 @@
 
 	<artifactId>bonita-connector-rest-impl</artifactId>
 	<version>1.0.12</version>
-	
+
 	<properties>
 		<definition.version>1.0.0</definition.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>lib</id>
+			<name>lib</name>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>ignore</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>file://${project.basedir}/repo</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
 			<artifactId>bonita-connector-rest-def</artifactId>
 			<groupId>org.bonitasoft.connectors</groupId>
 			<version>${definition.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0-m10</version>
 		</dependency>
 		<dependency>
 			<artifactId>junit</artifactId>
@@ -38,6 +63,14 @@
 			<artifactId>mockito-all</artifactId>
 			<version>1.9.5</version>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Local deps -->
+
+		<dependency>
+			<groupId>org.bonitasoft.connectors.rest</groupId>
+			<artifactId>restclient-cli-without-groovy</artifactId>
+			<version>3.2.2</version>
 		</dependency>
 	</dependencies>
 

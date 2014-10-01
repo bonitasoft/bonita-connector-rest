@@ -42,7 +42,7 @@ public abstract class AbstractRESTConnector extends AbstractConnector {
 		return (java.lang.String) getInputParameter(BODY_INPUT_PARAMETER);
 	}
 
-	protected final void setResult(org.bonitasoft.restresult.RESTResult result) {
+	protected final void setResult(org.bonitasoft.connectors.rest.RESTResult result) {
 		setOutputParameter(RESULT_OUTPUT_PARAMETER, result);
 	}
 
