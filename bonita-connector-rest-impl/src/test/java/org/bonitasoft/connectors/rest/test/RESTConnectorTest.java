@@ -37,25 +37,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.bonitasoft.connectors.rest.RESTConnector;
+import org.bonitasoft.connectors.rest.RESTResult;
 
 import org.bonitasoft.engine.api.APIAccessor;
 import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.bpm.document.impl.DocumentImpl;
 import org.bonitasoft.engine.connector.EngineExecutionContext;
 import org.bonitasoft.engine.exception.BonitaException;
-//import org.bonitasoft.engine.test.annotation.Cover;
-//import org.bonitasoft.engine.test.annotation.Cover.BPMNConcept;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * @author Matthieu Chaffotte
- */
 public class RESTConnectorTest {
-
-    private static final String URL = "https://api.github.com/bonitasoft/bonita-connector-rest/";
-
     private EngineExecutionContext engineExecutionContext;
     private APIAccessor apiAccessor;
     private ProcessAPI processAPI;
@@ -79,25 +72,28 @@ public class RESTConnectorTest {
 
     private Map<String, Object> getGetSettings() {
         final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("url", URL);
+        parameters.put("url", "https://api.github.com/orgs/bonitasoft");
+        parameters.put("method", "GET");
+        parameters.put("contentType", "text/plain");
+        parameters.put("charset", "UTF-8");
+        parameters.put("urlCookies", new ArrayList<String>());
+        parameters.put("urlHeaders", new ArrayList<String>());
+        parameters.put("body", "");
         return parameters;
     }
     
     private Map<String, Object> getPostSettings() {
         final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("url", URL);
         return parameters;
     }
 
     private Map<String, Object> getPutSettings() {
         final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("url", URL);
         return parameters;
     }
 
     private Map<String, Object> getDeleteSettings() {
         final Map<String, Object> parameters = new HashMap<String, Object>();
-        parameters.put("url", URL);
         return parameters;
     }
     
@@ -105,13 +101,25 @@ public class RESTConnectorTest {
     @Test
     public void sendGetRESTRequest() throws BonitaException, InterruptedException {
         Map<String, Object> restResult = executeConnector(getGetSettings());
-        assertEquals(1, 1);
+        assertEquals(restResult.size(), 1);
+        assertNotNull(restResult.get("result"));
+        Object result = restResult.get("result");
+        assertTrue(result instanceof RESTResult);
+        RESTResult restResultContent = (RESTResult) result;
+        assertEquals(200, restResultContent.getStatusCode());
+        assertTrue(restResultContent.getEntity().contains("bonitasoft"));
     }
     
     @Test
     public void sendPostRESTRequest() throws BonitaException, InterruptedException {
-        Map<String, Object> restResult = executeConnector(getPostSettings());
-        assertEquals(1, 1);
+    	Map<String, Object> restResult = executeConnector(getPostSettings());
+        assertEquals(restResult.size(), 1);
+        assertNotNull(restResult.get("result"));
+        Object result = restResult.get("result");
+        assertTrue(result instanceof RESTResult);
+        RESTResult restResultContent = (RESTResult) result;
+        assertEquals(200, restResultContent.getStatusCode());
+        assertTrue(restResultContent.getEntity().contains("bonitasoft"));
     }
     
     @Test
