@@ -69,6 +69,11 @@
 
 		<dependency>
 			<groupId>org.bonitasoft.connectors.rest</groupId>
+			<artifactId>wiremock</artifactId>
+			<version>1.50</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bonitasoft.connectors.rest</groupId>
 			<artifactId>restclient-cli-without-groovy</artifactId>
 			<version>3.2.2</version>
 		</dependency>
