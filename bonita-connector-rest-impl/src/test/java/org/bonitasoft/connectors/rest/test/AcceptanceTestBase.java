@@ -33,7 +33,6 @@ import com.github.tomakehurst.wiremock.Log4jConfiguration;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Log4jNotifier;
-import com.github.tomakehurst.wiremock.core.Options;
 
 public class AcceptanceTestBase {
 	protected EngineExecutionContext engineExecutionContext;
@@ -42,6 +41,7 @@ public class AcceptanceTestBase {
 
 	protected static WireMockServer wireMockServer;
 	protected static int port = 8089;
+	protected static String url = "localhost";
 	
 	@BeforeClass
 	public static void setupServer() {
@@ -55,6 +55,8 @@ public class AcceptanceTestBase {
 		}
 	}
 
+	protected static void initValues() {}
+
 	@AfterClass
 	public static void serverShutdown() {
 		wireMockServer.stop();
@@ -66,9 +68,10 @@ public class AcceptanceTestBase {
 		apiAccessor = mock(APIAccessor.class);
 		processAPI = mock(ProcessAPI.class);
 		when(apiAccessor.getProcessAPI()).thenReturn(processAPI);
-		WireMock.configureFor("localhost", port);
+		WireMock.configureFor(url, port);
 		Log4jConfiguration.configureLogging(true);
 		WireMock.reset();
+		Thread.sleep(200);
 	}
 
 	private static int findFreePort(int myport) {
