@@ -22,6 +22,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -45,18 +47,36 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 	final private static String WS_CONTENT_TYPE = "Content-Type";
 	final private static String WS_CHARSET = "charset";
 	final private static String WS_COOKIES = "Cookie";
+	final private static String WS_AUTHORIZATION = "Authorization";
+	final private static String WS_FOLLOW_REDIRECT = "Follow-redirect";
 
 	//connector input names
-	final private static String URL = "url";
-	final private static String METHOD = "method";
-	final private static String CONTENT_TYPE = "contentType";
-	final private static String CHARSET = "charset";
-	final private static String COOKIES = "urlCookies";
-	final private static String HEADERS = "urlHeaders";
-	final private static String BODY = "body";
+	private final static String URL_INPUT_PARAMETER = "url";
+	private final static String METHOD_INPUT_PARAMETER = "method";
+	private final static String CONTENTTYPE_INPUT_PARAMETER = "contentType";
+	private final static String CHARSET_INPUT_PARAMETER = "charset";
+	private final static String URLCOOKIES_INPUT_PARAMETER = "urlCookies";
+	private final static String URLHEADERS_INPUT_PARAMETER = "urlHeaders";
+	private final static String BODY_INPUT_PARAMETER = "body";
+	private final static String DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER = "do_not_follow_redirect";
+	private final static String AUTH_BASIC_USERNAME_INPUT_PARAMETER = "auth_basic_username";
+	private final static String AUTH_BASIC_PASSWORD_INPUT_PARAMETER = "auth_basic_password";
+	private final static String AUTH_BASIC_HOST_INPUT_PARAMETER = "auth_basic_host";
+	private final static String AUTH_BASIC_REALM_INPUT_PARAMETER = "auth_basic_realm";
+	private final static String AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER = "auth_basic_preemptive";
+	private final static String AUTH_DIGEST_USERNAME_INPUT_PARAMETER = "auth_digest_username";
+	private final static String AUTH_DIGEST_PASSWORD_INPUT_PARAMETER = "auth_digest_password";
+	private final static String AUTH_DIGEST_HOST_INPUT_PARAMETER = "auth_digest_host";
+	private final static String AUTH_DIGEST_REALM_INPUT_PARAMETER = "auth_digest_realm";
+	private final static String AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER = "auth_digest_preemptive";
+	private final static String AUTH_NTLM_USERNAME_INPUT_PARAMETER = "auth_NTLM_username";
+	private final static String AUTH_NTLM_PASSWORD_INPUT_PARAMETER = "auth_NTLM_password";
+	private final static String AUTH_NTLM_WORKSTATION_INPUT_PARAMETER = "auth_NTLM_workstation";
+	private final static String AUTH_NTLM_DOMAIN_INPUT_PARAMETER = "auth_NTLM_domain";
+	private final static String AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER = "auth_OAuth2_bearer_token";
 
 	//connector output names
-	final private static String RESULT = "result";
+	private final static String RESULT_OUTPUT_PARAMETER = "result";
 
 	//METHODS
 	final private static String GET = "GET";
@@ -94,6 +114,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 	final private static String FULL ="there is something inside";
 	final private static List<String> BODYS = new ArrayList<String>();
 	final private static List<Map<String, Object>> BODYS_TC = new ArrayList<Map<String, Object>>();
+
+	//AUTHORIZATIONS
+	final private static String BASIC = "BASIC";
+	final private static String DIGEST = "DIGEST";
+	final private static String NTLM = "NTLM";
+	final private static String OAUTH2BEARER = "OAuth2Bearer";
+	final private static String BASIC_RULE = "Basic";
+	final private static String DIGEST_RULE = "Digest";
+	final private static String NTLM_RULE = "NTLM";
+	final private static List<List<Object>> AUTHORIZATIONS = new ArrayList<List<Object>>();
+	final private static List<Map<String, Object>> AUTHORIZATIONS_TC = new ArrayList<Map<String, Object>>();
 
 	@BeforeClass
 	final public static void initValues() {
@@ -137,77 +168,153 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
 		BODYS.add(EMPTY);
 		BODYS.add(FULL);
+		
+		List<Object> basicAuth1 = new ArrayList<Object>();
+		basicAuth1.add(BASIC);
+		basicAuth1.add(BASIC_RULE);
+		basicAuth1.add("username");
+		basicAuth1.add("password");
+		basicAuth1.add("");
+		basicAuth1.add("");
+		basicAuth1.add(Boolean.TRUE);
+		AUTHORIZATIONS.add(basicAuth1);
 
+		List<Object> basicAuth2 = new ArrayList<Object>();
+		basicAuth2.add(BASIC);
+		basicAuth2.add(BASIC_RULE);
+		basicAuth2.add("username");
+		basicAuth2.add("password");
+		basicAuth2.add("localhost");
+		basicAuth2.add("");
+		basicAuth2.add(Boolean.TRUE);
+		AUTHORIZATIONS.add(basicAuth2);
+
+		List<Object> basicAuth3 = new ArrayList<Object>();
+		basicAuth3.add(BASIC);
+		basicAuth3.add(BASIC_RULE);
+		basicAuth3.add("username");
+		basicAuth3.add("password");
+		basicAuth3.add("");
+		basicAuth3.add("realm");
+		basicAuth3.add(Boolean.TRUE);
+		AUTHORIZATIONS.add(basicAuth3);
+		
+		List<Object> oauth2bearer = new ArrayList<Object>();
+		oauth2bearer.add(OAUTH2BEARER);
+		oauth2bearer.add("token");
+		oauth2bearer.add("token");
+		AUTHORIZATIONS.add(oauth2bearer);
+		
 		for(int i = 0; i < METHODS.size(); i++) {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put(URL, "http://" + url + ":" + port + "/");
-			parameters.put(METHOD, METHODS.get(i));
-			parameters.put(CONTENT_TYPE, CONTENT_TYPES.get(0));
-			parameters.put(CHARSET, CHARSETS.get(0));
-			parameters.put(COOKIES, COOKIESS.get(0));
-			parameters.put(HEADERS, HEADERSS.get(0));
-			parameters.put(BODY, BODYS.get(0));
+			parameters.put(URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
+			parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(i));
+			parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+			parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+			parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+			parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+			parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
+			parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
 			METHODS_TC.add(parameters);
 		}
 
 		for(int i = 0; i < CONTENT_TYPES.size(); i++) {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put(URL, "http://" + url + ":" + port + "/");
-			parameters.put(METHOD, METHODS.get(1));
-			parameters.put(CONTENT_TYPE, CONTENT_TYPES.get(i));
-			parameters.put(CHARSET, CHARSETS.get(0));
-			parameters.put(COOKIES, COOKIESS.get(0));
-			parameters.put(HEADERS, HEADERSS.get(0));
-			parameters.put(BODY, BODYS.get(0));
+			parameters.put(URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
+			parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(1));
+			parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(i));
+			parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+			parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+			parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+			parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
+			parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
 			CONTENT_TYPES_TC.add(parameters);
 		}
 
 		for(int i = 0; i < CHARSETS.size(); i++) {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put(URL, "http://" + url + ":" + port + "/");
-			parameters.put(METHOD, METHODS.get(1));
-			parameters.put(CONTENT_TYPE, CONTENT_TYPES.get(0));
-			parameters.put(CHARSET, CHARSETS.get(i));
-			parameters.put(COOKIES, COOKIESS.get(0));
-			parameters.put(HEADERS, HEADERSS.get(0));
-			parameters.put(BODY, BODYS.get(0));
+			parameters.put(URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
+			parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(1));
+			parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+			parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(i));
+			parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+			parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+			parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
+			parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
 			CHARSETS_TC.add(parameters);
 		}
 
 		for(int i = 0; i < COOKIESS.size(); i++) {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put(URL, "http://" + url + ":" + port + "/");
-			parameters.put(METHOD, METHODS.get(0));
-			parameters.put(CONTENT_TYPE, CONTENT_TYPES.get(0));
-			parameters.put(CHARSET, CHARSETS.get(0));
-			parameters.put(COOKIES, COOKIESS.get(i));
-			parameters.put(HEADERS, HEADERSS.get(0));
-			parameters.put(BODY, BODYS.get(0));
+			parameters.put(URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
+			parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(0));
+			parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+			parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+			parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(i));
+			parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+			parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
+			parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
 			COOKIESS_TC.add(parameters);
 		}
 
 		for(int i = 0; i < HEADERSS.size(); i++) {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put(URL, "http://" + url + ":" + port + "/");
-			parameters.put(METHOD, METHODS.get(0));
-			parameters.put(CONTENT_TYPE, CONTENT_TYPES.get(0));
-			parameters.put(CHARSET, CHARSETS.get(0));
-			parameters.put(COOKIES, COOKIESS.get(0));
-			parameters.put(HEADERS, HEADERSS.get(i));
-			parameters.put(BODY, BODYS.get(0));
+			parameters.put(URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
+			parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(0));
+			parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+			parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+			parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+			parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(i));
+			parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
+			parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
 			HEADERSS_TC.add(parameters);
 		}
 
 		for(int i = 0; i < BODYS.size(); i++) {
 			Map<String, Object> parameters = new HashMap<String, Object>();
-			parameters.put(URL, "http://" + url + ":" + port + "/");
-			parameters.put(METHOD, METHODS.get(1));
-			parameters.put(CONTENT_TYPE, CONTENT_TYPES.get(0));
-			parameters.put(CHARSET, CHARSETS.get(0));
-			parameters.put(COOKIES, COOKIESS.get(0));
-			parameters.put(HEADERS, HEADERSS.get(0));
-			parameters.put(BODY, BODYS.get(i));
+			parameters.put(URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
+			parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(1));
+			parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+			parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+			parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+			parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+			parameters.put(BODY_INPUT_PARAMETER, BODYS.get(i));
+			parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
 			BODYS_TC.add(parameters);
+		}
+
+		for(int i = 0; i < AUTHORIZATIONS.size(); i++) {
+			Map<String, Object> parameters = new HashMap<String, Object>();
+			parameters.put(URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
+			parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(0));
+			parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+			parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+			parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+			parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+			parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
+			parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+			if(BASIC.equals(AUTHORIZATIONS.get(i).get(0))) {
+				parameters.put(AUTH_BASIC_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(2));
+				parameters.put(AUTH_BASIC_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(3));
+				parameters.put(AUTH_BASIC_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(4));
+				parameters.put(AUTH_BASIC_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(5));
+				parameters.put(AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(6));
+			} else if(DIGEST.equals(AUTHORIZATIONS.get(i).get(0))) {
+				parameters.put(AUTH_DIGEST_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(2));
+				parameters.put(AUTH_DIGEST_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(3));
+				parameters.put(AUTH_DIGEST_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(4));
+				parameters.put(AUTH_DIGEST_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(5));
+				parameters.put(AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(6));
+			} else if(NTLM.equals(AUTHORIZATIONS.get(i).get(0))) {
+				parameters.put(AUTH_NTLM_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(2));
+				parameters.put(AUTH_NTLM_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(3));
+				parameters.put(AUTH_NTLM_WORKSTATION_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(4));
+				parameters.put(AUTH_NTLM_DOMAIN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(5));
+			} else if(OAUTH2BEARER.equals(AUTHORIZATIONS.get(i).get(0))) {
+				parameters.put(AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(2));
+			}
+			
+			AUTHORIZATIONS_TC.add(parameters);
 		}
 	}
 
@@ -317,11 +424,23 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 			init();
 		}
 	}
+	
+	@Test
+	public void sendAuthRESTRequests() throws BonitaException, InterruptedException {
+		for(int i = 0; i < AUTHORIZATIONS.size(); i++) {
+			stubFor(get(urlEqualTo("/"))
+					.withHeader(WS_AUTHORIZATION, containing(AUTHORIZATIONS.get(i).get(1).toString()))
+					.willReturn(aResponse().withStatus(200)));
+
+			checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(i)));
+			init();
+		}
+	}
 
 	private void checkResultIsPresent(Map<String, Object> restResult) {
 		assertEquals(restResult.size(), 1);
-		assertNotNull(restResult.get(RESULT));
-		Object result = restResult.get(RESULT);
+		assertNotNull(restResult.get(RESULT_OUTPUT_PARAMETER));
+		Object result = restResult.get(RESULT_OUTPUT_PARAMETER);
 		assertTrue(result instanceof RESTResult);
 		RESTResult restResultContent = (RESTResult) result;
 		assertEquals(200, restResultContent.getStatusCode());

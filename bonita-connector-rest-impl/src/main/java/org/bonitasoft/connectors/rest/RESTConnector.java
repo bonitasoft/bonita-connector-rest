@@ -196,16 +196,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 				}
 			}
 		}
-		
-		if (getCharset() == null || getCharset().isEmpty()) {
-			messages.add(CHARSET_INPUT_PARAMETER);
-		}
-		if (getCharset() == null || getCharset().isEmpty()) {
-			messages.add(CHARSET_INPUT_PARAMETER);
-		}
-		if (getCharset() == null || getCharset().isEmpty()) {
-			messages.add(CHARSET_INPUT_PARAMETER);
-		}
 
 		if (!messages.isEmpty()) {
 			LOGGER.severe("validateInputParameters error: " + messages.toString());
@@ -229,7 +219,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 			LOGGER.info("Body set to: " + request.getBody().toString());
 			request.setMethod(getHTTPMethod(getMethod()));
 			LOGGER.info("Method set to: " + request.getMethod().toString());
-			request.setFollowRedirect(true);
+			request.setFollowRedirect(!getDoNotFollowRedirect());
 			LOGGER.info("Follow redirect set to: " + request.isFollowRedirect());
 			for(Object urlheader : getUrlHeaders()) {
 				List urlheaderRow = (List)urlheader;
@@ -242,8 +232,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 				LOGGER.info("Add cookie: " + urlCookieRow.get(0).toString() + " set as " + urlCookieRow.get(1).toString());
 			}
 			
-			if ((getAuth_basic_username() != null && getAuth_basic_username().isEmpty()) &&
-					(getAuth_basic_password() != null && getAuth_basic_password().isEmpty()) && 
+			if (getAuth_basic_username() != null && !getAuth_basic_username().isEmpty() &&
+					getAuth_basic_password() != null && !getAuth_basic_password().isEmpty() && 
 					getAuth_basic_preemptive() != null) {
 				LOGGER.info("Add basic auth");
 				
@@ -251,17 +241,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 				auth.setUsername(getAuth_basic_username());
 				auth.setPassword(getAuth_basic_password().toCharArray());
 				
-				if(getAuth_basic_host() != null && getAuth_basic_host().isEmpty()) {
+				if(getAuth_basic_host() != null && !getAuth_basic_host().isEmpty()) {
 					auth.setHost(getAuth_basic_host());
 				}
-				if(getAuth_basic_realm() != null && getAuth_basic_realm().isEmpty()) {
+				if(getAuth_basic_realm() != null && !getAuth_basic_realm().isEmpty()) {
 					auth.setRealm(getAuth_basic_realm());
 				}
 				auth.setPreemptive(getAuth_basic_preemptive());
 					
 				request.setAuth(auth);
-			} else if ((getAuth_digest_username() != null && getAuth_digest_username().isEmpty()) &&
-					(getAuth_digest_password() != null && getAuth_digest_password().isEmpty()) && 
+			} else if (getAuth_digest_username() != null && !getAuth_digest_username().isEmpty() &&
+					getAuth_digest_password() != null && !getAuth_digest_password().isEmpty() && 
 					getAuth_digest_preemptive() != null) {
 				LOGGER.info("Add digest auth");
 				
@@ -269,19 +259,19 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 				auth.setUsername(getAuth_digest_username());
 				auth.setPassword(getAuth_digest_password().toCharArray());
 				
-				if(getAuth_digest_host() != null && getAuth_digest_host().isEmpty()) {
+				if(getAuth_digest_host() != null && !getAuth_digest_host().isEmpty()) {
 					auth.setHost(getAuth_digest_host());
 				}
-				if(getAuth_digest_realm() != null && getAuth_digest_realm().isEmpty()) {
+				if(getAuth_digest_realm() != null && !getAuth_digest_realm().isEmpty()) {
 					auth.setRealm(getAuth_digest_realm());
 				}
 				auth.setPreemptive(getAuth_digest_preemptive());
 					
 				request.setAuth(auth);
-			} else if((getAuth_NTLM_username() != null && getAuth_NTLM_username().isEmpty()) &&
-					(getAuth_NTLM_password() != null && getAuth_NTLM_password().isEmpty()) && 
-					(getAuth_NTLM_workstation() != null && getAuth_NTLM_workstation().isEmpty()) &&
-					(getAuth_NTLM_domain() != null && getAuth_NTLM_domain().isEmpty())) {
+			} else if(getAuth_NTLM_username() != null && !getAuth_NTLM_username().isEmpty() &&
+					getAuth_NTLM_password() != null && !getAuth_NTLM_password().isEmpty() && 
+					getAuth_NTLM_workstation() != null && !getAuth_NTLM_workstation().isEmpty() &&
+					getAuth_NTLM_domain() != null && !getAuth_NTLM_domain().isEmpty()) {
 				NtlmAuthBean auth = new NtlmAuthBean();
 				auth.setUsername(getAuth_NTLM_username());
 				auth.setPassword(getAuth_NTLM_password().toCharArray());
@@ -289,7 +279,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 				auth.setDomain(getAuth_NTLM_domain());
 
 				request.setAuth(auth);
-			} else if((getAuth_OAuth2_bearer_token() != null && getAuth_OAuth2_bearer_token().isEmpty())) {
+			} else if(getAuth_OAuth2_bearer_token() != null && !getAuth_OAuth2_bearer_token().isEmpty()) {
 				AuthorizationHeaderAuthBean auth = new AuthorizationHeaderAuthBean();
 				auth.setAuthorizationHeaderValue(getAuth_OAuth2_bearer_token());
 				request.setAuth(auth);
@@ -430,12 +420,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 							// preemptive mode
 							if (a.isPreemptive()) {
 								AuthCache authCache = new BasicAuthCache();
-								AuthSchemeBase authScheme = a instanceof BasicAuth?
-										new BasicScheme(): new DigestScheme();
-										authCache.put(new HttpHost(urlHost, urlPort, urlProtocol), authScheme);
-										BasicHttpContext localcontext = new BasicHttpContext();
-										localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
-										httpContext = localcontext;
+								AuthSchemeBase authScheme = a instanceof BasicAuth ? new BasicScheme() : new DigestScheme();
+								authCache.put(new HttpHost(urlHost, urlPort, urlProtocol), authScheme);
+								BasicHttpContext localcontext = new BasicHttpContext();
+								localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);
+								httpContext = localcontext;
 							}
 						}
 
@@ -639,8 +628,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
 					// Now Execute:
 					long startTime = System.currentTimeMillis();
-					HttpResponse http_res = httpclient.execute((HttpUriRequest) method,
-							httpContext);
+					HttpResponse http_res = httpclient.execute((HttpUriRequest) method, httpContext);
 					long endTime = System.currentTimeMillis();
 
 					ResponseBean response = new ResponseBean();

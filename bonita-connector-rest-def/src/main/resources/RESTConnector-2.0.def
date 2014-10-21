@@ -11,6 +11,7 @@
   <input mandatory="false" name="urlCookies" type="java.util.List"/>
   <input name="urlHeaders" type="java.util.List"/>
   <input mandatory="false" name="body" type="java.lang.String"/>
+  <input mandatory="false" name="do_not_follow_redirect" type="java.lang.Boolean"/>
   <input name="auth_basic_username" type="java.lang.String"/>
   <input name="auth_basic_password" type="java.lang.String"/>
   <input name="auth_basic_host" type="java.lang.String"/>
@@ -51,6 +52,7 @@
       <colsCaption>Value</colsCaption>
     </widget>
     <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
+    <widget xsi:type="definition:Checkbox" id="do_not_follow_redirect_widget" inputName="do_not_follow_redirect"/>
   </page>
   <page id="authenticationPage">
     <widget xsi:type="definition:Group" id="auth_basic" optional="false">
