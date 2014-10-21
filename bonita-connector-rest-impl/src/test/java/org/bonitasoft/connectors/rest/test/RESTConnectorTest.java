@@ -45,7 +45,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 	final private static String WS_CONTENT_TYPE = "Content-Type";
 	final private static String WS_CHARSET = "charset";
 	final private static String WS_COOKIES = "Cookie";
-	
+
 	//connector input names
 	final private static String URL = "url";
 	final private static String METHOD = "method";
@@ -253,7 +253,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 			init();
 		}
 	}
-	
+
 	@Test
 	public void sendCharsetRESTRequests() throws BonitaException, InterruptedException {
 		for(int i = 0; i < CHARSETS.size(); i++) {
@@ -265,7 +265,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 			init();
 		}
 	}
-	
+
 	@Test
 	public void sendCookiesRESTRequests() throws BonitaException, InterruptedException {
 		for(int i = 0; i < COOKIESS.size(); i++) {
@@ -277,17 +277,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 			init();
 		}
 	}
-	
+
 	private String generateCookieSet(List<List<String>> cookies) {
 		StringBuffer strBuffer = new StringBuffer();
-		
+
 		if(!cookies.isEmpty()) {
 			strBuffer.append(cookies.get(0).get(0) + "=" + cookies.get(0).get(1));
 		}
 		for(int i = 1; i < cookies.size(); i++) {
 			strBuffer.append("; " + cookies.get(i).get(0) + "=" + cookies.get(i).get(1));
 		}
-		
+
 		return strBuffer.toString();
 	}
 
@@ -305,7 +305,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 			init();
 		}
 	}
-	
+
 	@Test
 	public void sendBodyRESTRequests() throws BonitaException, InterruptedException {
 		for(int i = 0; i < BODYS.size(); i++) {

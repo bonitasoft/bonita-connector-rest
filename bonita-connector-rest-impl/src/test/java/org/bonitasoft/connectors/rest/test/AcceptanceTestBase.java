@@ -42,7 +42,7 @@ public class AcceptanceTestBase {
 	protected static WireMockServer wireMockServer;
 	protected static int port = 8089;
 	protected static String url = "localhost";
-	
+
 	@BeforeClass
 	public static void setupServer() {
 		port = findFreePort(port);
