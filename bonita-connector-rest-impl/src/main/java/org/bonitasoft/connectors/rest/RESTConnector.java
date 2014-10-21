@@ -221,6 +221,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 			LOGGER.info("Method set to: " + request.getMethod().toString());
 			request.setFollowRedirect(!getDoNotFollowRedirect());
 			LOGGER.info("Follow redirect set to: " + request.isFollowRedirect());
+			request.setIgnoreResponseBody(getIgnoreBody());
+			LOGGER.info("Ignore body set to: " + request.isIgnoreResponseBody());
 			for(Object urlheader : getUrlHeaders()) {
 				List urlheaderRow = (List)urlheader;
 				request.addHeader(urlheaderRow.get(0).toString(), urlheaderRow.get(1).toString());	

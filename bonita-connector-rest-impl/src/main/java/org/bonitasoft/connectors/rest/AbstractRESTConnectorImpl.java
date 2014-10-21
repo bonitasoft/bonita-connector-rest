@@ -13,6 +13,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	protected final static String URLHEADERS_INPUT_PARAMETER = "urlHeaders";
 	protected final static String BODY_INPUT_PARAMETER = "body";
 	protected final static String DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER = "do_not_follow_redirect";
+	protected final static String IGNORE_BODY_INPUT_PARAMETER = "ignore_body";
 	protected final static String AUTH_BASIC_USERNAME_INPUT_PARAMETER = "auth_basic_username";
 	protected final static String AUTH_BASIC_PASSWORD_INPUT_PARAMETER = "auth_basic_password";
 	protected final static String AUTH_BASIC_HOST_INPUT_PARAMETER = "auth_basic_host";
@@ -60,6 +61,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
 	protected final java.lang.Boolean getDoNotFollowRedirect() {
 		return (java.lang.Boolean) getInputParameter(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER);
+	}
+
+	protected final java.lang.Boolean getIgnoreBody() {
+		return (java.lang.Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER);
 	}
 
 	protected final java.lang.String getAuth_basic_username() {
@@ -168,6 +173,11 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 			getDoNotFollowRedirect();
 		} catch (ClassCastException cce) {
 			throw new ConnectorValidationException("do_not_follow_redirect type is invalid");
+		}
+		try {
+			getIgnoreBody();
+		} catch (ClassCastException cce) {
+			throw new ConnectorValidationException("ignore_body type is invalid");
 		}
 		try {
 			getAuth_basic_username();

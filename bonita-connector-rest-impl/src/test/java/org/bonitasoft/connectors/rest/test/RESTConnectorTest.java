@@ -59,6 +59,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 	private final static String URLHEADERS_INPUT_PARAMETER = "urlHeaders";
 	private final static String BODY_INPUT_PARAMETER = "body";
 	private final static String DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER = "do_not_follow_redirect";
+	protected final static String IGNORE_BODY_INPUT_PARAMETER = "ignore_body";
 	private final static String AUTH_BASIC_USERNAME_INPUT_PARAMETER = "auth_basic_username";
 	private final static String AUTH_BASIC_PASSWORD_INPUT_PARAMETER = "auth_basic_password";
 	private final static String AUTH_BASIC_HOST_INPUT_PARAMETER = "auth_basic_host";
