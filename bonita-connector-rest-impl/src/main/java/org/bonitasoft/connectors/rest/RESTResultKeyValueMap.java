@@ -19,27 +19,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RESTResultKeyValueMap implements Serializable {
-	private static final long serialVersionUID = 1L;
-	private String key = null;
-	private List<String> value = new ArrayList();
 
-	public String getKey() {
-		return this.key;
-	}
+    private static final long serialVersionUID = 1L;
+    private String key = null;
+    private List<String> value = new ArrayList<String>();
 
-	public void setKey(String newKey) {
-		this.key = newKey;
-	}
+    public String getKey() {
+        return this.key;
+    }
 
-	public List<String> getValue() {
-		return this.value;
-	}
+    public void setKey(String newKey) {
+        this.key = newKey;
+    }
 
-	public void setValue(List<String> newValue) {
-		this.value = newValue;
-	}
+    public List<String> getValue() {
+        return this.value;
+    }
 
-	public String toString() {
-		return "RESTResultKeyValueMap  [key: " + getKey() + "]";
-	}
+    public void setValue(List<String> newValue) {
+        this.value = newValue;
+    }
+
+    public String toString() {
+        return "RESTResultKeyValueMap  [key: " + getKey() + "]";
+    }
 }

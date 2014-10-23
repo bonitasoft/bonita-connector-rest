@@ -19,54 +19,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RESTResult implements Serializable {
-	private static final long serialVersionUID = 1L;
-	private String entity = null;
-	private List<RESTResultKeyValueMap> header = new ArrayList();
-	private long time = 0L;
-	private int statusCode = 0;
-	private String statusLine = null;
 
-	public String getEntity() {
-		return this.entity;
-	}
+    private static final long serialVersionUID = 1L;
+    private String entity = null;
+    private List<RESTResultKeyValueMap> header = new ArrayList();
+    private long time = 0L;
+    private int statusCode = 0;
+    private String statusLine = null;
 
-	public void setEntity(String newEntity) {
-		this.entity = newEntity;
-	}
+    public String getEntity() {
+        return this.entity;
+    }
 
-	public List<RESTResultKeyValueMap> getHeader() {
-		return this.header;
-	}
+    public void setEntity(String newEntity) {
+        this.entity = newEntity;
+    }
 
-	public void setHeader(List<RESTResultKeyValueMap> newHeader) {
-		this.header = newHeader;
-	}
+    public List<RESTResultKeyValueMap> getHeader() {
+        return this.header;
+    }
 
-	public long getTime() {
-		return this.time;
-	}
+    public void setHeader(List<RESTResultKeyValueMap> newHeader) {
+        this.header = newHeader;
+    }
 
-	public void setTime(long newTime) {
-		this.time = newTime;
-	}
+    public long getTime() {
+        return this.time;
+    }
 
-	public int getStatusCode() {
-		return this.statusCode;
-	}
+    public void setTime(long newTime) {
+        this.time = newTime;
+    }
 
-	public void setStatusCode(int newStatusCode) {
-		this.statusCode = newStatusCode;
-	}
+    public int getStatusCode() {
+        return this.statusCode;
+    }
 
-	public String getStatusLine() {
-		return this.statusLine;
-	}
+    public void setStatusCode(int newStatusCode) {
+        this.statusCode = newStatusCode;
+    }
 
-	public void setStatusLine(String newStatusLine) {
-		this.statusLine = newStatusLine;
-	}
+    public String getStatusLine() {
+        return this.statusLine;
+    }
 
-	public String toString() {
-		return "RESTResult  [entity: " + getEntity() + "]" + " [time: " + getTime() + "]" + " [statusCode: " + getStatusCode() + "]" + " [statusLine: " + getStatusLine() + "]";
-	}
+    public void setStatusLine(String newStatusLine) {
+        this.statusLine = newStatusLine;
+    }
+
+    public String toString() {
+        return "RESTResult  [entity: " + getEntity() + "]" + " [time: " + getTime() + "]" + " [statusCode: " + getStatusCode() + "]" + " [statusLine: "
+                + getStatusLine() + "]";
+    }
 }

@@ -4,7 +4,7 @@
   <version>2.0</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
-  <input defaultValue="" mandatory="true" name="url" type="java.lang.String"/>
+  <input mandatory="true" name="url" type="java.lang.String"/>
   <input defaultValue="GET" mandatory="true" name="method" type="java.lang.String"/>
   <input defaultValue="text/plain" mandatory="true" name="contentType" type="java.lang.String"/>
   <input defaultValue="UTF-8" mandatory="true" name="charset" type="java.lang.String"/>
@@ -13,6 +13,12 @@
   <input mandatory="false" name="body" type="java.lang.String"/>
   <input mandatory="false" name="do_not_follow_redirect" type="java.lang.Boolean"/>
   <input mandatory="false" name="ignore_body" type="java.lang.Boolean"/>
+  <input defaultValue="false" mandatory="false" name="trust_self_signed_certificate" type="java.lang.Boolean"/>
+  <input mandatory="false" name="hostname_verifier" type="java.lang.String"/>
+  <input mandatory="false" name="trust_store_file" type="java.lang.String"/>
+  <input mandatory="false" name="trust_store_password" type="java.lang.String"/>
+  <input mandatory="false" name="key_store_file" type="java.lang.String"/>
+  <input mandatory="false" name="key_store_password" type="java.lang.String"/>
   <input name="auth_basic_username" type="java.lang.String"/>
   <input name="auth_basic_password" type="java.lang.String"/>
   <input name="auth_basic_host" type="java.lang.String"/>
@@ -55,6 +61,24 @@
     <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
     <widget xsi:type="definition:Checkbox" id="do_not_follow_redirect_widget" inputName="do_not_follow_redirect"/>
     <widget xsi:type="definition:Checkbox" id="ignore_body_widget" inputName="ignore_body"/>
+  </page>
+  <page id="SSLPage">
+    <widget xsi:type="definition:Group" id="ssl" optional="false">
+      <widget xsi:type="definition:Checkbox" id="trust_self_signed_certificate_widget" inputName="trust_self_signed_certificate"/>
+  	  <widget xsi:type="definition:Select" id="hostname_verifier_widget" inputName="hostname_verifier">
+        <items>Strict</items>
+        <items>Browser Compatible</items>
+        <items>Allow All</items>
+      </widget>
+    </widget>
+    <widget xsi:type="definition:Group" id="trust_store">
+      <widget xsi:type="definition:Text" id="trust_store_file_widget" inputName="trust_store_file"/>
+      <widget xsi:type="definition:Password" id="trust_store_password_widget" inputName="trust_store_password"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="key_store">
+      <widget xsi:type="definition:Text" id="key_store_file_widget" inputName="key_store_file"/>
+      <widget xsi:type="definition:Password" id="key_store_password_widget" inputName="key_store_password"/>
+    </widget>
   </page>
   <page id="authenticationPage">
     <widget xsi:type="definition:Group" id="auth_basic" optional="false">
