@@ -18,6 +18,8 @@
 
 	<modules>
 		<module>bonita-connector-rest-def</module>
+		<module>restclient-server</module>
+		<module>restclient-lib</module>
 		<module>bonita-connector-rest-impl</module>
 	</modules>
 
@@ -38,6 +40,15 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

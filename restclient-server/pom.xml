@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.bonitasoft.connectors</groupId>
+        <artifactId>bonita-connector-rest</artifactId>
+        <version>2.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.wiztools.restclient</groupId>
+    <artifactId>restclient-server</artifactId>
+    <packaging>jar</packaging>
+    <version>3.4.3</version>
+    <name>${project.artifactId}</name>
+    <dependencies>
+    	<dependency>
+			<groupId>org.wiztools.commons</groupId>
+			<artifactId>wiztools-commons-lib</artifactId>
+			<version>0.3.0</version>
+		</dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>9.2.2.v20140723</version>
+        </dependency>
+    </dependencies>
+</project>

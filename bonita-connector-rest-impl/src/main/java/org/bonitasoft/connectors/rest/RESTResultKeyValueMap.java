@@ -18,28 +18,59 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The key value object of the result of a REST Connector
+ */
 public class RESTResultKeyValueMap implements Serializable {
 
+    /**
+     * The serial version
+     */
     private static final long serialVersionUID = 1L;
+    
+    /**
+     * The key of the element
+     */
     private String key = null;
+    
+    /**
+     * The value of the element which is a list of values
+     */
     private List<String> value = new ArrayList<String>();
 
+    /**
+     * Get the key
+     * @return the key
+     */
     public String getKey() {
         return this.key;
     }
 
-    public void setKey(String newKey) {
+    /**
+     * Set the key
+     * @param newKey the key
+     */
+    public void setKey(final String newKey) {
         this.key = newKey;
     }
 
+    /**
+     * Get the value
+     * @return the value
+     */
     public List<String> getValue() {
         return this.value;
     }
 
-    public void setValue(List<String> newValue) {
+    /**
+     * Set the value
+     * @param newValue the value
+     */
+    public void setValue(final List<String> newValue) {
         this.value = newValue;
     }
 
+    @Override
     public String toString() {
         return "RESTResultKeyValueMap  [key: " + getKey() + "]";
     }
