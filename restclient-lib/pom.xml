@@ -81,6 +81,7 @@
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all-minimal</artifactId>
             <version>1.5.8</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>net.htmlparser.jericho</groupId>

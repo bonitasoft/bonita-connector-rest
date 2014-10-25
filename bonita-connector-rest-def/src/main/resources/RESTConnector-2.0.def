@@ -34,7 +34,7 @@
   <input name="auth_NTLM_workstation" type="java.lang.String"/>
   <input name="auth_NTLM_domain" type="java.lang.String"/>
   <input name="auth_OAuth2_bearer_token" type="java.lang.String"/>
-  <output name="result" type="org.bonitasoft.restresult.RESTResult"/>
+  <output name="result" type="org.bonitasoft.connectors.rest.RESTResult"/>
   <page id="RESTConnectorWizardPage">
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
     <widget xsi:type="definition:Select" id="methodWidget" inputName="method">
@@ -65,7 +65,7 @@
   <page id="SSLPage">
     <widget xsi:type="definition:Group" id="ssl" optional="false">
       <widget xsi:type="definition:Checkbox" id="trust_self_signed_certificate_widget" inputName="trust_self_signed_certificate"/>
-  	  <widget xsi:type="definition:Select" id="hostname_verifier_widget" inputName="hostname_verifier">
+      <widget xsi:type="definition:Select" id="hostname_verifier_widget" inputName="hostname_verifier">
         <items>Strict</items>
         <items>Browser Compatible</items>
         <items>Allow All</items>
@@ -105,5 +105,5 @@
       <widget xsi:type="definition:Text" id="auth_OAuth2_bearer_token_widget" inputName="auth_OAuth2_bearer_token"/>
     </widget>
   </page>
-  <jarDependency>org.bonitasoft.restresult.jar</jarDependency>
+  <jarDependency>bonita-connector-rest-impl-2.0.jar</jarDependency>
 </definition:ConnectorDefinition>
