@@ -123,9 +123,14 @@ import org.wiztools.restclient.util.IDNUtil;
 public class RESTConnector extends AbstractRESTConnectorImpl {
 
     /**
-     * The UTF-8 constant
+     * The Charset constants
      */
     private static final String UTF_8_STR = "UTF-8";
+    private static final String UTF_16_STR = "UTF-16";
+    private static final String UTF_16BE_STR = "UTF-16BE";
+    private static final String UTF_16LE_STR = "UTF-16LE";
+    private static final String ISO_8859_1_STR = "ISO-8859-1";
+    private static final String US_ASCII_STR = "US-ASCII";
 
     /**
      * The class logger
@@ -136,10 +141,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     public void validateInputParameters() throws ConnectorValidationException {
         super.validateInputParameters();
 
-        LOGGER.info("super validateInputParameters done.");
+        LOGGER.fine("super validateInputParameters done.");
 
         final List<String> messages = new ArrayList<String>(0);
-        if (getUrl() == null || getUrl().isEmpty()) {
+        if (!isStringInputValid(getUrl())) {
             messages.add(URL_INPUT_PARAMETER);
         } else {
             try {
@@ -149,82 +154,87 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             }
         }
 
-        if (getMethod() == null || getMethod().isEmpty()) {
+        if (!isStringInputValid(getMethod())) {
             messages.add(METHOD_INPUT_PARAMETER);
         }
 
-        if (getContentType() == null || getContentType().isEmpty()) {
+        if (!isStringInputValid(getContentType())) {
             messages.add(CONTENTTYPE_INPUT_PARAMETER);
         }
-        if (getCharset() == null || getCharset().isEmpty()) {
+        if (!isStringInputValid(getCharset())) {
             messages.add(CHARSET_INPUT_PARAMETER);
         }
 
         List<?> urlCookies = getUrlCookies();
-        messages.addAll(manageUrlCookies(urlCookies));
+        messages.addAll(manageKeyValueCouples(urlCookies, URLCOOKIES_INPUT_PARAMETER));
 
         List<?> urlheaders = getUrlHeaders();
-        messages.addAll(manageUrlHeaders(urlheaders));
+        messages.addAll(manageKeyValueCouples(urlheaders, URLHEADERS_INPUT_PARAMETER));
 
         if (!messages.isEmpty()) {
-            LOGGER.severe("validateInputParameters error: " + messages.toString());
+            LOGGER.fine("validateInputParameters error: " + messages.toString());
             throw new ConnectorValidationException(this, messages);
         }
     }
 
     /**
-     * Validate the cookie entries
-     * @param urlCookies The cookies from the input
+     * Is the String input valid?
+     * @param value The value to be checked
+     * @return If the String input is valid or not
+     */
+    private boolean isStringInputValid(final String value) {
+        return value != null && !value.isEmpty();
+    }
+
+    /**
+     * Validate the key value couples
+     * @param keyValueCouples The key value couples from the input
+     * @param inputName The input name where the key value couples are from
      * @return The error messages if any or empty list otherwise
      */
-    private static List<String> manageUrlCookies(final List<?> urlCookies) {
+    private static List<String> manageKeyValueCouples(final List<?> keyValueCouples, final String inputName) {
         List<String> messages = new ArrayList<String>();
-        if (urlCookies != null) {
-            for (Object urlCookie : urlCookies) {
-                if (urlCookie instanceof List) {
-                    List<?> urlCookieRow = (List<?>) urlCookie;
-                    if (urlCookieRow.size() != 2) {
-                        messages.add(URLCOOKIES_INPUT_PARAMETER + " - columns - " + urlCookieRow.size());
-                    } else if (urlCookieRow.get(0) == null || urlCookieRow.get(0).toString().isEmpty() || urlCookieRow.get(1) == null) {
-                        messages.add(URLCOOKIES_INPUT_PARAMETER + " - value");
-                    }
-                } else {
-                    messages.add(URLCOOKIES_INPUT_PARAMETER + " - type");
+        if (keyValueCouples == null) {
+            return messages;
+        }
+        for (Object keyValueCouple : keyValueCouples) {
+            if (keyValueCouple instanceof List) {
+                List<?> keyValueCoupleRow = (List<?>) keyValueCouple;
+                if (!isItAKeyValueCouple(keyValueCoupleRow)) {
+                    messages.add(inputName + " - columns - " + keyValueCoupleRow.size());
+                } else if (!isKeyValueCoupleValid(keyValueCoupleRow)) {
+                    messages.add(inputName + " - value");
                 }
+            } else {
+                messages.add(inputName + " - type");
             }
         }
         return messages;
     }
 
     /**
-     * Validate the header entries
-     * @param urlheaders The headers from the input
-     * @return The error messages if any or empty list otherwise
+     * Is the key and the value valid?
+     * @param keyValueCoupleRow The key value couple row
+     * @return If the key and the value is valid or not
      */
-    private static List<String> manageUrlHeaders(final List<?> urlheaders) {
-        List<String> messages = new ArrayList<String>();
-        if (urlheaders != null) {
-            for (Object urlheader : urlheaders) {
-                if (urlheader instanceof List) {
-                    List<?> urlheaderRow = (List<?>) urlheader;
-                    if (urlheaderRow.size() != 2) {
-                        messages.add(URLHEADERS_INPUT_PARAMETER + " - columns - " + urlheaderRow.size());
-                    } else if (urlheaderRow.get(0) == null || urlheaderRow.get(0).toString().isEmpty() || urlheaderRow.get(1) == null) {
-                        messages.add(URLHEADERS_INPUT_PARAMETER + " - value");
-                    }
-                } else {
-                    messages.add(URLHEADERS_INPUT_PARAMETER + " - type");
-                }
-            }
-        }
-        return messages;
+    private static boolean isKeyValueCoupleValid(final List<?> keyValueCoupleRow) {
+        return keyValueCoupleRow.get(0) != null && !keyValueCoupleRow.get(0).toString().isEmpty() && keyValueCoupleRow.get(1) != null;
+    }
+
+    /**
+     * Is the row a key value couple?
+     * @param keyValueCoupleRow the list of elements stating the row
+     * @return If the row is a key value couple or not
+     */
+    private static boolean isItAKeyValueCouple(final List<?> keyValueCoupleRow) {
+        return keyValueCoupleRow.size() == 2;
     }
 
     @Override
     protected void executeBusinessLogic() throws ConnectorException {
         RequestBean request = buildRequest();
         ResponseBean response = execute(request);
-        LOGGER.info("Request sent.");
+        LOGGER.fine("Request sent.");
         extractResponse(response);
     }
 
@@ -238,108 +248,189 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         try {
             request = new RequestBean();
             request.setUrl(new URL(getUrl()));
-            LOGGER.info("URL set to: " + request.getUrl().toString());
+            LOGGER.fine("URL set to: " + request.getUrl().toString());
             String bodyStr = "";
             if (getBody() != null) {
                 bodyStr = getBody();
             }
             request.setBody(new ReqEntityStringBean(bodyStr, new ContentTypeBean(getContentType(), getCharset(getCharset()))));
-            LOGGER.info("Body set to: " + request.getBody().toString());
+            LOGGER.fine("Body set to: " + request.getBody().toString());
             request.setMethod(getHTTPMethod(getMethod()));
-            LOGGER.info("Method set to: " + request.getMethod().toString());
+            LOGGER.fine("Method set to: " + request.getMethod().toString());
             request.setFollowRedirect(!getDoNotFollowRedirect());
-            LOGGER.info("Follow redirect set to: " + request.isFollowRedirect());
+            LOGGER.fine("Follow redirect set to: " + request.isFollowRedirect());
             request.setIgnoreResponseBody(getIgnoreBody());
-            LOGGER.info("Ignore body set to: " + request.isIgnoreResponseBody());
+            LOGGER.fine("Ignore body set to: " + request.isIgnoreResponseBody());
             for (Object urlheader : getUrlHeaders()) {
                 List<?> urlheaderRow = (List<?>) urlheader;
                 request.addHeader(urlheaderRow.get(0).toString(), urlheaderRow.get(1).toString());
-                LOGGER.info("Add header: " + urlheaderRow.get(0).toString() + " set as " + urlheaderRow.get(1).toString());
+                LOGGER.fine("Add header: " + urlheaderRow.get(0).toString() + " set as " + urlheaderRow.get(1).toString());
             }
             for (Object urlCookie : getUrlCookies()) {
                 List<?> urlCookieRow = (List<?>) urlCookie;
                 request.addCookie(new HttpCookie(urlCookieRow.get(0).toString(), urlCookieRow.get(1).toString()));
-                LOGGER.info("Add cookie: " + urlCookieRow.get(0).toString() + " set as " + urlCookieRow.get(1).toString());
+                LOGGER.fine("Add cookie: " + urlCookieRow.get(0).toString() + " set as " + urlCookieRow.get(1).toString());
             }
 
-            if ((getTrust_store_file() != null && !getTrust_store_file().isEmpty()) 
-                    && (getKey_store_file() != null && !getKey_store_file().isEmpty())
-                    || getTrust_self_signed_certificate()) {
-                SSLReqBean sslReq = new SSLReqBean();
-                sslReq.setHostNameVerifier(SSLHostnameVerifier.valueOf(getHostname_verifier()));
-                sslReq.setTrustSelfSignedCert(getTrust_self_signed_certificate());
-
-                SSLKeyStoreBean sslTrustStore = new SSLKeyStoreBean();
-                sslTrustStore.setFile(new File(getTrust_store_file()));
-                sslTrustStore.setPassword(getTrust_store_password().toCharArray());
-                sslReq.setTrustStore(sslTrustStore);
-
-                SSLKeyStoreBean sslKeyStore = new SSLKeyStoreBean();
-                sslKeyStore.setFile(new File(getKey_store_file()));
-                sslKeyStore.setPassword(getKey_store_password().toCharArray());
-                sslReq.setKeyStore(sslKeyStore);
-
-                request.setSslReq(sslReq);
-                LOGGER.info("Add the SSL options");
+            if (isSSLSet()) {
+                request.setSslReq(buildSSLReq());
+                LOGGER.fine("Add the SSL options");
             }
 
-            if (getAuth_basic_username() != null && !getAuth_basic_username().isEmpty() 
-                    && getAuth_basic_password() != null && !getAuth_basic_password().isEmpty() 
-                    && getAuth_basic_preemptive() != null) {
-                LOGGER.info("Add basic auth");
-
-                BasicAuthBean auth = new BasicAuthBean();
-                auth.setUsername(getAuth_basic_username());
-                auth.setPassword(getAuth_basic_password().toCharArray());
-
-                if (getAuth_basic_host() != null && !getAuth_basic_host().isEmpty()) {
-                    auth.setHost(getAuth_basic_host());
-                }
-                if (getAuth_basic_realm() != null && !getAuth_basic_realm().isEmpty()) {
-                    auth.setRealm(getAuth_basic_realm());
-                }
-                auth.setPreemptive(getAuth_basic_preemptive());
-
-                request.setAuth(auth);
-            } else if (getAuth_digest_username() != null && !getAuth_digest_username().isEmpty() 
-                    && getAuth_digest_password() != null && !getAuth_digest_password().isEmpty() 
-                    && getAuth_digest_preemptive() != null) {
-                LOGGER.info("Add digest auth");
-
-                DigestAuthBean auth = new DigestAuthBean();
-                auth.setUsername(getAuth_digest_username());
-                auth.setPassword(getAuth_digest_password().toCharArray());
-
-                if (getAuth_digest_host() != null && !getAuth_digest_host().isEmpty()) {
-                    auth.setHost(getAuth_digest_host());
-                }
-                if (getAuth_digest_realm() != null && !getAuth_digest_realm().isEmpty()) {
-                    auth.setRealm(getAuth_digest_realm());
-                }
-                auth.setPreemptive(getAuth_digest_preemptive());
-
-                request.setAuth(auth);
-            } else if (getAuth_NTLM_username() != null && !getAuth_NTLM_username().isEmpty() 
-                    && getAuth_NTLM_password() != null && !getAuth_NTLM_password().isEmpty() 
-                    && getAuth_NTLM_workstation() != null && !getAuth_NTLM_workstation().isEmpty() 
-                    && getAuth_NTLM_domain() != null && !getAuth_NTLM_domain().isEmpty()) {
-                NtlmAuthBean auth = new NtlmAuthBean();
-                auth.setUsername(getAuth_NTLM_username());
-                auth.setPassword(getAuth_NTLM_password().toCharArray());
-                auth.setWorkstation(getAuth_NTLM_workstation());
-                auth.setDomain(getAuth_NTLM_domain());
-
-                request.setAuth(auth);
-            } else if (getAuth_OAuth2_bearer_token() != null && !getAuth_OAuth2_bearer_token().isEmpty()) {
-                AuthorizationHeaderAuthBean auth = new AuthorizationHeaderAuthBean();
-                auth.setAuthorizationHeaderValue(getAuth_OAuth2_bearer_token());
-                request.setAuth(auth);
+            if (isBasicAuthSet()) {
+                LOGGER.fine("Add basic auth");
+                request.setAuth(buildBasicAuth());
+            } else if (isDigestAuthSet()) {
+                LOGGER.fine("Add digest auth");
+                request.setAuth(buildDigestAuth());
+            } else if (isNTLMAuthSet()) {
+                LOGGER.fine("Add NTLM auth");
+                request.setAuth(buildNTLMAuth());
+            } else if (isOAuth2AuthSet()) {
+                LOGGER.fine("Add Token auth");
+                request.setAuth(buildTokenAuth());
             }
         } catch (Exception e) {
             logException(e);
-            throw new ConnectorException(e);
         }
         return request;
+    }
+
+    /**
+     * Is the OAuth2 Auth used?
+     * @return If the OAuth2 Auth is used or not
+     */
+    private boolean isOAuth2AuthSet() {
+        return getAuth_OAuth2_bearer_token() != null && !getAuth_OAuth2_bearer_token().isEmpty();
+    }
+
+    /**
+     * Is the NTLM Auth used?
+     * @return If the NTLM Auth is used or not
+     */
+    private boolean isNTLMAuthSet() {
+        return getAuth_NTLM_username() != null && !getAuth_NTLM_username().isEmpty() 
+                && getAuth_NTLM_password() != null && !getAuth_NTLM_password().isEmpty() 
+                && getAuth_NTLM_workstation() != null && !getAuth_NTLM_workstation().isEmpty() 
+                && getAuth_NTLM_domain() != null && !getAuth_NTLM_domain().isEmpty();
+    }
+
+    /**
+     * Is the Digest Auth used?
+     * @return If the Digest Auth is used or not
+     */
+    private boolean isDigestAuthSet() {
+        return getAuth_digest_username() != null && !getAuth_digest_username().isEmpty() 
+                && getAuth_digest_password() != null && !getAuth_digest_password().isEmpty() 
+                && getAuth_digest_preemptive() != null;
+    }
+
+    /**
+     * Is the Basic Auth used?
+     * @return If the Basic Auth is used or not
+     */
+    private boolean isBasicAuthSet() {
+        return getAuth_basic_username() != null && !getAuth_basic_username().isEmpty() 
+                && getAuth_basic_password() != null && !getAuth_basic_password().isEmpty() 
+                && getAuth_basic_preemptive() != null;
+    }
+
+    /**
+     * Is the SSL used?
+     * @return If the SSL is used or not
+     */
+    private boolean isSSLSet() {
+        return (getTrust_store_file() != null && !getTrust_store_file().isEmpty()) 
+                && (getKey_store_file() != null && !getKey_store_file().isEmpty())
+                || getTrust_self_signed_certificate();
+    }
+    
+    /**
+     * Build the Token Auth bean for the request builder
+     * @return The Token Auth according to the input values
+     */
+    private AuthorizationHeaderAuthBean buildTokenAuth() {
+        AuthorizationHeaderAuthBean auth = new AuthorizationHeaderAuthBean();
+        auth.setAuthorizationHeaderValue(getAuth_OAuth2_bearer_token());
+        
+        return auth;
+    }
+    
+    /**
+     * Build the NTLM Auth bean for the request builder
+     * @return The NTLM Auth according to the input values
+     */
+    private NtlmAuthBean buildNTLMAuth() {
+        NtlmAuthBean auth = new NtlmAuthBean();
+        auth.setUsername(getAuth_NTLM_username());
+        auth.setPassword(getAuth_NTLM_password().toCharArray());
+        auth.setWorkstation(getAuth_NTLM_workstation());
+        auth.setDomain(getAuth_NTLM_domain());
+        
+        return auth;
+    }
+    
+    
+    /**
+     * Build the Digest Auth bean for the request builder
+     * @return The Digest Auth according to the input values
+     */
+    private DigestAuthBean buildDigestAuth() {
+        DigestAuthBean auth = new DigestAuthBean();
+        auth.setUsername(getAuth_digest_username());
+        auth.setPassword(getAuth_digest_password().toCharArray());
+    
+        if (getAuth_digest_host() != null && !getAuth_digest_host().isEmpty()) {
+            auth.setHost(getAuth_digest_host());
+        }
+        if (getAuth_digest_realm() != null && !getAuth_digest_realm().isEmpty()) {
+            auth.setRealm(getAuth_digest_realm());
+        }
+        auth.setPreemptive(getAuth_digest_preemptive());
+        
+        return auth;
+    }
+    
+    /**
+     * Build the Basic Auth bean for the request builder
+     * @return The Basic Auth according to the input values
+     */
+    private BasicAuthBean buildBasicAuth() {
+        BasicAuthBean auth = new BasicAuthBean();
+        auth.setUsername(getAuth_basic_username());
+        auth.setPassword(getAuth_basic_password().toCharArray());
+    
+        if (getAuth_basic_host() != null && !getAuth_basic_host().isEmpty()) {
+            auth.setHost(getAuth_basic_host());
+        }
+        if (getAuth_basic_realm() != null && !getAuth_basic_realm().isEmpty()) {
+            auth.setRealm(getAuth_basic_realm());
+        }
+        auth.setPreemptive(getAuth_basic_preemptive());
+        
+        return auth;
+    }
+    
+    /**
+     * Build the SSL Req bean for the request builder
+     * @return The SSL Req according to the input values
+     */
+    private SSLReqBean buildSSLReq() {
+        SSLReqBean sslReq = new SSLReqBean();
+        sslReq.setHostNameVerifier(SSLHostnameVerifier.valueOf(getHostname_verifier()));
+        sslReq.setTrustSelfSignedCert(getTrust_self_signed_certificate());
+    
+        SSLKeyStoreBean sslTrustStore = new SSLKeyStoreBean();
+        sslTrustStore.setFile(new File(getTrust_store_file()));
+        sslTrustStore.setPassword(getTrust_store_password().toCharArray());
+        sslReq.setTrustStore(sslTrustStore);
+    
+        SSLKeyStoreBean sslKeyStore = new SSLKeyStoreBean();
+        sslKeyStore.setFile(new File(getKey_store_file()));
+        sslKeyStore.setPassword(getKey_store_password().toCharArray());
+        sslReq.setKeyStore(sslKeyStore);
+        
+        return sslReq;
     }
 
     /**
@@ -350,9 +441,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         RESTResult result = new RESTResult();
         if (response != null) {
             String entity = "empty";
-            if (response.getResponseBody() != null && response.getResponseBody().length > 0) {
+            if (isReponseHasToBeExtracted(response)) {
                 entity = new String(response.getResponseBody()).trim();
-                LOGGER.info("Response entity extracted and not empty.");
+                LOGGER.fine("Response entity extracted and not empty.");
             }
             result.setEntity(entity);
             List<RESTResultKeyValueMap> header = new ArrayList<RESTResultKeyValueMap>();
@@ -365,20 +456,29 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 mapping.setKey(key);
                 mapping.setValue(values);
                 header.add(mapping);
-                LOGGER.info("Header value extracted.");
+                LOGGER.fine("Header value extracted.");
             }
             result.setHeader(header);
             result.setTime(response.getExecutionTime());
-            LOGGER.info("Time extracted.");
+            LOGGER.fine("Time extracted.");
             result.setStatusCode(response.getStatusCode());
-            LOGGER.info("Status code extracted.");
+            LOGGER.fine("Status code extracted.");
             result.setStatusLine(response.getStatusLine());
-            LOGGER.info("Status line extracted.");
+            LOGGER.fine("Status line extracted.");
         } else {
-            LOGGER.severe("Response is null.");
+            LOGGER.fine("Response is null.");
         }
         setResult(result);
-        LOGGER.info("Result set.");
+        LOGGER.fine("Result set.");
+    }
+
+    /**
+     * Is the response body to be extracted?
+     * @param response The reponse to be checked
+     * @return If the response body has to be extracted or not
+     */
+    private boolean isReponseHasToBeExtracted(final ResponseBean response) {
+        return response.getResponseBody() != null && response.getResponseBody().length > 0;
     }
 
     /**
@@ -403,6 +503,21 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             if (UTF_8_STR.equals(input)) {
                 return Charsets.UTF_8;
             }
+            if (UTF_16_STR.equals(input)) {
+                return Charsets.UTF_16;
+            }
+            if (UTF_16BE_STR.equals(input)) {
+                return Charsets.UTF_16BE;
+            }
+            if (UTF_16LE_STR.equals(input)) {
+                return Charsets.UTF_16LE;
+            }
+            if (ISO_8859_1_STR.equals(input)) {
+                return Charsets.ISO_8859_1;
+            }
+            if (US_ASCII_STR.equals(input)) {
+                return Charsets.US_ASCII;
+            }
         }
         return Charsets.UTF_8;
     }
@@ -411,8 +526,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Execute a given request
      * @param request The request to execute
      * @return The response of the executed request
+     * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
-    public static ResponseBean execute(final Request request) {
+    public static ResponseBean execute(final Request request) throws ConnectorException {
         CloseableHttpClient httpClient = null;
 
         try {
@@ -509,9 +625,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param ignoreResponseBody Is the body ignored or not
      * @param executionTime Execution time of the request
      * @throws IOException exception
+     * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
     private static void setResponse(final HttpResponse httpRes, final ResponseBean response, final boolean ignoreResponseBody, final long executionTime) 
-            throws IOException {
+            throws IOException, ConnectorException {
         response.setExecutionTime(executionTime);
 
         response.setStatusCode(httpRes.getStatusLine().getStatusCode());
@@ -809,6 +926,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 reqBuilder.addHeader(header);
             }
         }
+        
         return httpContext;
     }
 
@@ -843,29 +961,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     /**
      * Log an exception in generic way
      * @param e The exception raised
+     * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
-    private static void logException(final Exception e) {
+    private static void logException(final Exception e) throws ConnectorException {
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append(e.toString());
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
             stringBuffer.append("\n" + stackTraceElement);
         }
-        LOGGER.severe("executeBusinessLogic error: " + stringBuffer.toString());
+        LOGGER.fine("executeBusinessLogic error: " + stringBuffer.toString());
+        throw new ConnectorException(e);
     }
 }
-
-//Set proxy
-//        ProxyConfig proxy = ProxyConfig.getInstance();
-//        proxy.acquire();
-//        if (proxy.isEnabled()) {
-//            final HttpHost proxyHost = new HttpHost(proxy.getHost(), proxy.getPort(), "http");
-//            if (proxy.isAuthEnabled()) {
-//                CredentialsProvider credsProvider = new BasicCredentialsProvider();
-//                credsProvider.setCredentials(
-//                        new AuthScope(proxy.getHost(), proxy.getPort()),
-//                        new UsernamePasswordCredentials(proxy.getUsername(), new String(proxy.getPassword())));
-//                hcBuilder.setDefaultCredentialsProvider(credsProvider);
-//            }
-//            hcBuilder.setProxy(proxyHost);
-//        }
-//        proxy.release();

@@ -49,6 +49,11 @@
     </widget>
     <widget xsi:type="definition:Select" id="charsetWidget" inputName="charset">
       <items>UTF-8</items>
+      <items>UTF-16</items>
+      <items>UTF-16BE</items>
+      <items>UTF-16LE</items>
+      <items>US-ASCII</items>
+      <items>ISO-8859-1</items>
     </widget>
     <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
       <colsCaption>Key</colsCaption>
