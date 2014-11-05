@@ -12,7 +12,7 @@
  * Floor, Boston, MA 02110-1301, USA.
  **/
 
-package org.bonitasoft.connectors.rest.test;
+package org.bonitasoft.connectors.rest;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
@@ -60,38 +60,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String WM_CHARSET = "charset";
     private static final String WM_COOKIES = "Cookie";
     private static final String WM_AUTHORIZATION = "Authorization";
-    
-    //connector input names
-    /**
-     * All inputs and outputs accessible from the REST Connector
-     */
-    private static final String URL_INPUT_PARAMETER = "url";
-    private static final String METHOD_INPUT_PARAMETER = "method";
-    private static final String CONTENTTYPE_INPUT_PARAMETER = "contentType";
-    private static final String CHARSET_INPUT_PARAMETER = "charset";
-    private static final String URLCOOKIES_INPUT_PARAMETER = "urlCookies";
-    private static final String URLHEADERS_INPUT_PARAMETER = "urlHeaders";
-    private static final String BODY_INPUT_PARAMETER = "body";
-    private static final String DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER = "do_not_follow_redirect";
-    private static final String IGNORE_BODY_INPUT_PARAMETER = "ignore_body";
-    private static final String TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER = "trust_self_signed_certificate";
-    private static final String HOSTNAME_VERIFIER_INPUT_PARAMETER = "hostname_verifier";
-    private static final String AUTH_BASIC_USERNAME_INPUT_PARAMETER = "auth_basic_username";
-    private static final String AUTH_BASIC_PASSWORD_INPUT_PARAMETER = "auth_basic_password";
-    private static final String AUTH_BASIC_HOST_INPUT_PARAMETER = "auth_basic_host";
-    private static final String AUTH_BASIC_REALM_INPUT_PARAMETER = "auth_basic_realm";
-    private static final String AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER = "auth_basic_preemptive";
-    private static final String AUTH_DIGEST_USERNAME_INPUT_PARAMETER = "auth_digest_username";
-    private static final String AUTH_DIGEST_PASSWORD_INPUT_PARAMETER = "auth_digest_password";
-    private static final String AUTH_DIGEST_HOST_INPUT_PARAMETER = "auth_digest_host";
-    private static final String AUTH_DIGEST_REALM_INPUT_PARAMETER = "auth_digest_realm";
-    private static final String AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER = "auth_digest_preemptive";
-    private static final String AUTH_NTLM_USERNAME_INPUT_PARAMETER = "auth_NTLM_username";
-    private static final String AUTH_NTLM_PASSWORD_INPUT_PARAMETER = "auth_NTLM_password";
-    private static final String AUTH_NTLM_WORKSTATION_INPUT_PARAMETER = "auth_NTLM_workstation";
-    private static final String AUTH_NTLM_DOMAIN_INPUT_PARAMETER = "auth_NTLM_domain";
-    private static final String AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER = "auth_OAuth2_bearer_token";
-    private final static String RESULT_OUTPUT_PARAMETER = "result";
 
     //METHODS
     /**
@@ -276,136 +244,136 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static void buildParameters() {
         for (int i = 0; i < METHODS.size(); i++) {
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put(URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(i));
-            parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(i));
+            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
             METHODS_TC.add(parameters);
         }
 
         for (int i = 0; i < CONTENT_TYPES.size(); i++) {
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put(URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(1));
-            parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(i));
-            parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
+            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(i));
+            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
             CONTENT_TYPES_TC.add(parameters);
         }
 
         for (int i = 0; i < CHARSETS.size(); i++) {
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put(URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(1));
-            parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(i));
-            parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
+            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(i));
+            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
             CHARSETS_TC.add(parameters);
         }
 
         for (int i = 0; i < COOKIESS.size(); i++) {
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put(URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(0));
-            parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(i));
-            parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(i));
+            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
             COOKIESS_TC.add(parameters);
         }
 
         for (int i = 0; i < HEADERSS.size(); i++) {
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put(URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(0));
-            parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(i));
-            parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(i));
+            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
             HEADERSS_TC.add(parameters);
         }
 
         for (int i = 0; i < BODYS.size(); i++) {
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put(URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(1));
-            parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(BODY_INPUT_PARAMETER, BODYS.get(i));
-            parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
+            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(i));
+            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
             BODYS_TC.add(parameters);
         }
 
         for (int i = 0; i < AUTHORIZATIONS.size(); i++) {
             Map<String, Object> parameters = new HashMap<String, Object>();
-            parameters.put(URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(METHOD_INPUT_PARAMETER, METHODS.get(0));
-            parameters.put(CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
             int authIndex = 0;
             if (BASIC.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
                 authIndex += 2;
-                parameters.put(AUTH_BASIC_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_BASIC_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_BASIC_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_BASIC_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
             } else if (DIGEST.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
                 authIndex += 2;
-                parameters.put(AUTH_DIGEST_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_DIGEST_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_DIGEST_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_DIGEST_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
             } else if (NTLM.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
                 authIndex += 2;
-                parameters.put(AUTH_NTLM_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_NTLM_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_NTLM_WORKSTATION_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AUTH_NTLM_DOMAIN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_WORKSTATION_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_DOMAIN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
             } else if (OAUTH2BEARER.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
-                parameters.put(AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(2));
+                parameters.put(AbstractRESTConnectorImpl.AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(2));
             }
 
             AUTHORIZATIONS_TC.add(parameters);
@@ -781,8 +749,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private void checkResultIsPresent(final Map<String, Object> restResult) {
         assertEquals(restResult.size(), 1);
-        assertNotNull(restResult.get(RESULT_OUTPUT_PARAMETER));
-        Object result = restResult.get(RESULT_OUTPUT_PARAMETER);
+        assertNotNull(restResult.get(AbstractRESTConnectorImpl.RESULT_OUTPUT_PARAMETER));
+        Object result = restResult.get(AbstractRESTConnectorImpl.RESULT_OUTPUT_PARAMETER);
         assertTrue(result instanceof RESTResult);
         RESTResult restResultContent = (RESTResult) result;
         assertEquals(OK_STATUS, restResultContent.getStatusCode());

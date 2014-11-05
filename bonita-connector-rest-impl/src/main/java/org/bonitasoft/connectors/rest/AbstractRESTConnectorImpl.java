@@ -49,7 +49,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final static String AUTH_NTLM_WORKSTATION_INPUT_PARAMETER = "auth_NTLM_workstation";
     protected final static String AUTH_NTLM_DOMAIN_INPUT_PARAMETER = "auth_NTLM_domain";
     protected final static String AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER = "auth_OAuth2_bearer_token";
-    protected final String RESULT_OUTPUT_PARAMETER = "result";
+    protected final static String RESULT_OUTPUT_PARAMETER = "result";
 
     protected final java.lang.String getUrl() {
         return (java.lang.String) getInputParameter(URL_INPUT_PARAMETER);

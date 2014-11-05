@@ -12,7 +12,7 @@
  * Floor, Boston, MA 02110-1301, USA.
  **/
 
-package org.bonitasoft.connectors.rest.test;
+package org.bonitasoft.connectors.rest;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.mockito.Mockito;
