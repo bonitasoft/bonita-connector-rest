@@ -14,9 +14,8 @@
 
 package org.bonitasoft.connectors.rest.test;
 
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -38,12 +37,6 @@ import com.github.tomakehurst.wiremock.common.Log4jNotifier;
  *
  */
 public class AcceptanceTestBase {
-
-    /**
-     * The sleep time after each WireMock reset
-     */
-    private static final int SLEEP = 200;
-    
     /**
      * The engine execution context of the BonitaSoft mock
      */
@@ -90,13 +83,8 @@ public class AcceptanceTestBase {
     @BeforeClass
     public static void setupServer() {
         port = findFreePort(port);
-        wireMockServer = new WireMockServer(wireMockConfig().port(port).notifier(new Log4jNotifier()));
+        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port).notifier(new Log4jNotifier()));
         wireMockServer.start();
-        try {
-            Thread.sleep(SLEEP);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -114,14 +102,13 @@ public class AcceptanceTestBase {
      */
     @Before
     public void init() throws InterruptedException {
-        setEngineExecutionContext(mock(EngineExecutionContext.class));
-        apiAccessor = mock(APIAccessor.class);
-        processAPI = mock(ProcessAPI.class);
-        when(apiAccessor.getProcessAPI()).thenReturn(processAPI);
+        setEngineExecutionContext(Mockito.mock(EngineExecutionContext.class));
+        apiAccessor = Mockito.mock(APIAccessor.class);
+        processAPI = Mockito.mock(ProcessAPI.class);
+        Mockito.when(apiAccessor.getProcessAPI()).thenReturn(processAPI);
         WireMock.configureFor(url, port);
         Log4jConfiguration.configureLogging(true);
         WireMock.reset();
-        Thread.sleep(SLEEP);
     }
 
     /**

@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl;
 import org.bonitasoft.connectors.rest.RESTConnector;
 import org.bonitasoft.connectors.rest.RESTResult;
 import org.bonitasoft.engine.exception.BonitaException;
@@ -107,8 +108,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     /**
      * All the tested content type values
      */
-    private static final String JSON = "application/json";
     private static final String PLAIN_TEXT = "text/plain";
+    private static final String JSON = "application/json";
     private static final List<String> CONTENT_TYPES = new ArrayList<String>();
     private static final List<Map<String, Object>> CONTENT_TYPES_TC = new ArrayList<Map<String, Object>>();
 
@@ -117,6 +118,11 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * All the tested charset values
      */
     private static final String UTF8 = "UTF-8";
+    private static final String UTF16 = "UTF-16";
+    private static final String UTF16BE = "UTF-16BE";
+    private static final String UTF16LE = "UTF-16LE";
+    private static final String ISO_8859_1 = "ISO-8859-1";
+    private static final String US_ASCII = "US-ASCII";
     private static final List<String> CHARSETS = new ArrayList<String>();
     private static final List<Map<String, Object>> CHARSETS_TC = new ArrayList<Map<String, Object>>();
 
@@ -206,6 +212,11 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         CONTENT_TYPES.add(JSON);
 
         CHARSETS.add(UTF8);
+        CHARSETS.add(UTF16);
+        CHARSETS.add(UTF16BE);
+        CHARSETS.add(UTF16LE);
+        CHARSETS.add(ISO_8859_1);
+        CHARSETS.add(US_ASCII);
 
         COOKIESS.add(ONE_COOKIES);
         COOKIESS.add(TWO_COOKIES);
@@ -417,81 +428,209 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
-     * Test the method values
+     * Test the GET method
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void sendMethodRESTRequests() throws BonitaException, InterruptedException {
-        for (int i = 0; i < METHODS.size(); i++) {
-            if (METHODS.get(i).equals(GET)) {
-                stubFor(get(urlEqualTo("/"))
-                        .willReturn(aResponse().withStatus(OK_STATUS)));
-            } else if (METHODS.get(i).equals(POST)) {
-                stubFor(post(urlEqualTo("/"))
-                        .willReturn(aResponse().withStatus(OK_STATUS)));
-            } else if (METHODS.get(i).equals(PUT)) {
-                stubFor(put(urlEqualTo("/"))
-                        .willReturn(aResponse().withStatus(OK_STATUS)));
-            } else if (METHODS.get(i).equals(DELETE)) {
-                stubFor(delete(urlEqualTo("/"))
-                        .willReturn(aResponse().withStatus(OK_STATUS)));
-            }
+    public void testGetMethod() throws BonitaException, InterruptedException {
+        stubFor(get(urlEqualTo("/"))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
 
-            checkResultIsPresent(executeConnector(METHODS_TC.get(i)));
-            init();
-        }
+        checkResultIsPresent(executeConnector(METHODS_TC.get(0)));
+        init();
+    }
+    
+    /**
+     * Test the POST method
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void testPostMethod() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(METHODS_TC.get(1)));
+        init();
+    }
+    
+    /**
+     * Test the PUT method
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void testPutMethod() throws BonitaException, InterruptedException {
+        stubFor(put(urlEqualTo("/"))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(METHODS_TC.get(2)));
+        init();
     }
 
     /**
-     * Test the content type values
+     * Test the DELETE method
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void sendContentTypeRESTRequests() throws BonitaException, InterruptedException {
-        for (int i = 0; i < CONTENT_TYPES.size(); i++) {
-            stubFor(post(urlEqualTo("/"))
-                    .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(i) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
-                    .willReturn(aResponse().withStatus(OK_STATUS)));
+    public void getDeleteMethod() throws BonitaException, InterruptedException {
+        stubFor(delete(urlEqualTo("/"))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
 
-            checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(i)));
-            init();
-        }
+        checkResultIsPresent(executeConnector(METHODS_TC.get(3)));
+        init();
+    }
+    
+    /**
+     * Test the plain text content type
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void plainTextContentType() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(0)));
+        init();
+    }
+    
+    /**
+     * Test the json content type
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void jsonContentType() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(1) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(1)));
+        init();
+    }
+    
+    /**
+     * Test the UTF8 charset
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void utf8Charset() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CHARSETS_TC.get(0)));
+        init();
+    }
+    
+    /**
+     * Test the UTF16 charset
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void utf16Charset() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(1)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CHARSETS_TC.get(1)));
+        init();
+    }
+    
+    /**
+     * Test the UTF16BE charset
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void utf16beCharset() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(2)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CHARSETS_TC.get(2)));
+        init();
+    }
+    
+    /**
+     * Test the UTF16LE charset
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void utf16leCharset() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(3)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CHARSETS_TC.get(3)));
+        init();
+    }
+    
+    /**
+     * Test the ISO-8859-1 charset
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void iso88591Charset() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(4)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CHARSETS_TC.get(4)));
+        init();
+    }
+    
+    /**
+     * Test the US ASCII charset
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void usASCIICharset() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(5)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CHARSETS_TC.get(5)));
+        init();
     }
 
     /**
-     * Test the charset values
+     * Test one value cookie
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void sendCharsetRESTRequests() throws BonitaException, InterruptedException {
-        for (int i = 0; i < CHARSETS.size(); i++) {
-            stubFor(post(urlEqualTo("/"))
-                    .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(i)))
-                    .willReturn(aResponse().withStatus(OK_STATUS)));
+    public void oneValueCookie() throws BonitaException, InterruptedException {
+        stubFor(get(urlEqualTo("/"))
+                .withHeader(WM_COOKIES, equalTo(generateCookieSet(COOKIESS.get(0))))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
 
-            checkResultIsPresent(executeConnector(CHARSETS_TC.get(i)));
-            init();
-        }
+        checkResultIsPresent(executeConnector(COOKIESS_TC.get(0)));
+        init();
     }
-
+    
     /**
-     * Test the cookies values
+     * Test two values cookie
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void sendCookiesRESTRequests() throws BonitaException, InterruptedException {
-        for (int i = 0; i < COOKIESS.size(); i++) {
-            stubFor(get(urlEqualTo("/"))
-                    .withHeader(WM_COOKIES, equalTo(generateCookieSet(COOKIESS.get(i))))
-                    .willReturn(aResponse().withStatus(OK_STATUS)));
+    public void twoValuesCookie() throws BonitaException, InterruptedException {
+        stubFor(get(urlEqualTo("/"))
+                .withHeader(WM_COOKIES, equalTo(generateCookieSet(COOKIESS.get(1))))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
 
-            checkResultIsPresent(executeConnector(COOKIESS_TC.get(i)));
-            init();
-        }
+        checkResultIsPresent(executeConnector(COOKIESS_TC.get(1)));
+        init();
     }
 
     /**
@@ -503,11 +642,9 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         StringBuffer strBuffer = new StringBuffer();
 
         if (!cookies.isEmpty()) {
-//            strBuffer.append("$Version=1; " + cookies.get(0).get(0) + "=\"" + cookies.get(0).get(1) + "\"");
           strBuffer.append(cookies.get(0).get(0) + "=" + cookies.get(0).get(1));
         }
         for (int i = 1; i < cookies.size(); i++) {
-//            strBuffer.append("; " + cookies.get(i).get(0) + "=\"" + cookies.get(i).get(1) + "\"");
           strBuffer.append("; " + cookies.get(i).get(0) + "=" + cookies.get(i).get(1));
         }
 
@@ -515,56 +652,127 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
-     * Test the headers values
+     * Test one value header
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void sendHeadersRESTRequests() throws BonitaException, InterruptedException {
-        for (int i = 0; i < HEADERSS.size(); i++) {
-            MappingBuilder mb = get(urlEqualTo("/"));
-            for (int j = 0; j < HEADERSS.get(i).size(); j++) {
-                mb.withHeader(HEADERSS.get(i).get(j).get(0), equalTo(HEADERSS.get(i).get(j).get(1)));
-            }
-            stubFor(mb.willReturn(aResponse().withStatus(OK_STATUS)));
-
-            checkResultIsPresent(executeConnector(HEADERSS_TC.get(i)));
-            init();
+    public void oneValueHeader() throws BonitaException, InterruptedException {
+        MappingBuilder mb = get(urlEqualTo("/"));
+        for (int j = 0; j < HEADERSS.get(0).size(); j++) {
+            mb.withHeader(HEADERSS.get(0).get(j).get(0), equalTo(HEADERSS.get(0).get(j).get(1)));
         }
+        stubFor(mb.willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(HEADERSS_TC.get(0)));
+        init();
+    }
+    
+    /**
+     * Test two values header
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void twoValuesHeader() throws BonitaException, InterruptedException {
+        MappingBuilder mb = get(urlEqualTo("/"));
+        for (int j = 0; j < HEADERSS.get(1).size(); j++) {
+            mb.withHeader(HEADERSS.get(1).get(j).get(0), equalTo(HEADERSS.get(1).get(j).get(1)));
+        }
+        stubFor(mb.willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(HEADERSS_TC.get(1)));
+        init();
     }
 
     /**
-     * Test the bodies values
+     * Test empty body
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void sendBodyRESTRequests() throws BonitaException, InterruptedException {
-        for (int i = 0; i < BODYS.size(); i++) {
-            stubFor(post(urlEqualTo("/"))
-                    .withRequestBody(equalTo(BODYS.get(i)))
-                    .willReturn(aResponse().withStatus(OK_STATUS)));
+    public void emptyBody() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withRequestBody(equalTo(BODYS.get(0)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
 
-            checkResultIsPresent(executeConnector(BODYS_TC.get(i)));
-            init();
-        }
+        checkResultIsPresent(executeConnector(BODYS_TC.get(0)));
+        init();
+    }
+    
+    /**
+     * Test not empty body
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void notEmptyBody() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withRequestBody(equalTo(BODYS.get(1)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(BODYS_TC.get(1)));
+        init();
+    }
+    
+    /**
+     * Test the basic auth with username and password
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void basicAuthWithUsernameAndPassword() throws BonitaException, InterruptedException {
+        stubFor(get(urlEqualTo("/"))
+                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(0).get(1).toString()))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(0)));
+        init();
+    }
+    
+    /**
+     * Test the basic auth with username password and localhost
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void basicAuthWithUsernamePasswordAndLocalhost() throws BonitaException, InterruptedException {
+        stubFor(get(urlEqualTo("/"))
+                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(1).get(1).toString()))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(1)));
+        init();
+    }
+    
+    /**
+     * Test the basic auth with username password and realm
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void basicAuthWithUsernamePasswordAndRealm() throws BonitaException, InterruptedException {
+        stubFor(get(urlEqualTo("/"))
+                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(2).get(1).toString()))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(2)));
+        init();
     }
 
     /**
-     * Test the authentication values
+     * Test the OAuth2 Bearer with token
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void sendAuthRESTRequests() throws BonitaException, InterruptedException {
-        for (int i = 0; i < AUTHORIZATIONS.size(); i++) {
-            stubFor(get(urlEqualTo("/"))
-                    .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(i).get(1).toString()))
-                    .willReturn(aResponse().withStatus(OK_STATUS)));
+    public void oAuth2BearerAuthWithToken() throws BonitaException, InterruptedException {
+        stubFor(get(urlEqualTo("/"))
+                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(3).get(1).toString()))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
 
-            checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(i)));
-            init();
-        }
+        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(3)));
+        init();
     }
 
     /**
