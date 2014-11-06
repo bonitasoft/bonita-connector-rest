@@ -28,6 +28,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.BeforeClass;
+import org.junit.Rule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import org.bonitasoft.connectors.rest.RESTConnector;
 import org.bonitasoft.connectors.rest.RESTResult;
 import org.bonitasoft.engine.exception.BonitaException;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 
@@ -48,10 +50,11 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 public class RESTConnectorTest extends AcceptanceTestBase {
 
     /**
-     * HTTP OK STATUS
+     * HTTP STATUS
      */
     private static final int OK_STATUS = 200;
-    
+    private static final int NOT_FOUND_STATUS = 404;
+
     //WireMock
     /**
      * All HTTP static strings used by WireMock to do tests
@@ -69,6 +72,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String POST = "POST";
     private static final String PUT = "PUT";
     private static final String DELETE = "DELETE";
+    private static final String METHOD_ERROR = "FAKE_METHOD";
     private static final List<String> METHODS = new ArrayList<String>();
     private static final List<Map<String, Object>> METHODS_TC = new ArrayList<Map<String, Object>>();
 
@@ -78,6 +82,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private static final String PLAIN_TEXT = "text/plain";
     private static final String JSON = "application/json";
+    private static final String CONTENT_TYPE_ERROR = "fakecontenttype";
     private static final List<String> CONTENT_TYPES = new ArrayList<String>();
     private static final List<Map<String, Object>> CONTENT_TYPES_TC = new ArrayList<Map<String, Object>>();
 
@@ -91,6 +96,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String UTF16LE = "UTF-16LE";
     private static final String ISO_8859_1 = "ISO-8859-1";
     private static final String US_ASCII = "US-ASCII";
+    private static final String CHARSET_ERROR = "FAKE-CHARSET";
     private static final List<String> CHARSETS = new ArrayList<String>();
     private static final List<Map<String, Object>> CHARSETS_TC = new ArrayList<Map<String, Object>>();
 
@@ -100,6 +106,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private static final List<List<String>> ONE_COOKIES = new ArrayList<List<String>>();
     private static final List<List<String>> TWO_COOKIES = new ArrayList<List<String>>();
+    private static final List<List<String>> COOKIES_ERROR = new ArrayList<List<String>>();
     private static final List<List<List<String>>> COOKIESS = new ArrayList<List<List<String>>>();
     private static final List<Map<String, Object>> COOKIESS_TC = new ArrayList<Map<String, Object>>();
 
@@ -109,6 +116,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private static final List<List<String>> ONE_HEADERS = new ArrayList<List<String>>();
     private static final List<List<String>> TWO_HEADERS = new ArrayList<List<String>>();
+    private static final List<List<String>> HEADERS_ERROR = new ArrayList<List<String>>();
     private static final List<List<List<String>>> HEADERSS = new ArrayList<List<List<String>>>();
     private static final List<Map<String, Object>> HEADERSS_TC = new ArrayList<Map<String, Object>>();
 
@@ -139,10 +147,25 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String NTLM = "NTLM";
     private static final String OAUTH2BEARER = "OAuth2Bearer";
     private static final String BASIC_RULE = "Basic";
-//    private static final String DIGEST_RULE = "Digest";
-//    private static final String NTLM_RULE = "NTLM";
+    //    private static final String DIGEST_RULE = "Digest";
+    //    private static final String NTLM_RULE = "NTLM";
     private static final List<List<Object>> AUTHORIZATIONS = new ArrayList<List<Object>>();
     private static final List<Map<String, Object>> AUTHORIZATIONS_TC = new ArrayList<Map<String, Object>>();
+
+    //ERRORS
+    /**
+     * All the tested errors
+     */
+    private static final String FAKE_URL = "fakeURL";
+    private static final String FAKE_PORT = "0000";
+    private static final List<String> ERRORS = new ArrayList<String>();
+    private static final List<Map<String, Object>> ERRORS_TC = new ArrayList<Map<String, Object>>();
+
+    /**
+     * Used to assert Exceptions
+     */
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     /**
      * Initialize the tested values
@@ -160,6 +183,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         TWO_COOKIES.add(cookie1);
         TWO_COOKIES.add(cookie2);
 
+        List<String> cookie3 = new ArrayList<String>();
+        cookie3.add("cookie3name");
+        cookie3.add("cookie3value");
+        cookie3.add("cookie3extrat");
+        List<String> cookie4 = new ArrayList<String>();
+        cookie4.add("cookie4nameonly");
+        COOKIES_ERROR.add(cookie1);
+        COOKIES_ERROR.add(cookie2);
+        COOKIES_ERROR.add(cookie3);
+        COOKIES_ERROR.add(cookie4);
+
         List<String> header1 = new ArrayList<String>();
         header1.add("header1name");
         header1.add("header1value");
@@ -171,13 +205,26 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         TWO_HEADERS.add(header1);
         TWO_HEADERS.add(header2);
 
+        List<String> header3 = new ArrayList<String>();
+        header3.add("header3name");
+        header3.add("header3value");
+        header3.add("header3extrat");
+        List<String> header4 = new ArrayList<String>();
+        header4.add("header4nameonly");
+        HEADERS_ERROR.add(header1);
+        HEADERS_ERROR.add(header2);
+        HEADERS_ERROR.add(header3);
+        HEADERS_ERROR.add(header4);
+
         METHODS.add(GET);
         METHODS.add(POST);
         METHODS.add(PUT);
         METHODS.add(DELETE);
+        METHODS.add(METHOD_ERROR);
 
         CONTENT_TYPES.add(PLAIN_TEXT);
         CONTENT_TYPES.add(JSON);
+        CONTENT_TYPES.add(CONTENT_TYPE_ERROR);
 
         CHARSETS.add(UTF8);
         CHARSETS.add(UTF16);
@@ -185,12 +232,15 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         CHARSETS.add(UTF16LE);
         CHARSETS.add(ISO_8859_1);
         CHARSETS.add(US_ASCII);
+        CHARSETS.add(CHARSET_ERROR);
 
         COOKIESS.add(ONE_COOKIES);
         COOKIESS.add(TWO_COOKIES);
+        COOKIESS.add(COOKIES_ERROR);
 
         HEADERSS.add(ONE_HEADERS);
         HEADERSS.add(TWO_HEADERS);
+        HEADERSS.add(HEADERS_ERROR);
 
         BODYS.add(EMPTY);
         BODYS.add(FULL);
@@ -235,6 +285,9 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         oauth2bearer.add("token");
         AUTHORIZATIONS.add(oauth2bearer);
 
+        ERRORS.add(FAKE_URL);
+        ERRORS.add(FAKE_PORT);
+
         buildParameters();
     }
 
@@ -242,8 +295,9 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * Build the parameters for all the tested values
      */
     private static void buildParameters() {
+        Map<String, Object> parameters = new HashMap<String, Object>();
         for (int i = 0; i < METHODS.size(); i++) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters = new HashMap<String, Object>();
             parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
             parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(i));
             parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
@@ -259,7 +313,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         }
 
         for (int i = 0; i < CONTENT_TYPES.size(); i++) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters = new HashMap<String, Object>();
             parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
             parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
             parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(i));
@@ -275,7 +329,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         }
 
         for (int i = 0; i < CHARSETS.size(); i++) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters = new HashMap<String, Object>();
             parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
             parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
             parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
@@ -291,7 +345,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         }
 
         for (int i = 0; i < COOKIESS.size(); i++) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters = new HashMap<String, Object>();
             parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
             parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
             parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
@@ -307,7 +361,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         }
 
         for (int i = 0; i < HEADERSS.size(); i++) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters = new HashMap<String, Object>();
             parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
             parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
             parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
@@ -323,7 +377,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         }
 
         for (int i = 0; i < BODYS.size(); i++) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters = new HashMap<String, Object>();
             parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
             parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
             parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
@@ -339,7 +393,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         }
 
         for (int i = 0; i < AUTHORIZATIONS.size(); i++) {
-            Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters = new HashMap<String, Object>();
             parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
             parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
             parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
@@ -378,6 +432,33 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
             AUTHORIZATIONS_TC.add(parameters);
         }
+
+        parameters = new HashMap<String, Object>();
+        parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + ERRORS.get(0) + ":" + getPort() + "/");
+        parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
+        parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+        parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+        parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+        parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+        parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+        ERRORS_TC.add(parameters);
+        parameters = new HashMap<String, Object>();
+        parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + ERRORS.get(1) + "/");
+        parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
+        parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
+        parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
+        parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
+        parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
+        parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
+        parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
+        ERRORS_TC.add(parameters);
     }
 
     /**
@@ -401,40 +482,37 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void testGetMethod() throws BonitaException, InterruptedException {
+    public void getMethod() throws BonitaException, InterruptedException {
         stubFor(get(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(METHODS_TC.get(0)));
-        init();
     }
-    
+
     /**
      * Test the POST method
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void testPostMethod() throws BonitaException, InterruptedException {
+    public void postMethod() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(METHODS_TC.get(1)));
-        init();
     }
-    
+
     /**
      * Test the PUT method
      * @throws BonitaException exception
      * @throws InterruptedException exception
      */
     @Test
-    public void testPutMethod() throws BonitaException, InterruptedException {
+    public void putMethod() throws BonitaException, InterruptedException {
         stubFor(put(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(METHODS_TC.get(2)));
-        init();
     }
 
     /**
@@ -443,14 +521,26 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void getDeleteMethod() throws BonitaException, InterruptedException {
+    public void deleteMethod() throws BonitaException, InterruptedException {
         stubFor(delete(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(METHODS_TC.get(3)));
-        init();
     }
-    
+
+    /**
+     * Test the FAKE method
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void fakeMethod() throws BonitaException, InterruptedException {
+        thrown.expect(BonitaException.class);
+        thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.wiztools.restclient.bean.HTTPMethod.FAKE_METHOD");
+
+        checkResultIsPresent(executeConnector(METHODS_TC.get(4)));
+    }
+
     /**
      * Test the plain text content type
      * @throws BonitaException exception
@@ -463,9 +553,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(0)));
-        init();
     }
-    
+
     /**
      * Test the json content type
      * @throws BonitaException exception
@@ -478,9 +567,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(1)));
-        init();
     }
-    
+
+    /**
+     * Test the fake content type
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void fakeContentType() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(2) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(2)));
+    }
+
     /**
      * Test the UTF8 charset
      * @throws BonitaException exception
@@ -493,9 +595,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CHARSETS_TC.get(0)));
-        init();
     }
-    
+
     /**
      * Test the UTF16 charset
      * @throws BonitaException exception
@@ -508,9 +609,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CHARSETS_TC.get(1)));
-        init();
     }
-    
+
     /**
      * Test the UTF16BE charset
      * @throws BonitaException exception
@@ -523,9 +623,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CHARSETS_TC.get(2)));
-        init();
     }
-    
+
     /**
      * Test the UTF16LE charset
      * @throws BonitaException exception
@@ -538,9 +637,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CHARSETS_TC.get(3)));
-        init();
     }
-    
+
     /**
      * Test the ISO-8859-1 charset
      * @throws BonitaException exception
@@ -553,9 +651,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CHARSETS_TC.get(4)));
-        init();
     }
-    
+
     /**
      * Test the US ASCII charset
      * @throws BonitaException exception
@@ -568,7 +665,20 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(CHARSETS_TC.get(5)));
-        init();
+    }
+
+    /**
+     * Test the FAKE charset
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void fakeCharset() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .willReturn(aResponse().withStatus(OK_STATUS)));
+
+        checkResultIsPresent(executeConnector(CHARSETS_TC.get(6)));
     }
 
     /**
@@ -583,9 +693,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(COOKIESS_TC.get(0)));
-        init();
     }
-    
+
     /**
      * Test two values cookie
      * @throws BonitaException exception
@@ -598,7 +707,19 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(COOKIESS_TC.get(1)));
-        init();
+    }
+
+    /**
+     * Test fake cookie
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void fakeValuesCookie() throws BonitaException, InterruptedException {
+        thrown.expect(BonitaException.class);
+        thrown.expectMessage("Error validating connector org.bonitasoft.connectors.rest.RESTConnector:\nurlCookies - columns - 3\nurlCookies - columns - 1");
+
+        checkResultIsPresent(executeConnector(COOKIESS_TC.get(2)));
     }
 
     /**
@@ -610,10 +731,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         StringBuffer strBuffer = new StringBuffer();
 
         if (!cookies.isEmpty()) {
-          strBuffer.append(cookies.get(0).get(0) + "=" + cookies.get(0).get(1));
+            strBuffer.append(cookies.get(0).get(0) + "=" + cookies.get(0).get(1));
         }
         for (int i = 1; i < cookies.size(); i++) {
-          strBuffer.append("; " + cookies.get(i).get(0) + "=" + cookies.get(i).get(1));
+            strBuffer.append("; " + cookies.get(i).get(0) + "=" + cookies.get(i).get(1));
         }
 
         return strBuffer.toString();
@@ -633,9 +754,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(mb.willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(HEADERSS_TC.get(0)));
-        init();
     }
-    
+
     /**
      * Test two values header
      * @throws BonitaException exception
@@ -650,7 +770,19 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(mb.willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(HEADERSS_TC.get(1)));
-        init();
+    }
+
+    /**
+     * Test fake header
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void fakeValuesHeader() throws BonitaException, InterruptedException {
+        thrown.expect(BonitaException.class);
+        thrown.expectMessage("Error validating connector org.bonitasoft.connectors.rest.RESTConnector:\nurlHeaders - columns - 3\nurlHeaders - columns - 1");
+        
+        checkResultIsPresent(executeConnector(HEADERSS_TC.get(2)));
     }
 
     /**
@@ -665,9 +797,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(BODYS_TC.get(0)));
-        init();
     }
-    
+
     /**
      * Test not empty body
      * @throws BonitaException exception
@@ -680,9 +811,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(BODYS_TC.get(1)));
-        init();
     }
-    
+
     /**
      * Test the basic auth with username and password
      * @throws BonitaException exception
@@ -695,9 +825,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(0)));
-        init();
     }
-    
+
     /**
      * Test the basic auth with username password and localhost
      * @throws BonitaException exception
@@ -710,9 +839,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(1)));
-        init();
     }
-    
+
     /**
      * Test the basic auth with username password and realm
      * @throws BonitaException exception
@@ -725,7 +853,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(2)));
-        init();
     }
 
     /**
@@ -740,7 +867,42 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
         checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(3)));
-        init();
+    }
+
+    /**
+     * Test no service available
+     * @throws InterruptedException exception
+     * @throws BonitaException 
+     */
+    @Test
+    public void noServiceAvailable() throws InterruptedException, BonitaException {
+        checkResult(executeConnector(METHODS_TC.get(0)), NOT_FOUND_STATUS);
+    }
+
+    /**
+     * Test unreachable URL
+     * @throws InterruptedException exception
+     * @throws BonitaException 
+     */
+    @Test
+    public void unreachableURL() throws InterruptedException, BonitaException {
+        thrown.expect(BonitaException.class);
+        thrown.expectMessage("java.net.UnknownHostException: fakeURL");
+
+        executeConnector(ERRORS_TC.get(0));
+    }
+
+    /**
+     * Test unreachable port
+     * @throws InterruptedException exception
+     * @throws BonitaException 
+     */
+    @Test
+    public void unreachablePort() throws InterruptedException, BonitaException {
+        thrown.expect(BonitaException.class);
+        thrown.expectMessage("org.apache.http.client.ClientProtocolException");
+
+        executeConnector(ERRORS_TC.get(1));
     }
 
     /**
@@ -748,11 +910,20 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param restResult The result of the request
      */
     private void checkResultIsPresent(final Map<String, Object> restResult) {
+        checkResult(restResult, OK_STATUS);
+    }
+
+    /**
+     * Generic test: should return OK STATUS as the WireMock stub is set each time for the good request shape
+     * @param restResult The result of the request
+     * @param httpStatus HTTP Status to be found as a result
+     */
+    private void checkResult(final Map<String, Object> restResult, final int httpStatus) {
         assertEquals(restResult.size(), 1);
         assertNotNull(restResult.get(AbstractRESTConnectorImpl.RESULT_OUTPUT_PARAMETER));
         Object result = restResult.get(AbstractRESTConnectorImpl.RESULT_OUTPUT_PARAMETER);
         assertTrue(result instanceof RESTResult);
         RESTResult restResultContent = (RESTResult) result;
-        assertEquals(OK_STATUS, restResultContent.getStatusCode());
+        assertEquals(httpStatus, restResultContent.getStatusCode());
     }
 }
