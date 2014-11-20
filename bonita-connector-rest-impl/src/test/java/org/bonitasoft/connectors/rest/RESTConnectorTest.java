@@ -536,7 +536,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void fakeMethod() throws BonitaException, InterruptedException {
         thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.wiztools.restclient.bean.HTTPMethod.FAKE_METHOD");
+        thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.bonitasoft.connectors.rest.model.RESTHTTPMethod.FAKE_METHOD");
 
         checkResultIsPresent(executeConnector(METHODS_TC.get(4)));
     }
@@ -900,7 +900,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void unreachablePort() throws InterruptedException, BonitaException {
         thrown.expect(BonitaException.class);
-        thrown.expectMessage("org.apache.http.client.ClientProtocolException");
+        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException: Connect to localhost:80 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: connect");
 
         executeConnector(ERRORS_TC.get(1));
     }

@@ -18,8 +18,6 @@
 
 	<modules>
 		<module>bonita-connector-rest-def</module>
-		<module>restclient-server</module>
-		<module>restclient-lib</module>
 		<module>bonita-connector-rest-impl</module>
 	</modules>
 

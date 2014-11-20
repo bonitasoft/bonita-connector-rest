@@ -17,11 +17,10 @@ package org.bonitasoft.connectors.rest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.StringWriter;
 import java.net.HttpCookie;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -29,12 +28,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -58,11 +57,8 @@ import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.AuthSchemeBase;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.DigestScheme;
@@ -75,53 +71,35 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.bonitasoft.connectors.rest.model.Authorization;
+import org.bonitasoft.connectors.rest.model.BasicDigestAuthorization;
+import org.bonitasoft.connectors.rest.model.Content;
+import org.bonitasoft.connectors.rest.model.HeaderAuthorization;
+import org.bonitasoft.connectors.rest.model.NtlmAuthorization;
+import org.bonitasoft.connectors.rest.model.RESTCharsets;
+import org.bonitasoft.connectors.rest.model.RESTCookieStore;
+import org.bonitasoft.connectors.rest.model.RESTHTTPMethod;
+import org.bonitasoft.connectors.rest.model.RESTKeyStore;
+import org.bonitasoft.connectors.rest.model.RESTRequest;
+import org.bonitasoft.connectors.rest.model.RESTResponse;
+import org.bonitasoft.connectors.rest.model.SSL;
+import org.bonitasoft.connectors.rest.model.SSLVerifier;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
-import org.wiztools.commons.Charsets;
-import org.wiztools.commons.MultiValueMap;
-import org.wiztools.commons.StreamUtil;
-import org.wiztools.commons.StringUtil;
-import org.wiztools.restclient.HTTPClientUtil;
-import org.wiztools.restclient.IGlobalOptions;
-import org.wiztools.restclient.ServiceLocator;
-import org.wiztools.restclient.bean.Auth;
-import org.wiztools.restclient.bean.AuthorizationHeaderAuth;
-import org.wiztools.restclient.bean.AuthorizationHeaderAuthBean;
-import org.wiztools.restclient.bean.BasicAuth;
-import org.wiztools.restclient.bean.BasicAuthBean;
-import org.wiztools.restclient.bean.BasicDigestAuth;
-import org.wiztools.restclient.bean.ContentType;
-import org.wiztools.restclient.bean.ContentTypeBean;
-import org.wiztools.restclient.bean.DigestAuth;
-import org.wiztools.restclient.bean.DigestAuthBean;
-import org.wiztools.restclient.bean.HTTPMethod;
-import org.wiztools.restclient.bean.HTTPVersion;
-import org.wiztools.restclient.bean.MultipartMode;
-import org.wiztools.restclient.bean.NtlmAuth;
-import org.wiztools.restclient.bean.NtlmAuthBean;
-import org.wiztools.restclient.bean.ReqEntity;
-import org.wiztools.restclient.bean.ReqEntityFilePart;
-import org.wiztools.restclient.bean.ReqEntityMultipart;
-import org.wiztools.restclient.bean.ReqEntityPart;
-import org.wiztools.restclient.bean.ReqEntitySimple;
-import org.wiztools.restclient.bean.ReqEntityStringBean;
-import org.wiztools.restclient.bean.ReqEntityStringPart;
-import org.wiztools.restclient.bean.Request;
-import org.wiztools.restclient.bean.RequestBean;
-import org.wiztools.restclient.bean.ResponseBean;
-import org.wiztools.restclient.bean.SSLHostnameVerifier;
-import org.wiztools.restclient.bean.SSLKeyStoreBean;
-import org.wiztools.restclient.bean.SSLReq;
-import org.wiztools.restclient.bean.SSLReqBean;
-import org.wiztools.restclient.http.RESTClientCookieStore;
-import org.wiztools.restclient.util.HttpUtil;
-import org.wiztools.restclient.util.IDNUtil;
 
 /**
  * This main class of the REST Connector implementation
  */
 public class RESTConnector extends AbstractRESTConnectorImpl {
 
+    private static final String HTTP_PROTOCOL = "HTTP";
+    private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
+    private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
+    
+    private static final int CONNECTION_TIMEOUT = 60000;
+    
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    
     /**
      * The Charset constants
      */
@@ -232,8 +210,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
     @Override
     protected void executeBusinessLogic() throws ConnectorException {
-        RequestBean request = buildRequest();
-        ResponseBean response = execute(request);
+        RESTRequest request = buildRequest();
+        RESTResponse response = execute(request);
         LOGGER.fine("Request sent.");
         extractResponse(response);
     }
@@ -243,24 +221,28 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The request bean
      * @throws ConnectorException exception
      */
-    private RequestBean buildRequest() throws ConnectorException {
-        RequestBean request = null;
+    private RESTRequest buildRequest() throws ConnectorException {
+        RESTRequest request = null;
         try {
-            request = new RequestBean();
+            request = new RESTRequest();
             request.setUrl(new URL(getUrl()));
             LOGGER.fine("URL set to: " + request.getUrl().toString());
             String bodyStr = "";
             if (getBody() != null) {
                 bodyStr = getBody();
             }
-            request.setBody(new ReqEntityStringBean(bodyStr, new ContentTypeBean(getContentType(), getCharset(getCharset()))));
+            Content content = new Content();
+            content.setContentType(getContentType());
+            content.setCharset(RESTCharsets.getRESTCharsetsFromValue(getCharset()));
+            request.setContent(content);
+            request.setBody(bodyStr);
             LOGGER.fine("Body set to: " + request.getBody().toString());
-            request.setMethod(getHTTPMethod(getMethod()));
-            LOGGER.fine("Method set to: " + request.getMethod().toString());
-            request.setFollowRedirect(!getDoNotFollowRedirect());
-            LOGGER.fine("Follow redirect set to: " + request.isFollowRedirect());
-            request.setIgnoreResponseBody(getIgnoreBody());
-            LOGGER.fine("Ignore body set to: " + request.isIgnoreResponseBody());
+            request.setRestMethod(RESTHTTPMethod.getRESTHTTPMethodFromValue(getMethod()));
+            LOGGER.fine("Method set to: " + request.getRestMethod().toString());
+            request.setRedirect(!getDoNotFollowRedirect());
+            LOGGER.fine("Follow redirect set to: " + request.isRedirect());
+            request.setIgnore(getIgnoreBody());
+            LOGGER.fine("Ignore body set to: " + request.isIgnore());
             for (Object urlheader : getUrlHeaders()) {
                 List<?> urlheaderRow = (List<?>) urlheader;
                 request.addHeader(urlheaderRow.get(0).toString(), urlheaderRow.get(1).toString());
@@ -268,27 +250,27 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             }
             for (Object urlCookie : getUrlCookies()) {
                 List<?> urlCookieRow = (List<?>) urlCookie;
-                request.addCookie(new HttpCookie(urlCookieRow.get(0).toString(), urlCookieRow.get(1).toString()));
+                request.addCookie(urlCookieRow.get(0).toString(), urlCookieRow.get(1).toString());
                 LOGGER.fine("Add cookie: " + urlCookieRow.get(0).toString() + " set as " + urlCookieRow.get(1).toString());
             }
 
             if (isSSLSet()) {
-                request.setSslReq(buildSSLReq());
+                request.setSsl(buildSSL());
                 LOGGER.fine("Add the SSL options");
             }
 
             if (isBasicAuthSet()) {
                 LOGGER.fine("Add basic auth");
-                request.setAuth(buildBasicAuth());
+                request.setAuthorization(buildBasicAuthorization());
             } else if (isDigestAuthSet()) {
                 LOGGER.fine("Add digest auth");
-                request.setAuth(buildDigestAuth());
+                request.setAuthorization(buildDigestAuthorization());
             } else if (isNTLMAuthSet()) {
                 LOGGER.fine("Add NTLM auth");
-                request.setAuth(buildNTLMAuth());
+                request.setAuthorization(buildNtlmAuthorization());
             } else if (isOAuth2AuthSet()) {
                 LOGGER.fine("Add Token auth");
-                request.setAuth(buildTokenAuth());
+                request.setAuthorization(buildHeaderAuthorization());
             }
         } catch (Exception e) {
             logException(e);
@@ -349,25 +331,25 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Build the Token Auth bean for the request builder
      * @return The Token Auth according to the input values
      */
-    private AuthorizationHeaderAuthBean buildTokenAuth() {
-        AuthorizationHeaderAuthBean auth = new AuthorizationHeaderAuthBean();
-        auth.setAuthorizationHeaderValue(getAuth_OAuth2_bearer_token());
+    private HeaderAuthorization buildHeaderAuthorization() {
+        HeaderAuthorization authorization = new HeaderAuthorization();
+        authorization.setValue(getAuth_OAuth2_bearer_token());
         
-        return auth;
+        return authorization;
     }
     
     /**
      * Build the NTLM Auth bean for the request builder
      * @return The NTLM Auth according to the input values
      */
-    private NtlmAuthBean buildNTLMAuth() {
-        NtlmAuthBean auth = new NtlmAuthBean();
-        auth.setUsername(getAuth_NTLM_username());
-        auth.setPassword(getAuth_NTLM_password().toCharArray());
-        auth.setWorkstation(getAuth_NTLM_workstation());
-        auth.setDomain(getAuth_NTLM_domain());
+    private NtlmAuthorization buildNtlmAuthorization() {
+        NtlmAuthorization authorization = new NtlmAuthorization();
+        authorization.setUsername(getAuth_NTLM_username());
+        authorization.setPassword(getAuth_NTLM_password());
+        authorization.setWorkstation(getAuth_NTLM_workstation());
+        authorization.setDomain(getAuth_NTLM_domain());
         
-        return auth;
+        return authorization;
     }
     
     
@@ -375,95 +357,95 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Build the Digest Auth bean for the request builder
      * @return The Digest Auth according to the input values
      */
-    private DigestAuthBean buildDigestAuth() {
-        DigestAuthBean auth = new DigestAuthBean();
-        auth.setUsername(getAuth_digest_username());
-        auth.setPassword(getAuth_digest_password().toCharArray());
+    private BasicDigestAuthorization buildDigestAuthorization() {
+        BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
+        authorization.setUsername(getAuth_digest_username());
+        authorization.setPassword(getAuth_digest_password());
     
         if (getAuth_digest_host() != null && !getAuth_digest_host().isEmpty()) {
-            auth.setHost(getAuth_digest_host());
+            authorization.setHost(getAuth_digest_host());
         }
         if (getAuth_digest_realm() != null && !getAuth_digest_realm().isEmpty()) {
-            auth.setRealm(getAuth_digest_realm());
+            authorization.setRealm(getAuth_digest_realm());
         }
-        auth.setPreemptive(getAuth_digest_preemptive());
+        authorization.setPreemptive(getAuth_digest_preemptive());
         
-        return auth;
+        return authorization;
     }
     
     /**
      * Build the Basic Auth bean for the request builder
      * @return The Basic Auth according to the input values
      */
-    private BasicAuthBean buildBasicAuth() {
-        BasicAuthBean auth = new BasicAuthBean();
-        auth.setUsername(getAuth_basic_username());
-        auth.setPassword(getAuth_basic_password().toCharArray());
+    private BasicDigestAuthorization buildBasicAuthorization() {
+        BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
+        authorization.setUsername(getAuth_basic_username());
+        authorization.setPassword(getAuth_basic_password());
     
         if (getAuth_basic_host() != null && !getAuth_basic_host().isEmpty()) {
-            auth.setHost(getAuth_basic_host());
+            authorization.setHost(getAuth_basic_host());
         }
         if (getAuth_basic_realm() != null && !getAuth_basic_realm().isEmpty()) {
-            auth.setRealm(getAuth_basic_realm());
+            authorization.setRealm(getAuth_basic_realm());
         }
-        auth.setPreemptive(getAuth_basic_preemptive());
+        authorization.setPreemptive(getAuth_basic_preemptive());
         
-        return auth;
+        return authorization;
     }
     
     /**
      * Build the SSL Req bean for the request builder
      * @return The SSL Req according to the input values
      */
-    private SSLReqBean buildSSLReq() {
-        SSLReqBean sslReq = new SSLReqBean();
-        sslReq.setHostNameVerifier(SSLHostnameVerifier.valueOf(getHostname_verifier()));
-        sslReq.setTrustSelfSignedCert(getTrust_self_signed_certificate());
+    private SSL buildSSL() {
+        SSL ssl = new SSL();
+        ssl.setSslVerifier(SSLVerifier.valueOf(getHostname_verifier()));
+        ssl.setTrustSelfSignedCert(getTrust_self_signed_certificate());
     
-        SSLKeyStoreBean sslTrustStore = new SSLKeyStoreBean();
-        sslTrustStore.setFile(new File(getTrust_store_file()));
-        sslTrustStore.setPassword(getTrust_store_password().toCharArray());
-        sslReq.setTrustStore(sslTrustStore);
+        RESTKeyStore trustStore = new RESTKeyStore();
+        trustStore.setFile(new File(getTrust_store_file()));
+        trustStore.setPassword(getTrust_store_password());
+        ssl.setTrustStore(trustStore);
     
-        SSLKeyStoreBean sslKeyStore = new SSLKeyStoreBean();
-        sslKeyStore.setFile(new File(getKey_store_file()));
-        sslKeyStore.setPassword(getKey_store_password().toCharArray());
-        sslReq.setKeyStore(sslKeyStore);
+        RESTKeyStore keyStore = new RESTKeyStore();
+        keyStore.setFile(new File(getKey_store_file()));
+        keyStore.setPassword(getKey_store_password());
+        ssl.setKeyStore(keyStore);
         
-        return sslReq;
+        return ssl;
     }
 
     /**
      * Extracts the response of the HTTP transaction
      * @param response The response of the sent request
      */
-    private void extractResponse(final ResponseBean response) {
+    private void extractResponse(final RESTResponse response) {
         RESTResult result = new RESTResult();
         if (response != null) {
             String entity = "empty";
-            if (isReponseHasToBeExtracted(response)) {
-                entity = new String(response.getResponseBody()).trim();
+            if (response.getBody() != null && response.getBody().length() > 0) {
+                entity = response.getBody().trim();
                 LOGGER.fine("Response entity extracted and not empty.");
             }
             result.setEntity(entity);
-            List<RESTResultKeyValueMap> header = new ArrayList<RESTResultKeyValueMap>();
-            MultiValueMap<String, String> returnedHeader = response.getHeaders();
-            for (String key : returnedHeader.keySet()) {
+            List<RESTResultKeyValueMap> headers = new ArrayList<RESTResultKeyValueMap>();
+            List<RESTResultKeyValueMap> returnedHeaders = response.getHeaders();
+            for (int i = 0; i < returnedHeaders.size(); i++) {
+                List<String> returnedValues = returnedHeaders.get(i).getValue();
                 RESTResultKeyValueMap mapping = new RESTResultKeyValueMap();
-                List<String> values = new ArrayList<String>();
-                Collection<String> returnedValues = returnedHeader.get(key);
-                values.addAll(returnedValues);
-                mapping.setKey(key);
-                mapping.setValue(values);
-                header.add(mapping);
+                List<String> mappingValues = new ArrayList<String>();
+                mappingValues.addAll(returnedValues);
+                mapping.setKey(returnedHeaders.get(i).getKey());
+                mapping.setValue(mappingValues);
+                headers.add(mapping);
                 LOGGER.fine("Header value extracted.");
             }
-            result.setHeader(header);
+            result.setHeader(headers);
             result.setTime(response.getExecutionTime());
             LOGGER.fine("Time extracted.");
             result.setStatusCode(response.getStatusCode());
             LOGGER.fine("Status code extracted.");
-            result.setStatusLine(response.getStatusLine());
+            result.setStatusLine(response.getMessage());
             LOGGER.fine("Status line extracted.");
         } else {
             LOGGER.fine("Response is null.");
@@ -473,137 +455,87 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     /**
-     * Is the response body to be extracted?
-     * @param response The reponse to be checked
-     * @return If the response body has to be extracted or not
-     */
-    private boolean isReponseHasToBeExtracted(final ResponseBean response) {
-        return response.getResponseBody() != null && response.getResponseBody().length > 0;
-    }
-
-    /**
-     * Get the HTTPMethod value based on a String value
-     * @param input The String value
-     * @return The associated HTTPMethod value
-     */
-    public static HTTPMethod getHTTPMethod(final String input) {
-        if (input != null) {
-            return HTTPMethod.valueOf(input);
-        }
-        return HTTPMethod.GET;
-    }
-
-    /**
-     * Get the Charset value based on a String value
-     * @param input The String value
-     * @return The associated Charset value
-     */
-    public static Charset getCharset(final String input) {
-        if (input != null) {
-            if (UTF_8_STR.equals(input)) {
-                return Charsets.UTF_8;
-            }
-            if (UTF_16_STR.equals(input)) {
-                return Charsets.UTF_16;
-            }
-            if (UTF_16BE_STR.equals(input)) {
-                return Charsets.UTF_16BE;
-            }
-            if (UTF_16LE_STR.equals(input)) {
-                return Charsets.UTF_16LE;
-            }
-            if (ISO_8859_1_STR.equals(input)) {
-                return Charsets.ISO_8859_1;
-            }
-            if (US_ASCII_STR.equals(input)) {
-                return Charsets.US_ASCII;
-            }
-        }
-        return Charsets.UTF_8;
-    }
-
-    /**
      * Execute a given request
      * @param request The request to execute
      * @return The response of the executed request
      * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
-    public static ResponseBean execute(final Request request) throws ConnectorException {
+    public static RESTResponse execute(final RESTRequest request) throws ConnectorException {
         CloseableHttpClient httpClient = null;
 
         try {
-            // Needed for specifying HTTP pre-emptive authentication:
-            HttpContext httpContext = null;
-
-            // Create all the builder objects:
-            final HttpClientBuilder hcBuilder = HttpClientBuilder.create();
-            final RequestConfig.Builder rcBuilder = RequestConfig.custom();
-            final RequestBuilder reqBuilder = getRequestBuilderFromMethod(request.getMethod());
-
-            // Retry handler (no-retries):
-            hcBuilder.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
-
-            // Url:
-            final URL url = IDNUtil.getIDNizedURL(request.getUrl());
+            final URL url = request.getUrl();
             final String urlHost = url.getHost();
+            
+            final Builder requestConfigurationBuilder = RequestConfig.custom();
+            requestConfigurationBuilder.setConnectionRequestTimeout(CONNECTION_TIMEOUT);
+            requestConfigurationBuilder.setRedirectsEnabled(request.isRedirect());
+            RequestConfig requestConfig = requestConfigurationBuilder.build();
+            
+            final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+            httpClientBuilder.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
+            setSSL(request.getSsl(), httpClientBuilder);
+            setCookies(requestConfigurationBuilder, httpClientBuilder, request.getCookies(), urlHost);
+
+            final RequestBuilder requestBuilder = getRequestBuilderFromMethod(request.getRestMethod());
+            requestBuilder.setVersion(new ProtocolVersion(HTTP_PROTOCOL, HTTP_PROTOCOL_VERSION_MAJOR, HTTP_PROTOCOL_VERSION_MINOR));
             int urlPort = url.getPort();
             if (url.getPort() == -1) {
                 urlPort = url.getDefaultPort();
             }
             final String urlProtocol = url.getProtocol();
             final String urlStr = url.toString();
-            reqBuilder.setUri(urlStr);
-
-            // Set HTTP version:
-            HTTPVersion httpVersion = request.getHttpVersion();
-            ProtocolVersion protocolVersion = new ProtocolVersion("HTTP", 1, 0);
-            if (httpVersion == HTTPVersion.HTTP_1_1) {
-                protocolVersion = new ProtocolVersion("HTTP", 1, 1);
-            }
-            reqBuilder.setVersion(protocolVersion);
-
-            // Set request timeout (default 1 minute--60000 milliseconds)
-            IGlobalOptions options = ServiceLocator.getInstance(IGlobalOptions.class);
-            rcBuilder.setConnectionRequestTimeout(
-                    Integer.parseInt(options.getProperty("request-timeout-in-millis")));
-
-            // HTTP Authentication
-            httpContext = setAuthentication(rcBuilder, request.getAuth(), urlHost, urlPort, urlProtocol, hcBuilder, reqBuilder);
-
-            setHeaders(reqBuilder, request.getHeaders());
-
-            setCookies(rcBuilder, hcBuilder, request.getCookies(), urlHost);
-
-            if (!setMethodSpecificLogic(reqBuilder, request)) {
-                return null;
+            requestBuilder.setUri(urlStr);
+            setHeaders(requestBuilder, request.getHeaders());
+            if (!RESTHTTPMethod.GET.equals(RESTHTTPMethod.valueOf(requestBuilder.getMethod()))) {
+                String body = request.getBody();
+                if (body != null) {
+                    requestBuilder.setEntity(new StringEntity(request.getBody(), ContentType.create(request.getContent().getContentType(), request.getContent().getCharset().getValue())));
+                }
             }
 
-            // SSL
-            setSSL(request.getSslReq(), hcBuilder);
+            requestBuilder.setConfig(requestConfig);
 
-            // How to handle redirects:
-            rcBuilder.setRedirectsEnabled(request.isFollowRedirect());
+            HttpContext httpContext = setAuthorization(requestConfigurationBuilder, request.getAuthorization(), urlHost, urlPort, urlProtocol, httpClientBuilder, requestBuilder);
 
-            // Now Execute:
+            HttpUriRequest httpRequest = requestBuilder.build();
+
+            httpClient = httpClientBuilder.build();
+
             long startTime = System.currentTimeMillis();
-
-            RequestConfig rc = rcBuilder.build();
-            reqBuilder.setConfig(rc);
-            HttpUriRequest req = reqBuilder.build();
-            httpClient = hcBuilder.build();
-
-            HttpResponse httpRes = httpClient.execute(req, httpContext);
-
+            HttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
             long endTime = System.currentTimeMillis();
 
-            // Create response:
-            ResponseBean response = new ResponseBean();
+            RESTResponse response = new RESTResponse();
+            response.setExecutionTime(endTime - startTime);
+            response.setStatusCode(httpResponse.getStatusLine().getStatusCode());
+            response.setMessage(httpResponse.getStatusLine().toString());
 
-            setResponse(httpRes, response, request.isIgnoreResponseBody(), endTime - startTime);
+            final Header[] responseHeaders = httpResponse.getAllHeaders();
+            for (Header header : responseHeaders) {
+                response.addHeader(header.getName(), header.getValue());
+            }
+
+            final HttpEntity entity = httpResponse.getEntity();
+            if (entity != null) {
+                if (request.isIgnore()) {
+                    EntityUtils.consumeQuietly(entity);
+                } else {
+                    InputStream inputStream = entity.getContent();
+                    try {
+                        StringWriter stringWriter = new StringWriter();
+                        IOUtils.copy(inputStream, stringWriter);
+                        if (stringWriter.toString() != null) {
+                            response.setBody(stringWriter.toString());
+                        }
+                    } catch (IOException ex) {
+                        logException(ex);
+                    }
+                }
+            }
             
             return response;
-        } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException | KeyManagementException
-                | IllegalStateException ex) {
+        } catch (Exception ex) {
             logException(ex);
         } finally {
             try {
@@ -619,49 +551,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     /**
-     * Set the response from the request result
-     * @param httpRes The response of the request
-     * @param response The final result to be set
-     * @param ignoreResponseBody Is the body ignored or not
-     * @param executionTime Execution time of the request
-     * @throws IOException exception
-     * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
-     */
-    private static void setResponse(final HttpResponse httpRes, final ResponseBean response, final boolean ignoreResponseBody, final long executionTime) 
-            throws IOException, ConnectorException {
-        response.setExecutionTime(executionTime);
-
-        response.setStatusCode(httpRes.getStatusLine().getStatusCode());
-        response.setStatusLine(httpRes.getStatusLine().toString());
-
-        final Header[] responseHeaders = httpRes.getAllHeaders();
-        for (Header header : responseHeaders) {
-            response.addHeader(header.getName(), header.getValue());
-        }
-
-        // Response body:
-        final HttpEntity entity = httpRes.getEntity();
-        if (entity != null) {
-            if (ignoreResponseBody) {
-                EntityUtils.consumeQuietly(entity);
-            } else {
-                InputStream is = entity.getContent();
-                try {
-                    byte[] responseBody = StreamUtil.inputStream2Bytes(is);
-                    if (responseBody != null) {
-                        response.setResponseBody(responseBody);
-                    }
-                } catch (IOException ex) {
-                    logException(ex);
-                }
-            }
-        }
-    }
-
-    /**
      * Set the request builder based on the request
-     * @param sslReq The request SSL options
-     * @param hcBuilder The request builder
+     * @param ssl The request SSL options
+     * @param httpClientBuilder The request builder
      * @throws IOException exception
      * @throws CertificateException exception
      * @throws NoSuchAlgorithmException exception
@@ -669,261 +561,166 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @throws UnrecoverableKeyException exception
      * @throws KeyManagementException exception
      */
-    private static void setSSL(final SSLReq sslReq, final HttpClientBuilder hcBuilder) 
+    private static void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) 
             throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, KeyManagementException, UnrecoverableKeyException {
-        // Set the hostname verifier:
-        if (sslReq != null) {
-            SSLHostnameVerifier verifier = sslReq.getHostNameVerifier();
-            final X509HostnameVerifier hcVerifier;
-            switch (verifier) {
-                case STRICT:
-                    hcVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
-                    break;
-                case BROWSER_COMPATIBLE:
-                    hcVerifier = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
-                    break;
-                case ALLOW_ALL:
-                    hcVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
-                    break;
-                default:
-                    hcVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
-                    break;
-            }
-
-            // Register the SSL Scheme:
+        if (ssl != null) {
             KeyStore trustStore = null;
-            if (sslReq.getTrustStore() != null) {
-                trustStore = sslReq.getTrustStore().getKeyStore();
+            if (ssl.getTrustStore() != null) {
+                trustStore = ssl.getTrustStore().generateKeyStore();
             }
             KeyStore keyStore = null;
-            if (sslReq.getKeyStore() != null) {
-                keyStore = sslReq.getKeyStore().getKeyStore();
+            if (ssl.getKeyStore() != null) {
+                keyStore = ssl.getKeyStore().generateKeyStore();
             }
-            char[] keyStorePassword = null;
-            if (sslReq.getKeyStore() != null) {
-                keyStorePassword = sslReq.getKeyStore().getPassword();
+            String keyStorePassword = null;
+            if (ssl.getKeyStore() != null) {
+                keyStorePassword = ssl.getKeyStore().getPassword();
             }
 
             TrustStrategy trustStrategy = null;
-            if (sslReq.isTrustSelfSignedCert()) {
+            if (ssl.isTrustSelfSignedCert()) {
                 trustStrategy = new TrustSelfSignedStrategy();
             }
 
-            SSLContext ctx = new SSLContextBuilder()
-            .loadKeyMaterial(keyStore, keyStorePassword)
+            SSLContext sslContext = new SSLContextBuilder()
+            .loadKeyMaterial(keyStore, keyStorePassword.toCharArray())
             .loadTrustMaterial(trustStore, trustStrategy)
             .setSecureRandom(null)
             .useTLS()
             .build();
-            SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(ctx, hcVerifier);
-            hcBuilder.setSSLSocketFactory(sf);
-        }
-    }
-
-    /**
-     * Set the request builder based on the specificities of the method of the request
-     * @param reqBuilder The request builder
-     * @param request The request
-     * @return If everything went smoothly or not
-     * @throws IOException exception
-     */
-    private static boolean setMethodSpecificLogic(final RequestBuilder reqBuilder, final Request request) throws IOException {
-        // POST/PUT/PATCH/DELETE method specific logic
-        if (HttpUtil.isEntityEnclosingMethod(reqBuilder.getMethod())) {
-
-            // Create and set RequestEntity
-            ReqEntity bean = request.getBody();
-            if (bean != null) {
-                try {
-                    if (bean instanceof ReqEntitySimple) {
-                        AbstractHttpEntity e = HTTPClientUtil.getEntity((ReqEntitySimple) bean);
-
-                        reqBuilder.setEntity(e);
-                    } else if (bean instanceof ReqEntityMultipart) {
-                        ReqEntityMultipart multipart = (ReqEntityMultipart) bean;
-
-                        MultipartEntityBuilder meb = MultipartEntityBuilder.create();
-
-                        // Format:
-                        MultipartMode mpMode = multipart.getMode();
-                        switch (mpMode) {
-                            case BROWSER_COMPATIBLE:
-                                meb.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-                                break;
-                            case RFC_6532:
-                                meb.setMode(HttpMultipartMode.RFC6532);
-                                break;
-                            case STRICT:
-                                meb.setMode(HttpMultipartMode.STRICT);
-                                break;
-                            default:
-                                break;
-                        }
-
-                        // Parts:
-                        for (ReqEntityPart part : multipart.getBody()) {
-                            if (part instanceof ReqEntityStringPart) {
-                                ReqEntityStringPart p = (ReqEntityStringPart) part;
-                                String body = p.getPart();
-                                ContentType ct = p.getContentType();
-                                final StringBody sb;
-                                if (ct != null) {
-                                    sb = new StringBody(body, HTTPClientUtil.getContentType(ct));
-                                } else {
-                                    sb = new StringBody(body, org.apache.http.entity.ContentType.DEFAULT_TEXT);
-                                }
-                                meb.addPart(part.getName(), sb);
-                            } else if (part instanceof ReqEntityFilePart) {
-                                ReqEntityFilePart p = (ReqEntityFilePart) part;
-                                File body = p.getPart();
-                                ContentType ct = p.getContentType();
-                                final FileBody fb;
-                                if (ct != null) {
-                                    fb = new FileBody(body, HTTPClientUtil.getContentType(ct), p.getFilename());
-                                } else {
-                                    fb = new FileBody(body, org.apache.http.entity.ContentType.DEFAULT_BINARY, p.getFilename());
-                                }
-                                meb.addPart(p.getName(), fb);
-                            }
-                        }
-
-                        reqBuilder.setEntity(meb.build());
-                    }
-
-                } catch (UnsupportedEncodingException ex) {
-                    return false;
-                }
+            
+            SSLVerifier verifier = ssl.getSslVerifier();
+            final X509HostnameVerifier hostnameVerifier;
+            switch (verifier) {
+                case BROWSER:
+                    hostnameVerifier = SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER;
+                    break;
+                case ALLOW:
+                    hostnameVerifier = SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER;
+                    break;
+                case STRICT:
+                    hostnameVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
+                    break;
+                default:
+                    hostnameVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
+                    break;
             }
+            
+            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+            httpClientBuilder.setSSLSocketFactory(socketFactory);
         }
-        return true;
     }
 
     /**
      * Set the cookies to the builder based on the request cookies
-     * @param rcBuilder The request builder
-     * @param hcBuilder The request builder
+     * @param requestConfigurationBuilder The request builder
+     * @param httpClientBuilder The request builder
      * @param list The cookies
      * @param urlHost The URL host
      */
-    private static void setCookies(final Builder rcBuilder, final HttpClientBuilder hcBuilder, final List<HttpCookie> list, final String urlHost) {
-        // Set cookie policy:
-        rcBuilder.setCookieSpec(CookieSpecs.BEST_MATCH);
-        // Add to CookieStore:
-        CookieStore store = new RESTClientCookieStore();
+    private static void setCookies(final Builder requestConfigurationBuilder, final HttpClientBuilder httpClientBuilder, final List<HttpCookie> list, final String urlHost) {
+        CookieStore cookieStore = new RESTCookieStore();
         List<HttpCookie> cookies = list;
         for (HttpCookie cookie : cookies) {
-            BasicClientCookie c = new BasicClientCookie(
-                    cookie.getName(), cookie.getValue());
+            BasicClientCookie c = new BasicClientCookie(cookie.getName(), cookie.getValue());
+            c.setPath("/");
             c.setVersion(0);
             c.setDomain(urlHost);
-            c.setPath("/");
-
-            store.addCookie(c);
+            cookieStore.addCookie(c);
         }
-        // Attach store to client:
-        hcBuilder.setDefaultCookieStore(store);
+        httpClientBuilder.setDefaultCookieStore(cookieStore);
+        requestConfigurationBuilder.setCookieSpec(CookieSpecs.BEST_MATCH);
     }
 
     /**
      * Set the headers to the builder based on the request headers
-     * @param reqBuilder The request builder
+     * @param requestBuilder The request builder
      * @param headerData The request headers
      */
-    private static void setHeaders(final RequestBuilder reqBuilder, final MultiValueMap<String, String> headerData) {
-        // Get request headers
-        for (String key : headerData.keySet()) {
-            for (String value : headerData.get(key)) {
+    private static void setHeaders(final RequestBuilder requestBuilder, final List<RESTResultKeyValueMap> headerData) {
+        for (RESTResultKeyValueMap aHeaderData : headerData) {
+            String key = aHeaderData.getKey();
+            for (String value : aHeaderData.getValue()) {
                 Header header = new BasicHeader(key, value);
-
-                reqBuilder.addHeader(header);
+                requestBuilder.addHeader(header);
             }
         }
     }
 
     /**
      * Set the builder based on the request elements
-     * @param rcBuilder The builder to be set
-     * @param auth The authentication element of the request
+     * @param requestConfigurationBuilder The builder to be set
+     * @param authorization The authentication element of the request
      * @param urlHost The URL host of the request
      * @param urlPort The URL post of the request
      * @param urlProtocol The URL protocol of the request
-     * @param hcBuilder The builder to be set
-     * @param reqBuilder 
+     * @param httpClientBuilder The builder to be set
+     * @param requestBuilder 
      * @return HTTPContext The HTTP context to be set
      */
-    private static HttpContext setAuthentication(final Builder rcBuilder, final Auth auth, final String urlHost, final int urlPort, 
-            final String urlProtocol, final HttpClientBuilder hcBuilder, final RequestBuilder reqBuilder) {
+    private static HttpContext setAuthorization(final Builder requestConfigurationBuilder, final Authorization authorization, final String urlHost, final int urlPort, 
+            final String urlProtocol, final HttpClientBuilder httpClientBuilder, final RequestBuilder requestBuilder) {
         HttpContext httpContext = null;
-        if (auth != null) {
-            // Add auth preference:
-            List<String> authPrefs = new ArrayList<>();
-            if (auth instanceof BasicAuth) {
-                authPrefs.add(AuthSchemes.BASIC);
-            } else if (auth instanceof DigestAuth) {
-                authPrefs.add(AuthSchemes.DIGEST);
-            } else if (auth instanceof NtlmAuth) {
-                authPrefs.add(AuthSchemes.NTLM);
-            }
-            rcBuilder.setTargetPreferredAuthSchemes(authPrefs);
-
-            // BASIC & DIGEST:
-            if (auth instanceof BasicAuth || auth instanceof DigestAuth) {
-                BasicDigestAuth a = (BasicDigestAuth) auth;
-                String uid = a.getUsername();
-                String pwd = new String(a.getPassword());
-                String host = a.getHost();
-                if (StringUtil.isEmpty(a.getHost())) {
+        if (authorization != null) {
+            if (authorization instanceof BasicDigestAuthorization) {
+                List<String> authPrefs = new ArrayList<>();
+                if (((BasicDigestAuthorization) authorization).isBasic()) {
+                    authPrefs.add(AuthSchemes.BASIC);
+                } else {
+                    authPrefs.add(AuthSchemes.DIGEST);
+                }
+                requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
+                BasicDigestAuthorization castAuthorization = (BasicDigestAuthorization) authorization;
+                
+                String username = castAuthorization.getUsername();
+                String password = new String(castAuthorization.getPassword());
+                String host = castAuthorization.getHost();
+                if (castAuthorization.getHost() != null && castAuthorization.getHost().isEmpty()) {
                     host = urlHost;
                 }
-                String realm = a.getRealm();
-                if (StringUtil.isEmpty(a.getRealm())) {
+                String realm = castAuthorization.getRealm();
+                if (castAuthorization.getRealm() != null && castAuthorization.getRealm().isEmpty()) {
                     realm = AuthScope.ANY_REALM;
                 }
 
-                CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                credsProvider.setCredentials(
+                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(
                         new AuthScope(host, urlPort, realm),
-                        new UsernamePasswordCredentials(uid, pwd));
-                hcBuilder.setDefaultCredentialsProvider(credsProvider);
+                        new UsernamePasswordCredentials(username, password));
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 
-                // preemptive mode:
-                if (a.isPreemptive()) {
-                    AuthCache authCache = new BasicAuthCache();
-                    AuthSchemeBase authScheme = new DigestScheme();
-                    if (a instanceof BasicAuth) {
-                        authScheme = new BasicScheme();
+                if (castAuthorization.isPreemptive()) {
+                    AuthCache authoriationCache = new BasicAuthCache();
+                    AuthSchemeBase authorizationScheme = new DigestScheme();
+                    if (castAuthorization instanceof BasicDigestAuthorization) {
+                        authorizationScheme = new BasicScheme();
                     }
-                    authCache.put(new HttpHost(urlHost, urlPort, urlProtocol), authScheme);
+                    authoriationCache.put(new HttpHost(urlHost, urlPort, urlProtocol), authorizationScheme);
                     HttpClientContext localContext = HttpClientContext.create();
-                    localContext.setAuthCache(authCache);
+                    localContext.setAuthCache(authoriationCache);
                     httpContext = localContext;
                 }
-            }
+            } else if (authorization instanceof NtlmAuthorization) {
+                List<String> authPrefs = new ArrayList<>();
+                authPrefs.add(AuthSchemes.NTLM);
+                requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
 
-            // NTLM:
-            if (auth instanceof NtlmAuth) {
-                NtlmAuth a = (NtlmAuth) auth;
-                String uid = a.getUsername();
-                String pwd = new String(a.getPassword());
+                NtlmAuthorization castAuthorization = (NtlmAuthorization) authorization;
+                String username = castAuthorization.getUsername();
+                String password = new String(castAuthorization.getPassword());
 
-                CredentialsProvider credsProvider = new BasicCredentialsProvider();
-                credsProvider.setCredentials(
+                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(
                         AuthScope.ANY,
-                        new NTCredentials(
-                                uid, pwd, a.getWorkstation(), a.getDomain()));
-                hcBuilder.setDefaultCredentialsProvider(credsProvider);
-            }
-
-            // Authorization header
-            // Logic written in same place where Header is processed--a little down!
-        }
-
-        if (auth != null && auth instanceof AuthorizationHeaderAuth) {
-            AuthorizationHeaderAuth a = (AuthorizationHeaderAuth) auth;
-            final String authHeader = a.getAuthorizationHeaderValue();
-            if (StringUtil.isNotEmpty(authHeader)) {
-                Header header = new BasicHeader("Authorization", authHeader);
-                reqBuilder.addHeader(header);
+                        new NTCredentials(username, password, castAuthorization.getWorkstation(), castAuthorization.getDomain()));
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            } else if (authorization instanceof HeaderAuthorization) {
+                HeaderAuthorization castAuthorization = (HeaderAuthorization) authorization;
+                final String authorizationHeader = castAuthorization.getValue();
+                if (authorizationHeader != null && !authorizationHeader.isEmpty()) {
+                    Header header = new BasicHeader(AUTHORIZATION_HEADER, authorizationHeader);
+                    requestBuilder.addHeader(header);
+                }
             }
         }
         
@@ -935,7 +732,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param method The method
      * @return The request builder
      */
-    private static RequestBuilder getRequestBuilderFromMethod(final HTTPMethod method) {
+    private static RequestBuilder getRequestBuilderFromMethod(final RESTHTTPMethod method) {
         switch (method) {
             case GET:
                 return RequestBuilder.get();
@@ -943,18 +740,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 return RequestBuilder.post();
             case PUT:
                 return RequestBuilder.put();
-            case PATCH:
-                return RequestBuilder.create("PATCH");
             case DELETE:
                 return RequestBuilder.delete();
-            case HEAD:
-                return RequestBuilder.head();
-            case OPTIONS:
-                return RequestBuilder.options();
-            case TRACE:
-                return RequestBuilder.trace();
             default:
-                throw new IllegalStateException("Method not defined!");
+                throw new IllegalStateException("Impossible to get the RequestBuilder from the \"" + method.name() + "\" name.");
         }
     }
 

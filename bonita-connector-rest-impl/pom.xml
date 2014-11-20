@@ -16,21 +16,6 @@
 		<definition.version>2.0</definition.version>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>lib</id>
-			<name>lib</name>
-			<releases>
-				<enabled>true</enabled>
-				<checksumPolicy>ignore</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<url>file://${project.basedir}/repo</url>
-		</repository>
-	</repositories>
-
 	<dependencies>
 		<dependency>
 			<artifactId>bonita-connector-rest-def</artifactId>
@@ -43,17 +28,10 @@
 			<version>2.4</version>
 		</dependency>
 		<dependency>
-            <groupId>org.wiztools.restclient</groupId>
-            <artifactId>restclient-lib</artifactId>
-            <version>3.4.3</version>
-        </dependency>
-		<dependency>
-			<groupId>org.wiztools.commons</groupId>
-			<artifactId>wiztools-commons-lib</artifactId>
-			<version>0.3.0</version>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.3.6</version>
 		</dependency>
-		
-		
 		<dependency>
 			<artifactId>junit</artifactId>
 			<groupId>junit</groupId>
@@ -72,11 +50,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>com.github.tomakehurst</groupId>
-		    <artifactId>wiremock</artifactId>
-		    <version>1.50</version>
-		    <classifier>standalone</classifier>
-		    <scope>test</scope>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock</artifactId>
+			<version>1.50</version>
+			<classifier>standalone</classifier>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
