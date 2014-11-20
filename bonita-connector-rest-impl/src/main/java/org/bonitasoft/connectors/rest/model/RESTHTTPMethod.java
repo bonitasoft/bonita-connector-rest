@@ -1,14 +1,20 @@
 package org.bonitasoft.connectors.rest.model;
 
+/**
+ * The HTTP methods applicable for REST.
+ */
 public enum RESTHTTPMethod {
+    /**
+     * The items.
+     */
     GET, POST, PUT, DELETE;
     
     /**
-     * Get the HTTPMethod value based on a String value
-     * @param value The String value
-     * @return The associated HTTPMethod value
+     * Get the RESTHTTPMethod based on a value
+     * @param value The value
+     * @return The associated RESTHTTPMethod value
      */
-    public static RESTHTTPMethod getRESTHTTPMethodFromValue(String value) {
+    public static RESTHTTPMethod getRESTHTTPMethodFromValue(final String value) {
         if (value != null) {
             return valueOf(value);
         }

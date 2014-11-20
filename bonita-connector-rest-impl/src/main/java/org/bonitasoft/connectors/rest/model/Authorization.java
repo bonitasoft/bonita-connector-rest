@@ -1,6 +1,6 @@
 package org.bonitasoft.connectors.rest.model;
 
-
-public class Authorization {
-
-}
+/**
+ * This interface reflects the information for an authorization.
+ */
+public interface Authorization { }

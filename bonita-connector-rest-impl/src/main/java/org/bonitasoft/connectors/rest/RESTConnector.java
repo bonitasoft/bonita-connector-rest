@@ -21,12 +21,7 @@ import java.io.StringWriter;
 import java.net.HttpCookie;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -92,24 +87,15 @@ import org.bonitasoft.engine.connector.ConnectorValidationException;
  */
 public class RESTConnector extends AbstractRESTConnectorImpl {
 
+    /**
+     * The HTTP request builder constants.
+     */
     private static final String HTTP_PROTOCOL = "HTTP";
     private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
     private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
-    
     private static final int CONNECTION_TIMEOUT = 60000;
-    
     private static final String AUTHORIZATION_HEADER = "Authorization";
     
-    /**
-     * The Charset constants
-     */
-    private static final String UTF_8_STR = "UTF-8";
-    private static final String UTF_16_STR = "UTF-16";
-    private static final String UTF_16BE_STR = "UTF-16BE";
-    private static final String UTF_16LE_STR = "UTF-16LE";
-    private static final String ISO_8859_1_STR = "ISO-8859-1";
-    private static final String US_ASCII_STR = "US-ASCII";
-
     /**
      * The class logger
      */
@@ -358,7 +344,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The Digest Auth according to the input values
      */
     private BasicDigestAuthorization buildDigestAuthorization() {
-        BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
+        BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
         authorization.setUsername(getAuth_digest_username());
         authorization.setPassword(getAuth_digest_password());
     
@@ -378,7 +364,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The Basic Auth according to the input values
      */
     private BasicDigestAuthorization buildBasicAuthorization() {
-        BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
+        BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
         authorization.setUsername(getAuth_basic_username());
         authorization.setPassword(getAuth_basic_password());
     
@@ -400,7 +386,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private SSL buildSSL() {
         SSL ssl = new SSL();
         ssl.setSslVerifier(SSLVerifier.valueOf(getHostname_verifier()));
-        ssl.setTrustSelfSignedCert(getTrust_self_signed_certificate());
+        ssl.setUseSelfSignedCertificate(getTrust_self_signed_certificate());
     
         RESTKeyStore trustStore = new RESTKeyStore();
         trustStore.setFile(new File(getTrust_store_file()));
@@ -490,13 +476,23 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             if (!RESTHTTPMethod.GET.equals(RESTHTTPMethod.valueOf(requestBuilder.getMethod()))) {
                 String body = request.getBody();
                 if (body != null) {
-                    requestBuilder.setEntity(new StringEntity(request.getBody(), ContentType.create(request.getContent().getContentType(), request.getContent().getCharset().getValue())));
+                    requestBuilder.setEntity(
+                            new StringEntity(request.getBody(), 
+                            ContentType.create(request.getContent().getContentType(), 
+                            request.getContent().getCharset().getValue())));
                 }
             }
 
             requestBuilder.setConfig(requestConfig);
 
-            HttpContext httpContext = setAuthorization(requestConfigurationBuilder, request.getAuthorization(), urlHost, urlPort, urlProtocol, httpClientBuilder, requestBuilder);
+            HttpContext httpContext = setAuthorization(
+                    requestConfigurationBuilder, 
+                    request.getAuthorization(), 
+                    urlHost, 
+                    urlPort, 
+                    urlProtocol, 
+                    httpClientBuilder, 
+                    requestBuilder);
 
             HttpUriRequest httpRequest = requestBuilder.build();
 
@@ -554,15 +550,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Set the request builder based on the request
      * @param ssl The request SSL options
      * @param httpClientBuilder The request builder
-     * @throws IOException exception
-     * @throws CertificateException exception
-     * @throws NoSuchAlgorithmException exception
-     * @throws KeyStoreException exception
-     * @throws UnrecoverableKeyException exception
-     * @throws KeyManagementException exception
+     * @throws Exception 
      */
     private static void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) 
-            throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, KeyManagementException, UnrecoverableKeyException {
+            throws Exception {
         if (ssl != null) {
             KeyStore trustStore = null;
             if (ssl.getTrustStore() != null) {
@@ -578,7 +569,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             }
 
             TrustStrategy trustStrategy = null;
-            if (ssl.isTrustSelfSignedCert()) {
+            if (ssl.isUseSelfSignedCertificate()) {
                 trustStrategy = new TrustSelfSignedStrategy();
             }
 
@@ -618,7 +609,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param list The cookies
      * @param urlHost The URL host
      */
-    private static void setCookies(final Builder requestConfigurationBuilder, final HttpClientBuilder httpClientBuilder, final List<HttpCookie> list, final String urlHost) {
+    private static void setCookies(
+            final Builder requestConfigurationBuilder, 
+            final HttpClientBuilder httpClientBuilder, 
+            final List<HttpCookie> list, 
+            final String urlHost) {
         CookieStore cookieStore = new RESTCookieStore();
         List<HttpCookie> cookies = list;
         for (HttpCookie cookie : cookies) {
@@ -658,8 +653,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param requestBuilder 
      * @return HTTPContext The HTTP context to be set
      */
-    private static HttpContext setAuthorization(final Builder requestConfigurationBuilder, final Authorization authorization, final String urlHost, final int urlPort, 
-            final String urlProtocol, final HttpClientBuilder httpClientBuilder, final RequestBuilder requestBuilder) {
+    private static HttpContext setAuthorization(
+            final Builder requestConfigurationBuilder, 
+            final Authorization authorization, 
+            final String urlHost, 
+            final int urlPort, 
+            final String urlProtocol, 
+            final HttpClientBuilder httpClientBuilder, 
+            final RequestBuilder requestBuilder) {
         HttpContext httpContext = null;
         if (authorization != null) {
             if (authorization instanceof BasicDigestAuthorization) {
