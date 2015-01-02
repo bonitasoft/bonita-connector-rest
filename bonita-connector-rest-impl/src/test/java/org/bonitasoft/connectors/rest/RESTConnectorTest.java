@@ -73,8 +73,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String PUT = "PUT";
     private static final String DELETE = "DELETE";
     private static final String METHOD_ERROR = "FAKE_METHOD";
-    private static final List<String> METHODS = new ArrayList<String>();
-    private static final List<Map<String, Object>> METHODS_TC = new ArrayList<Map<String, Object>>();
 
     //CONTENT_TYPES
     /**
@@ -83,8 +81,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String PLAIN_TEXT = "text/plain";
     private static final String JSON = "application/json";
     private static final String CONTENT_TYPE_ERROR = "fakecontenttype";
-    private static final List<String> CONTENT_TYPES = new ArrayList<String>();
-    private static final List<Map<String, Object>> CONTENT_TYPES_TC = new ArrayList<Map<String, Object>>();
 
     //CHARSETS
     /**
@@ -97,8 +93,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String ISO_8859_1 = "ISO-8859-1";
     private static final String US_ASCII = "US-ASCII";
     private static final String CHARSET_ERROR = "FAKE-CHARSET";
-    private static final List<String> CHARSETS = new ArrayList<String>();
-    private static final List<Map<String, Object>> CHARSETS_TC = new ArrayList<Map<String, Object>>();
 
     //COOKIES
     /**
@@ -107,8 +101,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final List<List<String>> ONE_COOKIES = new ArrayList<List<String>>();
     private static final List<List<String>> TWO_COOKIES = new ArrayList<List<String>>();
     private static final List<List<String>> COOKIES_ERROR = new ArrayList<List<String>>();
-    private static final List<List<List<String>>> COOKIESS = new ArrayList<List<List<String>>>();
-    private static final List<Map<String, Object>> COOKIESS_TC = new ArrayList<Map<String, Object>>();
 
     //HEADERS
     /**
@@ -117,8 +109,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final List<List<String>> ONE_HEADERS = new ArrayList<List<String>>();
     private static final List<List<String>> TWO_HEADERS = new ArrayList<List<String>>();
     private static final List<List<String>> HEADERS_ERROR = new ArrayList<List<String>>();
-    private static final List<List<List<String>>> HEADERSS = new ArrayList<List<List<String>>>();
-    private static final List<Map<String, Object>> HEADERSS_TC = new ArrayList<Map<String, Object>>();
 
     //BODYS
     /**
@@ -126,40 +116,30 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private static final String EMPTY = "";
     private static final String FULL = "there is something inside";
-    private static final List<String> BODYS = new ArrayList<String>();
-    private static final List<Map<String, Object>> BODYS_TC = new ArrayList<Map<String, Object>>();
 
     //SSL VERIFIERS
     /**
      * All the tested SSL verifier values
      */
     private static final String STRICT = "Strict";
-    private static final String BROWSER_COMPATIBLE = "Browser Compatible";
-    private static final String ALLOW_ALL = "Allow All";
-    private static final List<String> SSL_VERIFIERS = new ArrayList<String>();
 
     //AUTHORIZATIONS
     /**
      * All the tested authorization values
      */
-    private static final String BASIC = "BASIC";
-    private static final String DIGEST = "DIGEST";
-    private static final String NTLM = "NTLM";
-    private static final String OAUTH2BEARER = "OAuth2Bearer";
     private static final String BASIC_RULE = "Basic";
-    //    private static final String DIGEST_RULE = "Digest";
-    //    private static final String NTLM_RULE = "NTLM";
-    private static final List<List<Object>> AUTHORIZATIONS = new ArrayList<List<Object>>();
-    private static final List<Map<String, Object>> AUTHORIZATIONS_TC = new ArrayList<Map<String, Object>>();
+    private static final String USERNAME = "username";
+    private static final String PASSWORD = "password";
+    private static final String REALM = "realm";
+    private static final String HOST = "localhost";
+    private static final String TOKEN = "token";
 
-    //ERRORS
+    //OTHER ERRORS
     /**
      * All the tested errors
      */
     private static final String FAKE_URL = "fakeURL";
-    private static final String FAKE_PORT = "0000";
-    private static final List<String> ERRORS = new ArrayList<String>();
-    private static final List<Map<String, Object>> ERRORS_TC = new ArrayList<Map<String, Object>>();
+    private static final String FAKE_PORT = findFreePort(getPort() + 1) + "";
 
     /**
      * Used to assert Exceptions
@@ -215,250 +195,105 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         HEADERS_ERROR.add(header2);
         HEADERS_ERROR.add(header3);
         HEADERS_ERROR.add(header4);
-
-        METHODS.add(GET);
-        METHODS.add(POST);
-        METHODS.add(PUT);
-        METHODS.add(DELETE);
-        METHODS.add(METHOD_ERROR);
-
-        CONTENT_TYPES.add(PLAIN_TEXT);
-        CONTENT_TYPES.add(JSON);
-        CONTENT_TYPES.add(CONTENT_TYPE_ERROR);
-
-        CHARSETS.add(UTF8);
-        CHARSETS.add(UTF16);
-        CHARSETS.add(UTF16BE);
-        CHARSETS.add(UTF16LE);
-        CHARSETS.add(ISO_8859_1);
-        CHARSETS.add(US_ASCII);
-        CHARSETS.add(CHARSET_ERROR);
-
-        COOKIESS.add(ONE_COOKIES);
-        COOKIESS.add(TWO_COOKIES);
-        COOKIESS.add(COOKIES_ERROR);
-
-        HEADERSS.add(ONE_HEADERS);
-        HEADERSS.add(TWO_HEADERS);
-        HEADERSS.add(HEADERS_ERROR);
-
-        BODYS.add(EMPTY);
-        BODYS.add(FULL);
-
-        SSL_VERIFIERS.add(STRICT);
-        SSL_VERIFIERS.add(BROWSER_COMPATIBLE);
-        SSL_VERIFIERS.add(ALLOW_ALL);
-
-        List<Object> basicAuth1 = new ArrayList<Object>();
-        basicAuth1.add(BASIC);
-        basicAuth1.add(BASIC_RULE);
-        basicAuth1.add("username");
-        basicAuth1.add("password");
-        basicAuth1.add("");
-        basicAuth1.add("");
-        basicAuth1.add(Boolean.TRUE);
-        AUTHORIZATIONS.add(basicAuth1);
-
-        List<Object> basicAuth2 = new ArrayList<Object>();
-        basicAuth2.add(BASIC);
-        basicAuth2.add(BASIC_RULE);
-        basicAuth2.add("username");
-        basicAuth2.add("password");
-        basicAuth2.add("localhost");
-        basicAuth2.add("");
-        basicAuth2.add(Boolean.TRUE);
-        AUTHORIZATIONS.add(basicAuth2);
-
-        List<Object> basicAuth3 = new ArrayList<Object>();
-        basicAuth3.add(BASIC);
-        basicAuth3.add(BASIC_RULE);
-        basicAuth3.add("username");
-        basicAuth3.add("password");
-        basicAuth3.add("");
-        basicAuth3.add("realm");
-        basicAuth3.add(Boolean.TRUE);
-        AUTHORIZATIONS.add(basicAuth3);
-
-        List<Object> oauth2bearer = new ArrayList<Object>();
-        oauth2bearer.add(OAUTH2BEARER);
-        oauth2bearer.add("token");
-        oauth2bearer.add("token");
-        AUTHORIZATIONS.add(oauth2bearer);
-
-        ERRORS.add(FAKE_URL);
-        ERRORS.add(FAKE_PORT);
-
-        buildParameters();
     }
 
-    /**
-     * Build the parameters for all the tested values
-     */
-    private static void buildParameters() {
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        for (int i = 0; i < METHODS.size(); i++) {
-            parameters = new HashMap<String, Object>();
-            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(i));
-            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-            METHODS_TC.add(parameters);
+    private static Map<String, Object> buildParametersSet(String url, String port, String method, String contentType, String charset, List<List<String>> cookies, List<List<String>> headers, String body, Boolean redirect, Boolean ignoreBody, Boolean trust, String sslVerifier) {
+        Map<String, Object> parametersSet = new HashMap<String, Object>();
+        if(url == null && port == null) {
+            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+        } else if(url != null && port == null) {
+            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + url + ":" + getPort() + "/");
+        } else if(url == null && port != null) {
+            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + port + "/");
+        } else {
+            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
         }
+        parametersSet.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, method);
+        parametersSet.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, contentType);
+        parametersSet.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, charset);
+        parametersSet.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, cookies);
+        parametersSet.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, headers);
+        parametersSet.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, body);
+        parametersSet.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, redirect);
+        parametersSet.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, ignoreBody);
+        parametersSet.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, trust);
+        parametersSet.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, sslVerifier);
+        return parametersSet;
+    }
+    
+    private static Map<String, Object> buildURLParametersSet(String url) {
+        return buildParametersSet(url, null, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
 
-        for (int i = 0; i < CONTENT_TYPES.size(); i++) {
-            parameters = new HashMap<String, Object>();
-            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
-            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(i));
-            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-            CONTENT_TYPES_TC.add(parameters);
-        }
+    private static Map<String, Object> buildPortParametersSet(String port) {
+        return buildParametersSet(null, port, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
 
-        for (int i = 0; i < CHARSETS.size(); i++) {
-            parameters = new HashMap<String, Object>();
-            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
-            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(i));
-            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-            CHARSETS_TC.add(parameters);
-        }
+    private static Map<String, Object> buildMethodParametersSet(String method) {
+        return buildParametersSet(null, null, method, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
+    
+    private static Map<String, Object> buildContentTypeParametersSet(String contentType) {
+        return buildParametersSet(null, null, POST, contentType, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
 
-        for (int i = 0; i < COOKIESS.size(); i++) {
-            parameters = new HashMap<String, Object>();
-            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(i));
-            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-            COOKIESS_TC.add(parameters);
-        }
+    private static Map<String, Object> buildCharsetParametersSet(String charset) {
+        return buildParametersSet(null, null, POST, PLAIN_TEXT, charset, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
+    
+    private static Map<String, Object> buildCookieParametersSet(List<List<String>> cookies) {
+        return buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, cookies, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
+    
+    private static Map<String, Object> buildHeaderParametersSet(List<List<String>> headers) {
+        return buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, headers, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
 
-        for (int i = 0; i < HEADERSS.size(); i++) {
-            parameters = new HashMap<String, Object>();
-            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(i));
-            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-            HEADERSS_TC.add(parameters);
-        }
+    private static Map<String, Object> buildBodyParametersSet(String body) {
+        return buildParametersSet(null, null, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, body, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    }
+    
+    private static Map<String, Object> buildBasicAuthorizationParametersSet(String username, String password, String host, String realm, Boolean preemptive) {
+        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+        
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_USERNAME_INPUT_PARAMETER, username);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_PASSWORD_INPUT_PARAMETER, password);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_HOST_INPUT_PARAMETER, host);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_REALM_INPUT_PARAMETER, realm);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER, preemptive);
 
-        for (int i = 0; i < BODYS.size(); i++) {
-            parameters = new HashMap<String, Object>();
-            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
-            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(i));
-            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-            BODYS_TC.add(parameters);
-        }
+        return parametersSet;
+    }
+    
+    private static Map<String, Object> buildDigestAuthorizationParametersSet(String username, String password, String host, String realm, String preemptive) {
+        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+        
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_USERNAME_INPUT_PARAMETER, username);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PASSWORD_INPUT_PARAMETER, password);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_HOST_INPUT_PARAMETER, host);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_REALM_INPUT_PARAMETER, realm);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER, preemptive);
 
-        for (int i = 0; i < AUTHORIZATIONS.size(); i++) {
-            parameters = new HashMap<String, Object>();
-            parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-            parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-            parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-            parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-            parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-            int authIndex = 0;
-            if (BASIC.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
-                authIndex += 2;
-                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-            } else if (DIGEST.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
-                authIndex += 2;
-                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_HOST_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_REALM_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-            } else if (NTLM.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
-                authIndex += 2;
-                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_USERNAME_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_PASSWORD_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_WORKSTATION_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-                parameters.put(AbstractRESTConnectorImpl.AUTH_NTLM_DOMAIN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(authIndex++));
-            } else if (OAUTH2BEARER.equals(AUTHORIZATIONS.get(i).get(authIndex))) {
-                parameters.put(AbstractRESTConnectorImpl.AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, AUTHORIZATIONS.get(i).get(2));
-            }
+        return parametersSet;
+    }
+    
+    private static Map<String, Object> buildNTLMAuthorizationParametersSet(String username, String password, String workstation, String domain) {
+        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+        
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_USERNAME_INPUT_PARAMETER, username);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_PASSWORD_INPUT_PARAMETER, password);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_WORKSTATION_INPUT_PARAMETER, workstation);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_DOMAIN_INPUT_PARAMETER, domain);
 
-            AUTHORIZATIONS_TC.add(parameters);
-        }
+        return parametersSet;
+    }
 
-        parameters = new HashMap<String, Object>();
-        parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + ERRORS.get(0) + ":" + getPort() + "/");
-        parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
-        parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-        parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-        parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-        parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-        parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-        ERRORS_TC.add(parameters);
-        parameters = new HashMap<String, Object>();
-        parameters.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + ERRORS.get(1) + "/");
-        parameters.put(AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER, METHODS.get(1));
-        parameters.put(AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER, CONTENT_TYPES.get(0));
-        parameters.put(AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER, CHARSETS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.URLCOOKIES_INPUT_PARAMETER, COOKIESS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.URLHEADERS_INPUT_PARAMETER, HEADERSS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, BODYS.get(0));
-        parameters.put(AbstractRESTConnectorImpl.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
-        parameters.put(AbstractRESTConnectorImpl.IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
-        parameters.put(AbstractRESTConnectorImpl.TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER, Boolean.FALSE);
-        parameters.put(AbstractRESTConnectorImpl.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSL_VERIFIERS.get(0));
-        ERRORS_TC.add(parameters);
+    private static Map<String, Object> buildOAuth2BearerAuthorizationParametersSet(String token) {
+        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+        
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, token);
+
+        return parametersSet;
     }
 
     /**
@@ -486,7 +321,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(get(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(METHODS_TC.get(0)));
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(GET)));
     }
 
     /**
@@ -499,7 +334,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(post(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(METHODS_TC.get(1)));
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(POST)));
     }
 
     /**
@@ -512,7 +347,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(put(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(METHODS_TC.get(2)));
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(PUT)));
     }
 
     /**
@@ -525,7 +360,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(delete(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(METHODS_TC.get(3)));
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(DELETE)));
     }
 
     /**
@@ -538,7 +373,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         thrown.expect(BonitaException.class);
         thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.bonitasoft.connectors.rest.model.RESTHTTPMethod.FAKE_METHOD");
 
-        checkResultIsPresent(executeConnector(METHODS_TC.get(4)));
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(METHOD_ERROR)));
     }
 
     /**
@@ -549,10 +384,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void plainTextContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(0)));
+        checkResultIsPresent(executeConnector(buildContentTypeParametersSet(PLAIN_TEXT)));
     }
 
     /**
@@ -563,10 +398,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void jsonContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(1) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(1)));
+        checkResultIsPresent(executeConnector(buildContentTypeParametersSet(JSON)));
     }
 
     /**
@@ -577,10 +412,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void fakeContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(2) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPE_ERROR + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CONTENT_TYPES_TC.get(2)));
+        checkResultIsPresent(executeConnector(buildContentTypeParametersSet(CONTENT_TYPE_ERROR)));
     }
 
     /**
@@ -591,10 +426,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void utf8Charset() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CHARSETS_TC.get(0)));
+        checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF8)));
     }
 
     /**
@@ -605,10 +440,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void utf16Charset() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(1)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF16))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CHARSETS_TC.get(1)));
+        checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF16)));
     }
 
     /**
@@ -619,10 +454,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void utf16beCharset() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(2)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF16BE))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CHARSETS_TC.get(2)));
+        checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF16BE)));
     }
 
     /**
@@ -633,10 +468,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void utf16leCharset() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(3)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF16LE))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CHARSETS_TC.get(3)));
+        checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF16LE)));
     }
 
     /**
@@ -647,10 +482,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void iso88591Charset() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(4)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CHARSETS_TC.get(4)));
+        checkResultIsPresent(executeConnector(buildCharsetParametersSet(ISO_8859_1)));
     }
 
     /**
@@ -661,10 +496,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void usASCIICharset() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(5)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + US_ASCII))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CHARSETS_TC.get(5)));
+        checkResultIsPresent(executeConnector(buildCharsetParametersSet(US_ASCII)));
     }
 
     /**
@@ -675,10 +510,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void fakeCharset() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPES.get(0) + "; " + WM_CHARSET + "=" + CHARSETS.get(0)))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(CHARSETS_TC.get(6)));
+        checkResultIsPresent(executeConnector(buildCharsetParametersSet(CHARSET_ERROR)));
     }
 
     /**
@@ -689,10 +524,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void oneValueCookie() throws BonitaException, InterruptedException {
         stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_COOKIES, equalTo(generateCookieSet(COOKIESS.get(0))))
+                .withHeader(WM_COOKIES, equalTo(generateCookieSet(ONE_COOKIES)))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(COOKIESS_TC.get(0)));
+        checkResultIsPresent(executeConnector(buildCookieParametersSet(ONE_COOKIES)));
     }
 
     /**
@@ -703,10 +538,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void twoValuesCookie() throws BonitaException, InterruptedException {
         stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_COOKIES, equalTo(generateCookieSet(COOKIESS.get(1))))
+                .withHeader(WM_COOKIES, equalTo(generateCookieSet(TWO_COOKIES)))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(COOKIESS_TC.get(1)));
+        checkResultIsPresent(executeConnector(buildCookieParametersSet(TWO_COOKIES)));
     }
 
     /**
@@ -719,7 +554,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         thrown.expect(BonitaException.class);
         thrown.expectMessage("Error validating connector org.bonitasoft.connectors.rest.RESTConnector:\nurlCookies - columns - 3\nurlCookies - columns - 1");
 
-        checkResultIsPresent(executeConnector(COOKIESS_TC.get(2)));
+        checkResultIsPresent(executeConnector(buildCookieParametersSet(COOKIES_ERROR)));
     }
 
     /**
@@ -748,12 +583,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void oneValueHeader() throws BonitaException, InterruptedException {
         MappingBuilder mb = get(urlEqualTo("/"));
-        for (int j = 0; j < HEADERSS.get(0).size(); j++) {
-            mb.withHeader(HEADERSS.get(0).get(j).get(0), equalTo(HEADERSS.get(0).get(j).get(1)));
+        for (int j = 0; j < ONE_HEADERS.size(); j++) {
+            mb.withHeader(ONE_HEADERS.get(j).get(0), equalTo(ONE_HEADERS.get(j).get(1)));
         }
         stubFor(mb.willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(HEADERSS_TC.get(0)));
+        checkResultIsPresent(executeConnector(buildHeaderParametersSet(ONE_HEADERS)));
     }
 
     /**
@@ -764,12 +599,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void twoValuesHeader() throws BonitaException, InterruptedException {
         MappingBuilder mb = get(urlEqualTo("/"));
-        for (int j = 0; j < HEADERSS.get(1).size(); j++) {
-            mb.withHeader(HEADERSS.get(1).get(j).get(0), equalTo(HEADERSS.get(1).get(j).get(1)));
+        for (int j = 0; j < TWO_HEADERS.size(); j++) {
+            mb.withHeader(TWO_HEADERS.get(j).get(0), equalTo(TWO_HEADERS.get(j).get(1)));
         }
         stubFor(mb.willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(HEADERSS_TC.get(1)));
+        checkResultIsPresent(executeConnector(buildHeaderParametersSet(TWO_HEADERS)));
     }
 
     /**
@@ -782,7 +617,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         thrown.expect(BonitaException.class);
         thrown.expectMessage("Error validating connector org.bonitasoft.connectors.rest.RESTConnector:\nurlHeaders - columns - 3\nurlHeaders - columns - 1");
         
-        checkResultIsPresent(executeConnector(HEADERSS_TC.get(2)));
+        checkResultIsPresent(executeConnector(buildHeaderParametersSet(HEADERS_ERROR)));
     }
 
     /**
@@ -793,10 +628,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void emptyBody() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withRequestBody(equalTo(BODYS.get(0)))
+                .withRequestBody(equalTo(EMPTY))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(BODYS_TC.get(0)));
+        checkResultIsPresent(executeConnector(buildBodyParametersSet(EMPTY)));
     }
 
     /**
@@ -807,10 +642,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void notEmptyBody() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
-                .withRequestBody(equalTo(BODYS.get(1)))
+                .withRequestBody(equalTo(FULL))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(BODYS_TC.get(1)));
+        checkResultIsPresent(executeConnector(buildBodyParametersSet(FULL)));
     }
 
     /**
@@ -821,10 +656,9 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void basicAuthWithUsernameAndPassword() throws BonitaException, InterruptedException {
         stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(0).get(1).toString()))
+                .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
-
-        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(0)));
+        checkResultIsPresent(executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, EMPTY, Boolean.TRUE)));
     }
 
     /**
@@ -835,10 +669,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void basicAuthWithUsernamePasswordAndLocalhost() throws BonitaException, InterruptedException {
         stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(1).get(1).toString()))
+                .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(1)));
+        checkResultIsPresent(executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, HOST, EMPTY, Boolean.TRUE)));
     }
 
     /**
@@ -849,12 +683,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void basicAuthWithUsernamePasswordAndRealm() throws BonitaException, InterruptedException {
         stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(2).get(1).toString()))
+                .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(2)));
+        checkResultIsPresent(executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, REALM, Boolean.TRUE)));
     }
-
+    
     /**
      * Test the OAuth2 Bearer with token
      * @throws BonitaException exception
@@ -863,10 +697,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void oAuth2BearerAuthWithToken() throws BonitaException, InterruptedException {
         stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(AUTHORIZATIONS.get(3).get(1).toString()))
+                .withHeader(WM_AUTHORIZATION, containing(TOKEN))
                 .willReturn(aResponse().withStatus(OK_STATUS)));
 
-        checkResultIsPresent(executeConnector(AUTHORIZATIONS_TC.get(3)));
+        checkResultIsPresent(executeConnector(buildOAuth2BearerAuthorizationParametersSet(TOKEN)));
     }
 
     /**
@@ -876,7 +710,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void noServiceAvailable() throws InterruptedException, BonitaException {
-        checkResult(executeConnector(METHODS_TC.get(0)), NOT_FOUND_STATUS);
+        checkResult(executeConnector(buildMethodParametersSet(GET)), NOT_FOUND_STATUS);
     }
 
     /**
@@ -889,7 +723,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         thrown.expect(BonitaException.class);
         thrown.expectMessage("java.net.UnknownHostException: fakeURL");
 
-        executeConnector(ERRORS_TC.get(0));
+        executeConnector(buildURLParametersSet(FAKE_URL));
     }
 
     /**
@@ -900,9 +734,9 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void unreachablePort() throws InterruptedException, BonitaException {
         thrown.expect(BonitaException.class);
-        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException: Connect to localhost:80 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: connect");
+        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException: Connect to localhost:" + FAKE_PORT + " [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: connect");
 
-        executeConnector(ERRORS_TC.get(1));
+        executeConnector(buildPortParametersSet(FAKE_PORT));
     }
 
     /**

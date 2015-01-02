@@ -117,7 +117,7 @@ public class AcceptanceTestBase {
      * @param myport The first port to check (increment from there)
      * @return The number of the port
      */
-    private static int findFreePort(final int myport) {
+    public static int findFreePort(final int myport) {
         int newPort = myport;
         boolean free = false;
         while (!free && newPort <= MAX_PORT) {
