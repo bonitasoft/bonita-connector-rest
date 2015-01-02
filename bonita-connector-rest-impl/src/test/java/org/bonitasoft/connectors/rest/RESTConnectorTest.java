@@ -197,13 +197,31 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         HEADERS_ERROR.add(header4);
     }
 
-    private static Map<String, Object> buildParametersSet(String url, String port, String method, String contentType, String charset, List<List<String>> cookies, List<List<String>> headers, String body, Boolean redirect, Boolean ignoreBody, Boolean trust, String sslVerifier) {
+    /**
+     * Build a request parameters set based on the given arguments
+     * @param url URL
+     * @param port Port
+     * @param method Method
+     * @param contentType Content type
+     * @param charset Charset
+     * @param cookies Cookies
+     * @param headers Headers
+     * @param body Body content
+     * @param redirect Is the redirection to be used
+     * @param ignoreBody Does the response body is ignored
+     * @param trust Trust self certificate
+     * @param sslVerifier SSL Verifier
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildParametersSet(final String url, final String port, final String method, 
+            final String contentType, final String charset, final List<List<String>> cookies, final List<List<String>> headers, 
+            final String body, final Boolean redirect, final Boolean ignoreBody, final Boolean trust, final String sslVerifier) {
         Map<String, Object> parametersSet = new HashMap<String, Object>();
-        if(url == null && port == null) {
+        if (url == null && port == null) {
             parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
-        } else if(url != null && port == null) {
+        } else if (url != null && port == null) {
             parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + url + ":" + getPort() + "/");
-        } else if(url == null && port != null) {
+        } else if (url == null && port != null) {
             parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + port + "/");
         } else {
             parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
@@ -221,40 +239,91 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         return parametersSet;
     }
     
-    private static Map<String, Object> buildURLParametersSet(String url) {
+    /**
+     * Build a request parameters set in order to test a specific URL
+     * @param url URL
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildURLParametersSet(final String url) {
         return buildParametersSet(url, null, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
-    private static Map<String, Object> buildPortParametersSet(String port) {
+    /**
+     * Build a request parameters set in order to test a specific port
+     * @param port Port
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildPortParametersSet(final String port) {
         return buildParametersSet(null, port, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
-    private static Map<String, Object> buildMethodParametersSet(String method) {
+    /**
+     * Build a request parameters set in order to test a specific Method
+     * @param method Method
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildMethodParametersSet(final String method) {
         return buildParametersSet(null, null, method, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
-    private static Map<String, Object> buildContentTypeParametersSet(String contentType) {
+    /**
+     * Build a request parameters set in order to test a specific Content Type
+     * @param contentType Content Type
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildContentTypeParametersSet(final String contentType) {
         return buildParametersSet(null, null, POST, contentType, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
-    private static Map<String, Object> buildCharsetParametersSet(String charset) {
+    /**
+     * Build a request parameters set in order to test a specific Charset
+     * @param charset Charset
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildCharsetParametersSet(final String charset) {
         return buildParametersSet(null, null, POST, PLAIN_TEXT, charset, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
-    private static Map<String, Object> buildCookieParametersSet(List<List<String>> cookies) {
+    /**
+     * Build a request parameters set in order to test a specific Cookies
+     * @param cookies Cookies
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildCookieParametersSet(final List<List<String>> cookies) {
         return buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, cookies, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
-    private static Map<String, Object> buildHeaderParametersSet(List<List<String>> headers) {
+    /**
+     * Build a request parameters set in order to test a specific headers
+     * @param headers Headers
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildHeaderParametersSet(final List<List<String>> headers) {
         return buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, headers, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
-    private static Map<String, Object> buildBodyParametersSet(String body) {
+    /**
+     * Build a request parameters set in order to test a specific body content
+     * @param body Body content
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildBodyParametersSet(final String body) {
         return buildParametersSet(null, null, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, body, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
-    private static Map<String, Object> buildBasicAuthorizationParametersSet(String username, String password, String host, String realm, Boolean preemptive) {
-        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    /**
+     * Build a request parameters set in order to test a specific Basic Authorization
+     * @param username Username
+     * @param password Password
+     * @param host Host
+     * @param realm Realm
+     * @param preemptive Preemptive
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildBasicAuthorizationParametersSet(final String username, 
+            final String password, final String host, final String realm, final Boolean preemptive) {
+        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, 
+                ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
         
         parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_USERNAME_INPUT_PARAMETER, username);
         parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_PASSWORD_INPUT_PARAMETER, password);
@@ -265,31 +334,14 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         return parametersSet;
     }
     
-    private static Map<String, Object> buildDigestAuthorizationParametersSet(String username, String password, String host, String realm, String preemptive) {
-        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
-        
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_USERNAME_INPUT_PARAMETER, username);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PASSWORD_INPUT_PARAMETER, password);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_HOST_INPUT_PARAMETER, host);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_REALM_INPUT_PARAMETER, realm);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER, preemptive);
-
-        return parametersSet;
-    }
-    
-    private static Map<String, Object> buildNTLMAuthorizationParametersSet(String username, String password, String workstation, String domain) {
-        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
-        
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_USERNAME_INPUT_PARAMETER, username);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_PASSWORD_INPUT_PARAMETER, password);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_WORKSTATION_INPUT_PARAMETER, workstation);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_NTLM_DOMAIN_INPUT_PARAMETER, domain);
-
-        return parametersSet;
-    }
-
-    private static Map<String, Object> buildOAuth2BearerAuthorizationParametersSet(String token) {
-        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+    /**
+     * Build a request parameters set in order to test a specific OAuth2Bearer Authorization
+     * @param token Token
+     * @return The set of parameters
+     */
+    private static Map<String, Object> buildOAuth2BearerAuthorizationParametersSet(final String token) {
+        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, 
+                ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
         
         parametersSet.put(AbstractRESTConnectorImpl.AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, token);
 
@@ -734,7 +786,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void unreachablePort() throws InterruptedException, BonitaException {
         thrown.expect(BonitaException.class);
-        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException: Connect to localhost:" + FAKE_PORT + " [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: connect");
+        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException: Connect to localhost:" + FAKE_PORT + 
+                " [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: connect");
 
         executeConnector(buildPortParametersSet(FAKE_PORT));
     }
