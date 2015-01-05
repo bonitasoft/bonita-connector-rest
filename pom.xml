@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<artifactId>bonita-connectors</artifactId>
+		<groupId>org.bonitasoft.connectors</groupId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>bonita-connector-rest</artifactId>
+	<packaging>pom</packaging>
+	<version>2.0</version>
+
+	<properties>
+		<bonita.engine.version>6.3.6</bonita.engine.version>
+	</properties>
+
+	<modules>
+		<module>bonita-connector-rest-def</module>
+		<module>bonita-connector-rest-impl</module>
+	</modules>
+
+	<dependencies>
+		<dependency>
+			<!-- Latest Version of Bonita released, against which the initial development 
+				has been done. -->
+			<!-- The connector will be tested against more recent version -->
+			<artifactId>bonita-common</artifactId>
+			<groupId>org.bonitasoft.engine</groupId>
+			<version>${bonita.engine.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<scm>
+		<developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
+		<connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
+		<url>https://github.com/bonitasoft/bonita-connector-rest</url>
+		<tag>HEAD</tag>
+	</scm>
+</project>

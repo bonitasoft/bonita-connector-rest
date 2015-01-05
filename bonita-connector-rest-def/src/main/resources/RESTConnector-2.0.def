@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
+  <id>RESTConnector</id>
+  <version>2.0</version>
+  <icon>rest.png</icon>
+  <category icon="rest.png" id="REST"/>
+  <input mandatory="true" name="url" type="java.lang.String"/>
+  <input defaultValue="GET" mandatory="true" name="method" type="java.lang.String"/>
+  <input defaultValue="text/plain" mandatory="true" name="contentType" type="java.lang.String"/>
+  <input defaultValue="UTF-8" mandatory="true" name="charset" type="java.lang.String"/>
+  <input mandatory="false" name="urlCookies" type="java.util.List"/>
+  <input name="urlHeaders" type="java.util.List"/>
+  <input mandatory="false" name="body" type="java.lang.String"/>
+  <input mandatory="false" name="do_not_follow_redirect" type="java.lang.Boolean"/>
+  <input mandatory="false" name="ignore_body" type="java.lang.Boolean"/>
+  <input defaultValue="false" mandatory="false" name="trust_self_signed_certificate" type="java.lang.Boolean"/>
+  <input mandatory="false" name="hostname_verifier" type="java.lang.String"/>
+  <input mandatory="false" name="trust_store_file" type="java.lang.String"/>
+  <input mandatory="false" name="trust_store_password" type="java.lang.String"/>
+  <input mandatory="false" name="key_store_file" type="java.lang.String"/>
+  <input mandatory="false" name="key_store_password" type="java.lang.String"/>
+  <input name="auth_basic_username" type="java.lang.String"/>
+  <input name="auth_basic_password" type="java.lang.String"/>
+  <input name="auth_basic_host" type="java.lang.String"/>
+  <input name="auth_basic_realm" type="java.lang.String"/>
+  <input defaultValue="false" mandatory="false" name="auth_basic_preemptive" type="java.lang.Boolean"/>
+  <input name="auth_digest_username" type="java.lang.String"/>
+  <input name="auth_digest_password" type="java.lang.String"/>
+  <input name="auth_digest_host" type="java.lang.String"/>
+  <input name="auth_digest_realm" type="java.lang.String"/>
+  <input defaultValue="false" name="auth_digest_preemptive" type="java.lang.Boolean"/>
+  <input name="auth_NTLM_username" type="java.lang.String"/>
+  <input name="auth_NTLM_password" type="java.lang.String"/>
+  <input name="auth_NTLM_workstation" type="java.lang.String"/>
+  <input name="auth_NTLM_domain" type="java.lang.String"/>
+  <input name="auth_OAuth2_bearer_token" type="java.lang.String"/>
+  <output name="result" type="org.bonitasoft.connectors.rest.RESTResult"/>
+  <page id="RESTConnectorWizardPage">
+    <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
+    <widget xsi:type="definition:Select" id="methodWidget" inputName="method">
+      <items>GET</items>
+      <items>POST</items>
+      <items>PUT</items>
+      <items>DELETE</items>
+    </widget>
+    <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
+      <items>application/json</items>
+      <items>text/plain</items>
+    </widget>
+    <widget xsi:type="definition:Select" id="charsetWidget" inputName="charset">
+      <items>UTF-8</items>
+      <items>UTF-16</items>
+      <items>UTF-16BE</items>
+      <items>UTF-16LE</items>
+      <items>US-ASCII</items>
+      <items>ISO-8859-1</items>
+    </widget>
+    <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
+      <colsCaption>Key</colsCaption>
+      <colsCaption>Value</colsCaption>
+    </widget>
+    <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
+      <colsCaption>Key</colsCaption>
+      <colsCaption>Value</colsCaption>
+    </widget>
+    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
+    <widget xsi:type="definition:Checkbox" id="do_not_follow_redirect_widget" inputName="do_not_follow_redirect"/>
+    <widget xsi:type="definition:Checkbox" id="ignore_body_widget" inputName="ignore_body"/>
+  </page>
+  <page id="SSLPage">
+    <widget xsi:type="definition:Group" id="ssl" optional="false">
+      <widget xsi:type="definition:Checkbox" id="trust_self_signed_certificate_widget" inputName="trust_self_signed_certificate"/>
+      <widget xsi:type="definition:Select" id="hostname_verifier_widget" inputName="hostname_verifier">
+        <items>Strict</items>
+        <items>Browser Compatible</items>
+        <items>Allow All</items>
+      </widget>
+    </widget>
+    <widget xsi:type="definition:Group" id="trust_store">
+      <widget xsi:type="definition:Text" id="trust_store_file_widget" inputName="trust_store_file"/>
+      <widget xsi:type="definition:Password" id="trust_store_password_widget" inputName="trust_store_password"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="key_store">
+      <widget xsi:type="definition:Text" id="key_store_file_widget" inputName="key_store_file"/>
+      <widget xsi:type="definition:Password" id="key_store_password_widget" inputName="key_store_password"/>
+    </widget>
+  </page>
+  <page id="authenticationPage">
+    <widget xsi:type="definition:Group" id="auth_basic" optional="false">
+      <widget xsi:type="definition:Text" id="auth_basic_username_widget" inputName="auth_basic_username"/>
+      <widget xsi:type="definition:Password" id="auth_basic_password_widget" inputName="auth_basic_password"/>
+      <widget xsi:type="definition:Text" id="auth_basic_host_widget" inputName="auth_basic_host"/>
+      <widget xsi:type="definition:Text" id="auth_basic_realm_widget" inputName="auth_basic_realm"/>
+      <widget xsi:type="definition:Checkbox" id="auth_basic_preemptive_widget" inputName="auth_basic_preemptive"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="auth_digest">
+      <widget xsi:type="definition:Text" id="auth_digest_username_widget" inputName="auth_digest_username"/>
+      <widget xsi:type="definition:Password" id="auth_digest_password_widget" inputName="auth_digest_password"/>
+      <widget xsi:type="definition:Text" id="auth_digest_host_widget" inputName="auth_digest_host"/>
+      <widget xsi:type="definition:Text" id="auth_digest_realm_widget" inputName="auth_digest_realm"/>
+      <widget xsi:type="definition:Checkbox" id="auth_digest_preemptive_widget" inputName="auth_digest_preemptive"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="auth_NTLM">
+      <widget xsi:type="definition:Text" id="auth_NTLM_username_widget" inputName="auth_NTLM_username"/>
+      <widget xsi:type="definition:Password" id="auth_NTLM_password_widget" inputName="auth_NTLM_password"/>
+      <widget xsi:type="definition:Text" id="auth_NTLM_workstation_widget" inputName="auth_NTLM_workstation"/>
+      <widget xsi:type="definition:Text" id="auth_NTLM_domain_widget" inputName="auth_NTLM_domain"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="auth_oauth2_bearer">
+      <widget xsi:type="definition:Text" id="auth_OAuth2_bearer_token_widget" inputName="auth_OAuth2_bearer_token"/>
+    </widget>
+  </page>
+  <jarDependency>bonita-connector-rest-impl-2.0.jar</jarDependency>
+</definition:ConnectorDefinition>
