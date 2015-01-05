@@ -786,8 +786,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void unreachablePort() throws InterruptedException, BonitaException {
         thrown.expect(BonitaException.class);
-        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException: Connect to localhost:" + FAKE_PORT + 
-                " [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused: connect");
+        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException");
+        thrown.expectMessage(FAKE_PORT);
 
         executeConnector(buildPortParametersSet(FAKE_PORT));
     }
