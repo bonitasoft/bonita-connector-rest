@@ -8,28 +8,11 @@
   <hasSources>false</hasSources>
   <description>The implementation of the REST Connector.</description>
   <jarDependencies>
-    <jarDependency>aopalliance-1.0.jar</jarDependency>
     <jarDependency>bonita-connector-rest-impl-2.0.jar</jarDependency>
     <jarDependency>commons-codec-1.6.jar</jarDependency>
     <jarDependency>commons-io-2.4.jar</jarDependency>
     <jarDependency>commons-logging-1.1.3.jar</jarDependency>
-    <jarDependency>groovy-all-minimal-1.5.8.jar</jarDependency>
-    <jarDependency>guava-14.0.1.jar</jarDependency>
-    <jarDependency>guice-3.0.jar</jarDependency>
-    <jarDependency>hamcrest-core-1.3.jar</jarDependency>
-    <jarDependency>httpclient-4.3.5.jar</jarDependency>
-    <jarDependency>httpcore-4.3.2.jar</jarDependency>
-    <jarDependency>httpmime-4.3.5.jar</jarDependency>
-    <jarDependency>jackson-core-asl-1.9.13.jar</jarDependency>
-    <jarDependency>jackson-mapper-asl-1.9.13.jar</jarDependency>
-    <jarDependency>javax.inject-1.jar</jarDependency>
-    <jarDependency>jericho-html-3.3.jar</jarDependency>
-    <jarDependency>junit-4.11.jar</jarDependency>
-    <jarDependency>mycila-guice-closeable-3.2.ga.jar</jarDependency>
-    <jarDependency>mycila-guice-injection-3.2.ga.jar</jarDependency>
-    <jarDependency>mycila-guice-jsr250-3.2.ga.jar</jarDependency>
-    <jarDependency>sisu-guice-3.1.0.jar</jarDependency>
-    <jarDependency>xml-apis-1.3.03.jar</jarDependency>
-    <jarDependency>xom-1.2.5.jar</jarDependency>
+    <jarDependency>httpclient-4.3.6.jar</jarDependency>
+    <jarDependency>httpcore-4.3.3.jar</jarDependency>
   </jarDependencies>
 </implementation:connectorImplementation>
