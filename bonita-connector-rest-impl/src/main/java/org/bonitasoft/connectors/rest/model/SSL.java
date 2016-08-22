@@ -8,12 +8,12 @@ public class SSL {
     /**
      * The truststore.
      */
-    private RESTKeyStore trustStore;
+    private Store trustStore = null;
 
     /**
      * The key store.
      */
-    private RESTKeyStore keyStore;
+    private Store keyStore = null;
 
     /**
      * The SSL verifier.
@@ -26,10 +26,15 @@ public class SSL {
     private boolean useSelfSignedCertificate = false;
 
     /**
+     * Is TLS has to be used.
+     */
+    private boolean useTLS = false;
+    
+    /**
      * Trust store value getter.
      * @return The truststore value.
      */
-    public RESTKeyStore getTrustStore() {
+    public Store getTrustStore() {
         return trustStore;
     }
 
@@ -37,7 +42,7 @@ public class SSL {
      * Truststore value setter.
      * @param trustStore The truststore new value.
      */
-    public void setTrustStore(final RESTKeyStore trustStore) {
+    public void setTrustStore(final Store trustStore) {
         this.trustStore = trustStore;
     }
     
@@ -45,7 +50,7 @@ public class SSL {
      * Key store value getter.
      * @return The key store value.
      */
-    public RESTKeyStore getKeyStore() {
+    public Store getKeyStore() {
         return keyStore;
     }
 
@@ -53,7 +58,7 @@ public class SSL {
      * Keystore value setter.
      * @param keyStore The keystore new value.
      */
-    public void setKeyStore(final RESTKeyStore keyStore) {
+    public void setKeyStore(final Store keyStore) {
         this.keyStore = keyStore;
     }
 
@@ -87,5 +92,21 @@ public class SSL {
      */
     public void setUseSelfSignedCertificate(final boolean useSelfSignedCertificate) {
         this.useSelfSignedCertificate = useSelfSignedCertificate;
+    }
+    
+    /**
+     * Use TLS value getter.
+     * @return The Use TLS value.
+     */
+    public boolean isUseTLS() {
+        return useTLS;
+    }
+
+    /**
+     * Use TLS setter.
+     * @param useTLS The Use TLS new value.
+     */
+    public void setUseTLS(final boolean useTLS) {
+        this.useTLS = useTLS;
     }
 }

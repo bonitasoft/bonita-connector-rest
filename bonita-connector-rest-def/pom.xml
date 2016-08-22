@@ -4,9 +4,10 @@
 	<parent>
 		<artifactId>bonita-connector-rest</artifactId>
 		<groupId>org.bonitasoft.connectors</groupId>
-		<version>2.0.0</version>
+		<version>3.0</version>
 	</parent>
 	
 	<artifactId>bonita-connector-rest-def</artifactId>
+	<version>3.0</version>
 	
 </project>

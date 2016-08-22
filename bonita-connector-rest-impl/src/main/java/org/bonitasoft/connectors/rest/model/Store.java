@@ -12,7 +12,7 @@ import java.security.cert.CertificateException;
 /**
  * A basic key store to be used in a HTTP request.
  */
-public class RESTKeyStore {
+public class Store {
     
     /**
      * The type of the key store.
@@ -22,12 +22,12 @@ public class RESTKeyStore {
     /**
      * The file.
      */
-    private File file;
+    private File file = null;
     
     /**
      * The password.
      */
-    private String password;
+    private String password = null;
 
     /**
      * Generate the key store based on the options.

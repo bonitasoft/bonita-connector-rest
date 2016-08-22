@@ -10,7 +10,7 @@ import org.bonitasoft.connectors.rest.RESTResultKeyValueMap;
 /**
  * This class reflects the information for a REST request.
  */
-public class RESTRequest {
+public class Request {
     
     /**
      * The URL.
@@ -20,7 +20,7 @@ public class RESTRequest {
     /**
      * The REST HTTP Method.
      */
-    private RESTHTTPMethod restMethod;
+    private HTTPMethod restMethod;
     
     /**
      * The authorization.
@@ -41,6 +41,11 @@ public class RESTRequest {
      * The ssl information.
      */
     private SSL ssl;
+    
+    /**
+     * The Proxy information.
+     */
+    private Proxy proxy;
     
     /**
      * Is the request has to follow the redirections.
@@ -82,7 +87,7 @@ public class RESTRequest {
      * RESTHTTPMethod value getter.
      * @return The RESTHTTPMethod value.
      */
-    public RESTHTTPMethod getRestMethod() {
+    public HTTPMethod getRestMethod() {
         return restMethod;
     }
     
@@ -90,7 +95,7 @@ public class RESTRequest {
      * RESTHTTPMethod value setter.
      * @param restMethod The RESTHTTPMethod new value.
      */
-    public void setRestMethod(final RESTHTTPMethod restMethod) {
+    public void setRestMethod(final HTTPMethod restMethod) {
         this.restMethod = restMethod;
     }
     
@@ -124,6 +129,22 @@ public class RESTRequest {
      */
     public void setSsl(final SSL ssl) {
         this.ssl = ssl;
+    }
+    
+    /**
+     * Proxy value getter.
+     * @return The Proxy value.
+     */
+    public Proxy getProxy() {
+        return proxy;
+    }
+    
+    /**
+     * Proxy value setter.
+     * @param proxy The Proxy new value.
+     */
+    public void setProxy(final Proxy proxy) {
+        this.proxy = proxy;
     }
     
     /**

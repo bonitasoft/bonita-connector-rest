@@ -1,5 +1,7 @@
 package org.bonitasoft.connectors.rest.model;
 
+import java.nio.charset.Charset;
+
 /**
  * This class reflects the information for a Content of a HTTP request.
  */
@@ -13,7 +15,7 @@ public class Content {
     /**
      * The charset parameter of the content.
      */
-    private RESTCharsets charset = null;
+    private Charset charset = null;
 
     /**
      * Content type value getter.
@@ -35,7 +37,7 @@ public class Content {
      * Charset value getter.
      * @return The charset value.
      */
-    public RESTCharsets getCharset() {
+    public Charset getCharset() {
         return charset;
     }
 
@@ -43,7 +45,7 @@ public class Content {
     * The charset value setter.
     * @param charset The new charset value.
     */
-    public void setCharset(final RESTCharsets charset) {
+    public void setCharset(final Charset charset) {
         this.charset = charset;
     }
 

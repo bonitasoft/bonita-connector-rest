@@ -26,6 +26,11 @@ public class BasicDigestAuthorization implements Authorization {
     private String host = null;
     
     /**
+     * The port value.
+     */
+    private Integer port = null;
+    
+    /**
      * The realm value.
      */
     private String realm = null;
@@ -90,6 +95,22 @@ public class BasicDigestAuthorization implements Authorization {
      */
     public void setHost(final String host) {
         this.host = host;
+    }
+    
+    /**
+     * Port value getter.
+     * @return The port value.
+     */
+    public Integer getPort() {
+        return port;
+    }
+
+    /**
+     * Port value setter.
+     * @param port The new Port value.
+     */
+    public void setPort(final Integer port) {
+        this.port = port;
     }
 
     /**

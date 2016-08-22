@@ -8,7 +8,7 @@ import org.bonitasoft.connectors.rest.RESTResultKeyValueMap;
 /**
  * This class reflects the information for a REST response.
  */
-public class RESTResponse {
+public class Response {
     
     /**
      * The body.

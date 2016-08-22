@@ -132,7 +132,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String PASSWORD = "password";
     private static final String REALM = "realm";
     private static final String HOST = "localhost";
-    private static final String TOKEN = "token";
+//    private static final String TOKEN = "token";
 
     //OTHER ERRORS
     /**
@@ -334,19 +334,19 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         return parametersSet;
     }
     
-    /**
-     * Build a request parameters set in order to test a specific OAuth2Bearer Authorization
-     * @param token Token
-     * @return The set of parameters
-     */
-    private static Map<String, Object> buildOAuth2BearerAuthorizationParametersSet(final String token) {
-        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, 
-                ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
-        
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, token);
-
-        return parametersSet;
-    }
+//    /**
+//     * Build a request parameters set in order to test a specific OAuth2Bearer Authorization
+//     * @param token Token
+//     * @return The set of parameters
+//     */
+//    private static Map<String, Object> buildOAuth2BearerAuthorizationParametersSet(final String token) {
+//        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, 
+//                ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
+//        
+//        parametersSet.put(AbstractRESTConnectorImpl.AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, token);
+//
+//        return parametersSet;
+//    }
 
     /**
      * Execute a connector call
@@ -423,7 +423,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void fakeMethod() throws BonitaException, InterruptedException {
         thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.bonitasoft.connectors.rest.model.RESTHTTPMethod.FAKE_METHOD");
+        thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.bonitasoft.connectors.rest.model.HTTPMethod.FAKE_METHOD");
 
         checkResultIsPresent(executeConnector(buildMethodParametersSet(METHOD_ERROR)));
     }
@@ -485,48 +485,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
-     * Test the UTF16 charset
-     * @throws BonitaException exception
-     * @throws InterruptedException exception
-     */
-    @Test
-    public void utf16Charset() throws BonitaException, InterruptedException {
-        stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF16))
-                .willReturn(aResponse().withStatus(OK_STATUS)));
-
-        checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF16)));
-    }
-
-    /**
-     * Test the UTF16BE charset
-     * @throws BonitaException exception
-     * @throws InterruptedException exception
-     */
-    @Test
-    public void utf16beCharset() throws BonitaException, InterruptedException {
-        stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF16BE))
-                .willReturn(aResponse().withStatus(OK_STATUS)));
-
-        checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF16BE)));
-    }
-
-    /**
-     * Test the UTF16LE charset
-     * @throws BonitaException exception
-     * @throws InterruptedException exception
-     */
-    @Test
-    public void utf16leCharset() throws BonitaException, InterruptedException {
-        stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF16LE))
-                .willReturn(aResponse().withStatus(OK_STATUS)));
-
-        checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF16LE)));
-    }
-
-    /**
      * Test the ISO-8859-1 charset
      * @throws BonitaException exception
      * @throws InterruptedException exception
@@ -561,9 +519,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void fakeCharset() throws BonitaException, InterruptedException {
-        stubFor(post(urlEqualTo("/"))
-                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
-                .willReturn(aResponse().withStatus(OK_STATUS)));
+    	thrown.expect(BonitaException.class);
+        thrown.expectMessage("java.nio.charset.UnsupportedCharsetException: FAKE-CHARSET");
 
         checkResultIsPresent(executeConnector(buildCharsetParametersSet(CHARSET_ERROR)));
     }
@@ -741,19 +698,19 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, REALM, Boolean.TRUE)));
     }
     
-    /**
-     * Test the OAuth2 Bearer with token
-     * @throws BonitaException exception
-     * @throws InterruptedException exception
-     */
-    @Test
-    public void oAuth2BearerAuthWithToken() throws BonitaException, InterruptedException {
-        stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(TOKEN))
-                .willReturn(aResponse().withStatus(OK_STATUS)));
-
-        checkResultIsPresent(executeConnector(buildOAuth2BearerAuthorizationParametersSet(TOKEN)));
-    }
+//    /**
+//     * Test the OAuth2 Bearer with token
+//     * @throws BonitaException exception
+//     * @throws InterruptedException exception
+//     */
+//    @Test
+//    public void oAuth2BearerAuthWithToken() throws BonitaException, InterruptedException {
+//        stubFor(get(urlEqualTo("/"))
+//                .withHeader(WM_AUTHORIZATION, containing(TOKEN))
+//                .willReturn(aResponse().withStatus(OK_STATUS)));
+//
+//        checkResultIsPresent(executeConnector(buildOAuth2BearerAuthorizationParametersSet(TOKEN)));
+//    }
 
     /**
      * Test no service available

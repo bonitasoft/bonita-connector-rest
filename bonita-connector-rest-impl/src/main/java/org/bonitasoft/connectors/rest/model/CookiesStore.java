@@ -10,7 +10,7 @@ import org.apache.http.cookie.Cookie;
 /**
  * A basic cookie store to be used in a HTTP request.
  */
-public class RESTCookieStore implements CookieStore {
+public class CookiesStore implements CookieStore {
 
     /**
      * The list of cookies of the store.
