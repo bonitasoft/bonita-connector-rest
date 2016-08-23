@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
   <id>RESTConnector</id>
-  <version>3.0</version>
+  <version>3.0.0</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   <input mandatory="true" name="url" type="java.lang.String"/>
@@ -1209,5 +1209,5 @@
 	<widget xsi:type="definition:Text" id="proxy_username_widget" inputName="proxy_username"/>
 	<widget xsi:type="definition:Password" id="proxy_password_widget" inputName="proxy_password"/>
   </page>
-  <jarDependency>bonita-connector-rest-impl-3.0.jar</jarDependency>
+  <jarDependency>bonita-connector-rest-impl-3.0.0.jar</jarDependency>
 </definition:ConnectorDefinition>
