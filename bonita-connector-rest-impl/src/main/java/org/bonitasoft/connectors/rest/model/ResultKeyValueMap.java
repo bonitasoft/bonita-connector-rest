@@ -12,7 +12,7 @@
  * Floor, Boston, MA 02110-1301, USA.
  **/
 
-package org.bonitasoft.connectors.rest;
+package org.bonitasoft.connectors.rest.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * The key value object of the result of a REST Connector
  */
-public class RESTResultKeyValueMap implements Serializable {
+public class ResultKeyValueMap implements Serializable {
 
     /**
      * The serial version

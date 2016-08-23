@@ -15,6 +15,7 @@
 package org.bonitasoft.connectors.rest;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -22,23 +23,18 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.BeforeClass;
-import org.junit.Rule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl;
-import org.bonitasoft.connectors.rest.RESTConnector;
-import org.bonitasoft.connectors.rest.RESTResult;
 import org.bonitasoft.engine.exception.BonitaException;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
@@ -698,20 +694,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, REALM, Boolean.TRUE)));
     }
     
-//    /**
-//     * Test the OAuth2 Bearer with token
-//     * @throws BonitaException exception
-//     * @throws InterruptedException exception
-//     */
-//    @Test
-//    public void oAuth2BearerAuthWithToken() throws BonitaException, InterruptedException {
-//        stubFor(get(urlEqualTo("/"))
-//                .withHeader(WM_AUTHORIZATION, containing(TOKEN))
-//                .willReturn(aResponse().withStatus(OK_STATUS)));
-//
-//        checkResultIsPresent(executeConnector(buildOAuth2BearerAuthorizationParametersSet(TOKEN)));
-//    }
-
     /**
      * Test no service available
      * @throws InterruptedException exception
@@ -763,11 +745,11 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param httpStatus HTTP Status to be found as a result
      */
     private void checkResult(final Map<String, Object> restResult, final int httpStatus) {
-        assertEquals(restResult.size(), 1);
-        assertNotNull(restResult.get(AbstractRESTConnectorImpl.RESULT_OUTPUT_PARAMETER));
-        Object result = restResult.get(AbstractRESTConnectorImpl.RESULT_OUTPUT_PARAMETER);
-        assertTrue(result instanceof RESTResult);
-        RESTResult restResultContent = (RESTResult) result;
-        assertEquals(httpStatus, restResultContent.getStatusCode());
+        assertEquals(5, restResult.size());
+        assertNotNull(restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER));
+        Object statusCode = restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER);
+        assertTrue(statusCode instanceof Integer);
+        Integer restStatusCode = (Integer) statusCode;
+        assertEquals(httpStatus, restStatusCode.intValue());
     }
 }

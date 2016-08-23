@@ -57,7 +57,11 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	protected final static String PROXY_PORT_INPUT_PARAMETER = "proxy_port";
 	protected final static String PROXY_USERNAME_INPUT_PARAMETER = "proxy_username";
 	protected final static String PROXY_PASSWORD_INPUT_PARAMETER = "proxy_password";
-	protected final static String RESULT_OUTPUT_PARAMETER = "result";
+	protected final static String BODY_OUTPUT_PARAMETER = "body";
+	protected final static String HEADERS_OUTPUT_PARAMETER = "headers";
+	protected final static String EXECUTION_TIME_OUTPUT_PARAMETER = "execution_time";
+	protected final static String STATUS_CODE_OUTPUT_PARAMETER = "status_code";
+	protected final static String STATUS_MESSAGE_OUTPUT_PARAMETER = "status_message";
 
 	protected final java.lang.String getUrl() {
 		return (java.lang.String) getInputParameter(URL_INPUT_PARAMETER);
@@ -211,8 +215,24 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 		return (java.lang.String) getInputParameter(PROXY_PASSWORD_INPUT_PARAMETER);
 	}
 
-	protected final void setResult(org.bonitasoft.connectors.rest.RESTResult result) {
-		setOutputParameter(RESULT_OUTPUT_PARAMETER, result);
+	protected final void setBody(java.lang.String body) {
+		setOutputParameter(BODY_OUTPUT_PARAMETER, body);
+	}
+	
+	protected final void setHeaders(java.util.List headers) {
+		setOutputParameter(HEADERS_OUTPUT_PARAMETER, headers);
+	}
+
+	protected final void setExecutionTime(java.lang.Double executionTime) {
+		setOutputParameter(EXECUTION_TIME_OUTPUT_PARAMETER, executionTime);
+	}
+	
+	protected final void setStatusCode(java.lang.Integer statusCode) {
+		setOutputParameter(STATUS_CODE_OUTPUT_PARAMETER, statusCode);
+	}
+	
+	protected final void setStatusMessage(java.lang.String statusMessage) {
+		setOutputParameter(STATUS_MESSAGE_OUTPUT_PARAMETER, statusMessage);
 	}
 
 	@Override

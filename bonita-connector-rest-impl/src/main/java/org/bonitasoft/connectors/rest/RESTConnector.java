@@ -24,6 +24,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -76,6 +77,7 @@ import org.bonitasoft.connectors.rest.model.Proxy;
 import org.bonitasoft.connectors.rest.model.ProxyProtocol;
 import org.bonitasoft.connectors.rest.model.Request;
 import org.bonitasoft.connectors.rest.model.Response;
+import org.bonitasoft.connectors.rest.model.ResultKeyValueMap;
 import org.bonitasoft.connectors.rest.model.SSL;
 import org.bonitasoft.connectors.rest.model.SSLVerifier;
 import org.bonitasoft.connectors.rest.model.Store;
@@ -94,7 +96,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
     private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
     private static final int CONNECTION_TIMEOUT = 60000;
-    private static final String AUTHORIZATION_HEADER = "Authorization";
     
     /**
      * The class logger
@@ -197,10 +198,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     @Override
     protected void executeBusinessLogic() throws ConnectorException {
     	try {
-	        Request request = buildRequest();
-	        Response response = execute(request);
+	        Response response = execute(buildRequest());
 	        LOGGER.fine("Request sent.");
-	        extractResponse(response);
+	        setOutputs(response);
     	} catch(Exception e) {
             logException(e);
     		throw new ConnectorException(e);
@@ -455,39 +455,25 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Extracts the response of the HTTP transaction
      * @param response The response of the sent request
      */
-    private void extractResponse(final Response response) {
-        RESTResult result = new RESTResult();
+    private void setOutputs(final Response response) {
         if (response != null) {
-            String entity = "";
-            if (response.getBody() != null && response.getBody().length() > 0) {
-                entity = response.getBody().trim();
-                LOGGER.fine("Response entity extracted and not empty.");
+            if (response.getBody() != null) {
+                setBody(response.getBody().trim());
+            } else {
+                setBody(null);
             }
-            result.setEntity(entity);
-            List<RESTResultKeyValueMap> headers = new ArrayList<RESTResultKeyValueMap>();
-            List<RESTResultKeyValueMap> returnedHeaders = response.getHeaders();
-            for (int i = 0; i < returnedHeaders.size(); i++) {
-                List<String> returnedValues = returnedHeaders.get(i).getValue();
-                RESTResultKeyValueMap mapping = new RESTResultKeyValueMap();
-                List<String> mappingValues = new ArrayList<String>();
-                mappingValues.addAll(returnedValues);
-                mapping.setKey(returnedHeaders.get(i).getKey());
-                mapping.setValue(mappingValues);
-                headers.add(mapping);
-                LOGGER.fine("Header value extracted.");
+            if (response.getHeaders() != null) {
+                setHeaders(Arrays.asList(response.getHeaders()));
+            } else {
+                setHeaders(null);
             }
-            result.setHeader(headers);
-            result.setTime(response.getExecutionTime());
-            LOGGER.fine("Time extracted.");
-            result.setStatusCode(response.getStatusCode());
-            LOGGER.fine("Status code extracted.");
-            result.setStatusLine(response.getMessage());
-            LOGGER.fine("Status line extracted.");
+            setExecutionTime(response.getExecutionTime());
+            setStatusCode(response.getStatusCode());
+            setStatusMessage(response.getMessage());
+            LOGGER.fine("All outputs have been set.");
         } else {
             LOGGER.fine("Response is null.");
         }
-        setResult(result);
-        LOGGER.fine("Result set.");
     }
 
     /**
@@ -553,14 +539,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             long endTime = System.currentTimeMillis();
 
             Response response = new Response();
-            response.setExecutionTime(endTime - startTime);
+            response.setExecutionTime(new Double(endTime - startTime));
             response.setStatusCode(httpResponse.getStatusLine().getStatusCode());
             response.setMessage(httpResponse.getStatusLine().toString());
-
-            final Header[] responseHeaders = httpResponse.getAllHeaders();
-            for (Header header : responseHeaders) {
-                response.addHeader(header.getName(), header.getValue());
-            }
+            response.setHeaders(httpResponse.getAllHeaders());
 
             final HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
@@ -706,8 +688,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param requestBuilder The request builder
      * @param headerData The request headers
      */
-    private static void setHeaders(final RequestBuilder requestBuilder, final List<RESTResultKeyValueMap> headerData) {
-        for (RESTResultKeyValueMap aHeaderData : headerData) {
+    private static void setHeaders(final RequestBuilder requestBuilder, final List<ResultKeyValueMap> headerData) {
+        for (ResultKeyValueMap aHeaderData : headerData) {
             String key = aHeaderData.getKey();
             for (String value : aHeaderData.getValue()) {
                 Header header = new BasicHeader(key, value);
@@ -791,29 +773,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 	                localContext.setAuthCache(authoriationCache);
 	                httpContext = localContext;
                 }
-            } else if (authorization instanceof NtlmAuthorization) {
-            	// TODO
-//                List<String> authPrefs = new ArrayList<>();
-//                authPrefs.add(AuthSchemes.NTLM);
-//                requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
-//
-//                NtlmAuthorization castAuthorization = (NtlmAuthorization) authorization;
-//                String username = castAuthorization.getUsername();
-//                String password = new String(castAuthorization.getPassword());
-//
-//                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-//                credentialsProvider.setCredentials(
-//                        AuthScope.ANY,
-//                        new NTCredentials(username, password, castAuthorization.getWorkstation(), castAuthorization.getDomain()));
-//                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            } else if (authorization instanceof HeaderAuthorization) {
-            	// TODO
-//                HeaderAuthorization castAuthorization = (HeaderAuthorization) authorization;
-//                final String authorizationHeader = castAuthorization.getValue();
-//                if (isStringInputValid(authorizationHeader)) {
-//                    Header header = new BasicHeader(AUTHORIZATION_HEADER, authorizationHeader);
-//                    requestBuilder.addHeader(header);
-//                }
             }
         } else if(proxy != null) {
         	CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
