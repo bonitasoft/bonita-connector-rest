@@ -16,11 +16,6 @@ public class Response {
     private String body = "";
 
     /**
-     * The execution time.
-     */
-    private Double executionTime = -1D;
-    
-    /**
      * The HTTP status code.
      */
     private Integer statusCode = -1;
@@ -51,26 +46,6 @@ public class Response {
         this.body = body;
     }
 
-
-    
-    /**
-     * Execution time value getter.
-     * @return The execution time value.
-     */
-    public Double getExecutionTime() {
-        return executionTime;
-    }
-
-    /**
-     * Execution time value setter.
-     * @param executionTime The new execution time value.
-     */
-   public void setExecutionTime(final Double executionTime) {
-        this.executionTime = executionTime;
-    }
-
-
-    
     /**
      * Status code value getter.
      * @return The status code value.

@@ -745,7 +745,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param httpStatus HTTP Status to be found as a result
      */
     private void checkResult(final Map<String, Object> restResult, final int httpStatus) {
-        assertEquals(5, restResult.size());
+        assertEquals(4, restResult.size());
         assertNotNull(restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER));
         Object statusCode = restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER);
         assertTrue(statusCode instanceof Integer);

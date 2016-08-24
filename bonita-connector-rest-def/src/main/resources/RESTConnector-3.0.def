@@ -44,7 +44,6 @@
   <input name="proxy_password" type="java.lang.String"/>
   <output name="body" type="java.lang.String"/>
   <output name="headers" type="java.util.List"/>
-  <output name="execution_time" type="java.lang.Double"/>
   <output name="status_code" type="java.lang.Integer"/>
   <output name="status_message" type="java.lang.String"/>
   <page id="RESTConnectorWizardPage">

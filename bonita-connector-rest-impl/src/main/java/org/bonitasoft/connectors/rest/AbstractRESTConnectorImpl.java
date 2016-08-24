@@ -59,7 +59,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	protected final static String PROXY_PASSWORD_INPUT_PARAMETER = "proxy_password";
 	protected final static String BODY_OUTPUT_PARAMETER = "body";
 	protected final static String HEADERS_OUTPUT_PARAMETER = "headers";
-	protected final static String EXECUTION_TIME_OUTPUT_PARAMETER = "execution_time";
 	protected final static String STATUS_CODE_OUTPUT_PARAMETER = "status_code";
 	protected final static String STATUS_MESSAGE_OUTPUT_PARAMETER = "status_message";
 
@@ -223,10 +222,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 		setOutputParameter(HEADERS_OUTPUT_PARAMETER, headers);
 	}
 
-	protected final void setExecutionTime(java.lang.Double executionTime) {
-		setOutputParameter(EXECUTION_TIME_OUTPUT_PARAMETER, executionTime);
-	}
-	
 	protected final void setStatusCode(java.lang.Integer statusCode) {
 		setOutputParameter(STATUS_CODE_OUTPUT_PARAMETER, statusCode);
 	}

@@ -467,7 +467,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             } else {
                 setHeaders(null);
             }
-            setExecutionTime(response.getExecutionTime());
             setStatusCode(response.getStatusCode());
             setStatusMessage(response.getMessage());
             LOGGER.fine("All outputs have been set.");
@@ -533,13 +532,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
             HttpUriRequest httpRequest = requestBuilder.build();
             httpClient = httpClientBuilder.build();
-            
-            long startTime = System.currentTimeMillis();
             HttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
-            long endTime = System.currentTimeMillis();
 
             Response response = new Response();
-            response.setExecutionTime(new Double(endTime - startTime));
             response.setStatusCode(httpResponse.getStatusLine().getStatusCode());
             response.setMessage(httpResponse.getStatusLine().toString());
             response.setHeaders(httpResponse.getAllHeaders());
