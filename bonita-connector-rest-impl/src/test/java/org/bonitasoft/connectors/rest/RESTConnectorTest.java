@@ -334,20 +334,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         return parametersSet;
     }
     
-//    /**
-//     * Build a request parameters set in order to test a specific OAuth2Bearer Authorization
-//     * @param token Token
-//     * @return The set of parameters
-//     */
-//    private static Map<String, Object> buildOAuth2BearerAuthorizationParametersSet(final String token) {
-//        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, 
-//                ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
-//        
-//        parametersSet.put(AbstractRESTConnectorImpl.AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER, token);
-//
-//        return parametersSet;
-//    }
-
     /**
      * Execute a connector call
      * @param parameters The parameters of the connector call
@@ -698,20 +684,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, REALM, Boolean.TRUE)));
     }
     
-//    /**
-//     * Test the OAuth2 Bearer with token
-//     * @throws BonitaException exception
-//     * @throws InterruptedException exception
-//     */
-//    @Test
-//    public void oAuth2BearerAuthWithToken() throws BonitaException, InterruptedException {
-//        stubFor(get(urlEqualTo("/"))
-//                .withHeader(WM_AUTHORIZATION, containing(TOKEN))
-//                .willReturn(aResponse().withStatus(OK_STATUS)));
-//
-//        checkResultIsPresent(executeConnector(buildOAuth2BearerAuthorizationParametersSet(TOKEN)));
-//    }
-
     /**
      * Test no service available
      * @throws InterruptedException exception

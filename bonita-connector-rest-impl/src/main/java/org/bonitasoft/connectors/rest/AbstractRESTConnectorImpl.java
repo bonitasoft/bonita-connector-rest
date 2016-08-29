@@ -47,11 +47,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	protected final static String AUTH_DIGEST_PORT_INPUT_PARAMETER = "auth_digest_port";
 	protected final static String AUTH_DIGEST_REALM_INPUT_PARAMETER = "auth_digest_realm";
 	protected final static String AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER = "auth_digest_preemptive";
-	protected final static String AUTH_NTLM_USERNAME_INPUT_PARAMETER = "auth_NTLM_username";
-	protected final static String AUTH_NTLM_PASSWORD_INPUT_PARAMETER = "auth_NTLM_password";
-	protected final static String AUTH_NTLM_WORKSTATION_INPUT_PARAMETER = "auth_NTLM_workstation";
-	protected final static String AUTH_NTLM_DOMAIN_INPUT_PARAMETER = "auth_NTLM_domain";
-	protected final static String AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER = "auth_OAuth2_bearer_token";
 	protected final static String PROXY_PROTOCOL_INPUT_PARAMETER = "proxy_protocol";
 	protected final static String PROXY_HOST_INPUT_PARAMETER = "proxy_host";
 	protected final static String PROXY_PORT_INPUT_PARAMETER = "proxy_port";
@@ -169,26 +164,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
 	protected final java.lang.Boolean getAuth_digest_preemptive() {
 		return (java.lang.Boolean) getInputParameter(AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_NTLM_username() {
-		return (java.lang.String) getInputParameter(AUTH_NTLM_USERNAME_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_NTLM_password() {
-		return (java.lang.String) getInputParameter(AUTH_NTLM_PASSWORD_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_NTLM_workstation() {
-		return (java.lang.String) getInputParameter(AUTH_NTLM_WORKSTATION_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_NTLM_domain() {
-		return (java.lang.String) getInputParameter(AUTH_NTLM_DOMAIN_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_OAuth2_bearer_token() {
-		return (java.lang.String) getInputParameter(AUTH_OAUTH2_BEARER_TOKEN_INPUT_PARAMETER);
 	}
 
 	protected final java.lang.String getProxy_protocol() {
@@ -367,31 +342,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 			getAuth_digest_preemptive();
 		} catch (ClassCastException cce) {
 			throw new ConnectorValidationException("auth_digest_preemptive type is invalid");
-		}
-		try {
-			getAuth_NTLM_username();
-		} catch (ClassCastException cce) {
-			throw new ConnectorValidationException("auth_NTLM_username type is invalid");
-		}
-		try {
-			getAuth_NTLM_password();
-		} catch (ClassCastException cce) {
-			throw new ConnectorValidationException("auth_NTLM_password type is invalid");
-		}
-		try {
-			getAuth_NTLM_workstation();
-		} catch (ClassCastException cce) {
-			throw new ConnectorValidationException("auth_NTLM_workstation type is invalid");
-		}
-		try {
-			getAuth_NTLM_domain();
-		} catch (ClassCastException cce) {
-			throw new ConnectorValidationException("auth_NTLM_domain type is invalid");
-		}
-		try {
-			getAuth_OAuth2_bearer_token();
-		} catch (ClassCastException cce) {
-			throw new ConnectorValidationException("auth_OAuth2_bearer_token type is invalid");
 		}
 		try {
 			getProxy_protocol();

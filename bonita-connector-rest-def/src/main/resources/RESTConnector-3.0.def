@@ -32,11 +32,6 @@
   <input name="auth_digest_port" type="java.lang.String"/>
   <input name="auth_digest_realm" type="java.lang.String"/>
   <input defaultValue="false" name="auth_digest_preemptive" type="java.lang.Boolean"/>
-  <input name="auth_NTLM_username" type="java.lang.String"/>
-  <input name="auth_NTLM_password" type="java.lang.String"/>
-  <input name="auth_NTLM_workstation" type="java.lang.String"/>
-  <input name="auth_NTLM_domain" type="java.lang.String"/>
-  <input name="auth_OAuth2_bearer_token" type="java.lang.String"/>
   <input name="proxy_protocol" type="java.lang.String"/>
   <input name="proxy_host" type="java.lang.String"/>
   <input name="proxy_port" type="java.lang.String"/>
@@ -1188,15 +1183,6 @@
       <widget xsi:type="definition:Text" id="auth_digest_realm_widget" inputName="auth_digest_realm"/>
       <widget xsi:type="definition:Checkbox" id="auth_digest_preemptive_widget" inputName="auth_digest_preemptive"/>
     </widget>
-    <!--widget xsi:type="definition:Group" id="auth_NTLM">
-      <widget xsi:type="definition:Text" id="auth_NTLM_username_widget" inputName="auth_NTLM_username"/>
-      <widget xsi:type="definition:Password" id="auth_NTLM_password_widget" inputName="auth_NTLM_password"/>
-      <widget xsi:type="definition:Text" id="auth_NTLM_workstation_widget" inputName="auth_NTLM_workstation"/>
-      <widget xsi:type="definition:Text" id="auth_NTLM_domain_widget" inputName="auth_NTLM_domain"/>
-    </widget-->
-    <!--widget xsi:type="definition:Group" id="auth_oauth2_bearer">
-      <widget xsi:type="definition:Text" id="auth_OAuth2_bearer_token_widget" inputName="auth_OAuth2_bearer_token"/>
-    </widget-->
   </page>
   <page id="proxyPage">
 	<widget xsi:type="definition:Select" id="proxy_protocol_widget" inputName="proxy_protocol">
