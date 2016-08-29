@@ -94,12 +94,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
     private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
     private static final int CONNECTION_TIMEOUT = 60000;
-    private static final String AUTHORIZATION_HEADER = "Authorization";
     
     /**
      * The class logger
      */
-    private static final Logger LOGGER = Logger.getLogger(RESTConnector.class.getName());
+    private final Logger LOGGER = Logger.getLogger(RESTConnector.class.getName());
 
     @Override
     public void validateInputParameters() throws ConnectorValidationException {
@@ -146,7 +145,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param value The value to be checked
      * @return If the String input is valid or not
      */
-    private static boolean isStringInputValid(final String value) {
+    private boolean isStringInputValid(final String value) {
         return value != null && !value.isEmpty();
     }
 
@@ -156,7 +155,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param inputName The input name where the key value couples are from
      * @return The error messages if any or empty list otherwise
      */
-    private static List<String> manageKeyValueCouples(final List<?> keyValueCouples, final String inputName) {
+    private List<String> manageKeyValueCouples(final List<?> keyValueCouples, final String inputName) {
         List<String> messages = new ArrayList<String>();
         if (keyValueCouples == null) {
             return messages;
@@ -181,7 +180,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param keyValueCoupleRow The key value couple row
      * @return If the key and the value is valid or not
      */
-    private static boolean isKeyValueCoupleValid(final List<?> keyValueCoupleRow) {
+    private boolean isKeyValueCoupleValid(final List<?> keyValueCoupleRow) {
         return keyValueCoupleRow.get(0) != null && !keyValueCoupleRow.get(0).toString().isEmpty() && keyValueCoupleRow.get(1) != null;
     }
 
@@ -190,7 +189,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param keyValueCoupleRow the list of elements stating the row
      * @return If the row is a key value couple or not
      */
-    private static boolean isItAKeyValueCouple(final List<?> keyValueCoupleRow) {
+    private boolean isItAKeyValueCouple(final List<?> keyValueCoupleRow) {
         return keyValueCoupleRow.size() == 2;
     }
 
@@ -496,7 +495,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The response of the executed request
      * @throws Exception any exception that might occur
      */
-    public static Response execute(final Request request) throws Exception {
+    public Response execute(final Request request) throws Exception {
         CloseableHttpClient httpClient = null;
 
         try {
@@ -594,7 +593,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param httpClientBuilder The request builder
      * @throws Exception 
      */
-    private static void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws Exception {
+    private void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws Exception {
         if (ssl != null) {
         	SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
             
@@ -649,7 +648,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param httpClientBuilder The request builder
      * @throws Exception 
      */
-    private static void setProxy(final Proxy proxy, final HttpClientBuilder httpClientBuilder, final Builder requestConfigurationBuilder) {
+    private void setProxy(final Proxy proxy, final HttpClientBuilder httpClientBuilder, final Builder requestConfigurationBuilder) {
         if (proxy != null) {
         	HttpHost httpHost = new HttpHost(proxy.getHost(), proxy.getPort());
         	
@@ -668,7 +667,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param proxy The request Proxy options
      * @param credentialsProvider The request builder credentials provider
      */
-    private static void setProxyCrendentials(final Proxy proxy, final CredentialsProvider credentialsProvider) {
+    private void setProxyCrendentials(final Proxy proxy, final CredentialsProvider credentialsProvider) {
     	if(proxy != null && proxy.hasCredentials()) {
         	credentialsProvider.setCredentials(
                     new AuthScope(proxy.getHost(), proxy.getPort()),
@@ -683,7 +682,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param list The cookies
      * @param urlHost The URL host
      */
-    private static void setCookies(
+    private void setCookies(
             final Builder requestConfigurationBuilder, 
             final HttpClientBuilder httpClientBuilder, 
             final List<HttpCookie> list, 
@@ -706,7 +705,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param requestBuilder The request builder
      * @param headerData The request headers
      */
-    private static void setHeaders(final RequestBuilder requestBuilder, final List<RESTResultKeyValueMap> headerData) {
+    private void setHeaders(final RequestBuilder requestBuilder, final List<RESTResultKeyValueMap> headerData) {
         for (RESTResultKeyValueMap aHeaderData : headerData) {
             String key = aHeaderData.getKey();
             for (String value : aHeaderData.getValue()) {
@@ -727,7 +726,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param httpClientBuilder The builder to be set
      * @return HTTPContext The HTTP context to be set
      */
-    private static HttpContext setAuthorizations(
+    private HttpContext setAuthorizations(
             final Builder requestConfigurationBuilder, 
             final Authorization authorization, 
             final Proxy proxy, 
@@ -839,7 +838,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param method The method
      * @return The request builder
      */
-    private static RequestBuilder getRequestBuilderFromMethod(final HTTPMethod method) {
+    private RequestBuilder getRequestBuilderFromMethod(final HTTPMethod method) {
         switch (method) {
             case GET:
                 return RequestBuilder.get();
@@ -859,7 +858,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param e The exception raised
      * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
-    private static void logException(final Exception e) {
+    private void logException(final Exception e) {
         StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append(e.toString());
         for (StackTraceElement stackTraceElement : e.getStackTrace()) {
