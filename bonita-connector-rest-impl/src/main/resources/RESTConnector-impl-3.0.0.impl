@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <implementation:connectorImplementation xmlns:implementation="http://www.bonitasoft.org/ns/connector/implementation/6.0">
   <implementationId>RESTConnector-impl</implementationId>
-  <implementationVersion>3.0</implementationVersion>
+  <implementationVersion>3.0.0</implementationVersion>
   <definitionId>RESTConnector</definitionId>
-  <definitionVersion>3.0</definitionVersion>
+  <definitionVersion>3.0.0</definitionVersion>
   <implementationClassname>org.bonitasoft.connectors.rest.RESTConnector</implementationClassname>
   <hasSources>false</hasSources>
   <description>The implementation of the REST Connector.</description>
   <jarDependencies>
-    <jarDependency>bonita-connector-rest-impl-3.0.jar</jarDependency>
+    <jarDependency>bonita-connector-rest-impl-3.0.0.jar</jarDependency>
     <jarDependency>commons-codec-1.6.jar</jarDependency>
     <jarDependency>commons-io-2.4.jar</jarDependency>
     <jarDependency>commons-logging-1.1.3.jar</jarDependency>
