@@ -71,7 +71,6 @@ import org.bonitasoft.connectors.rest.model.Content;
 import org.bonitasoft.connectors.rest.model.CookiesStore;
 import org.bonitasoft.connectors.rest.model.HTTPMethod;
 import org.bonitasoft.connectors.rest.model.HeaderAuthorization;
-import org.bonitasoft.connectors.rest.model.NtlmAuthorization;
 import org.bonitasoft.connectors.rest.model.Proxy;
 import org.bonitasoft.connectors.rest.model.ProxyProtocol;
 import org.bonitasoft.connectors.rest.model.Request;
@@ -259,34 +258,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         } else if (isDigestAuthSet()) {
             LOGGER.fine("Add digest auth");
             request.setAuthorization(buildDigestAuthorization());
-        } else if (isNTLMAuthSet()) {
-            LOGGER.fine("Add NTLM auth");
-            request.setAuthorization(buildNtlmAuthorization());
-        } else if (isOAuth2AuthSet()) {
-            LOGGER.fine("Add Token auth");
-            request.setAuthorization(buildHeaderAuthorization());
         }
         
         return request;
-    }
-
-    /**
-     * Is the OAuth2 Auth used?
-     * @return If the OAuth2 Auth is used or not
-     */
-    private boolean isOAuth2AuthSet() {
-        return isStringInputValid(getAuth_OAuth2_bearer_token());
-    }
-
-    /**
-     * Is the NTLM Auth used?
-     * @return If the NTLM Auth is used or not
-     */
-    private boolean isNTLMAuthSet() {
-        return isStringInputValid(getAuth_NTLM_username()) 
-                && isStringInputValid(getAuth_NTLM_password()) 
-                && isStringInputValid(getAuth_NTLM_workstation()) 
-                && isStringInputValid(getAuth_NTLM_domain());
     }
 
     /**
@@ -328,32 +302,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 && isStringInputValid(getProxy_port())
         		&& isStringInputValid(getProxy_protocol());
     }
-    
-    /**
-     * Build the Token Auth bean for the request builder
-     * @return The Token Auth according to the input values
-     */
-    private HeaderAuthorization buildHeaderAuthorization() {
-        HeaderAuthorization authorization = new HeaderAuthorization();
-        authorization.setValue(getAuth_OAuth2_bearer_token());
-        
-        return authorization;
-    }
-    
-    /**
-     * Build the NTLM Auth bean for the request builder
-     * @return The NTLM Auth according to the input values
-     */
-    private NtlmAuthorization buildNtlmAuthorization() {
-        NtlmAuthorization authorization = new NtlmAuthorization();
-        authorization.setUsername(getAuth_NTLM_username());
-        authorization.setPassword(getAuth_NTLM_password());
-        authorization.setWorkstation(getAuth_NTLM_workstation());
-        authorization.setDomain(getAuth_NTLM_domain());
-        
-        return authorization;
-    }
-    
     
     /**
      * Build the Digest Auth bean for the request builder
@@ -791,29 +739,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 	                localContext.setAuthCache(authoriationCache);
 	                httpContext = localContext;
                 }
-            } else if (authorization instanceof NtlmAuthorization) {
-            	// TODO
-//                List<String> authPrefs = new ArrayList<>();
-//                authPrefs.add(AuthSchemes.NTLM);
-//                requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
-//
-//                NtlmAuthorization castAuthorization = (NtlmAuthorization) authorization;
-//                String username = castAuthorization.getUsername();
-//                String password = new String(castAuthorization.getPassword());
-//
-//                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-//                credentialsProvider.setCredentials(
-//                        AuthScope.ANY,
-//                        new NTCredentials(username, password, castAuthorization.getWorkstation(), castAuthorization.getDomain()));
-//                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-            } else if (authorization instanceof HeaderAuthorization) {
-            	// TODO
-//                HeaderAuthorization castAuthorization = (HeaderAuthorization) authorization;
-//                final String authorizationHeader = castAuthorization.getValue();
-//                if (isStringInputValid(authorizationHeader)) {
-//                    Header header = new BasicHeader(AUTHORIZATION_HEADER, authorizationHeader);
-//                    requestBuilder.addHeader(header);
-//                }
             }
         } else if(proxy != null) {
         	CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
