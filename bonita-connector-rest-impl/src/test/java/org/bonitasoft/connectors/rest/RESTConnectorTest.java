@@ -83,9 +83,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * All the tested charset values
      */
     private static final String UTF8 = "UTF-8";
-    private static final String UTF16 = "UTF-16";
-    private static final String UTF16BE = "UTF-16BE";
-    private static final String UTF16LE = "UTF-16LE";
     private static final String ISO_8859_1 = "ISO-8859-1";
     private static final String US_ASCII = "US-ASCII";
     private static final String CHARSET_ERROR = "FAKE-CHARSET";
@@ -135,7 +132,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * All the tested errors
      */
     private static final String FAKE_URL = "fakeURL";
-    private static final String FAKE_PORT = findFreePort(getPort() + 1) + "";
+
 
     /**
      * Used to assert Exceptions
@@ -209,16 +206,16 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param sslVerifier SSL Verifier
      * @return The set of parameters
      */
-    private static Map<String, Object> buildParametersSet(final String url, final String port, final String method, 
+    private Map<String, Object> buildParametersSet(final String url, final String port, final String method, 
             final String contentType, final String charset, final List<List<String>> cookies, final List<List<String>> headers, 
             final String body, final Boolean redirect, final Boolean ignoreBody, final Boolean trust, final String sslVerifier) {
         Map<String, Object> parametersSet = new HashMap<String, Object>();
         if (url == null && port == null) {
-            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + getPort() + "/");
+            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + LOCALHOST + ":" + wireMockServer.port() + "/");
         } else if (url != null && port == null) {
-            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + url + ":" + getPort() + "/");
+            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + url + ":" + wireMockServer.port() + "/");
         } else if (url == null && port != null) {
-            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + getUrl() + ":" + port + "/");
+            parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + LOCALHOST + ":" + port + "/");
         } else {
             parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + url + ":" + port + "/");
         }
@@ -240,7 +237,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param url URL
      * @return The set of parameters
      */
-    private static Map<String, Object> buildURLParametersSet(final String url) {
+    private Map<String, Object> buildURLParametersSet(final String url) {
         return buildParametersSet(url, null, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
@@ -249,7 +246,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param port Port
      * @return The set of parameters
      */
-    private static Map<String, Object> buildPortParametersSet(final String port) {
+    private Map<String, Object> buildPortParametersSet(final String port) {
         return buildParametersSet(null, port, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
@@ -258,7 +255,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param method Method
      * @return The set of parameters
      */
-    private static Map<String, Object> buildMethodParametersSet(final String method) {
+    private Map<String, Object> buildMethodParametersSet(final String method) {
         return buildParametersSet(null, null, method, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
@@ -267,7 +264,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param contentType Content Type
      * @return The set of parameters
      */
-    private static Map<String, Object> buildContentTypeParametersSet(final String contentType) {
+    private Map<String, Object> buildContentTypeParametersSet(final String contentType) {
         return buildParametersSet(null, null, POST, contentType, UTF8, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
@@ -276,7 +273,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param charset Charset
      * @return The set of parameters
      */
-    private static Map<String, Object> buildCharsetParametersSet(final String charset) {
+    private Map<String, Object> buildCharsetParametersSet(final String charset) {
         return buildParametersSet(null, null, POST, PLAIN_TEXT, charset, ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
@@ -285,7 +282,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param cookies Cookies
      * @return The set of parameters
      */
-    private static Map<String, Object> buildCookieParametersSet(final List<List<String>> cookies) {
+    private Map<String, Object> buildCookieParametersSet(final List<List<String>> cookies) {
         return buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, cookies, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
@@ -294,7 +291,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param headers Headers
      * @return The set of parameters
      */
-    private static Map<String, Object> buildHeaderParametersSet(final List<List<String>> headers) {
+    private Map<String, Object> buildHeaderParametersSet(final List<List<String>> headers) {
         return buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, ONE_COOKIES, headers, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
 
@@ -303,7 +300,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param body Body content
      * @return The set of parameters
      */
-    private static Map<String, Object> buildBodyParametersSet(final String body) {
+    private Map<String, Object> buildBodyParametersSet(final String body) {
         return buildParametersSet(null, null, POST, PLAIN_TEXT, UTF8, ONE_COOKIES, ONE_HEADERS, body, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
     }
     
@@ -316,7 +313,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param preemptive Preemptive
      * @return The set of parameters
      */
-    private static Map<String, Object> buildBasicAuthorizationParametersSet(final String username, 
+    private Map<String, Object> buildBasicAuthorizationParametersSet(final String username, 
             final String password, final String host, final String realm, final Boolean preemptive) {
         Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, 
                 ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
@@ -710,11 +707,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void unreachablePort() throws InterruptedException, BonitaException {
+        final String fakePort = "666";
         thrown.expect(BonitaException.class);
         thrown.expectMessage("org.apache.http.conn.HttpHostConnectException");
-        thrown.expectMessage(FAKE_PORT);
+        thrown.expectMessage(fakePort);
 
-        executeConnector(buildPortParametersSet(FAKE_PORT));
+        executeConnector(buildPortParametersSet(fakePort));
     }
 
     /**
