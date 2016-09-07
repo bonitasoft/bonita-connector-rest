@@ -5,8 +5,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bonitasoft.connectors.rest.RESTResultKeyValueMap;
-
 /**
  * This class reflects the information for a REST request.
  */
@@ -30,7 +28,7 @@ public class Request {
     /**
      * The headers.
      */
-    private final List<RESTResultKeyValueMap> headers = new ArrayList<RESTResultKeyValueMap>();
+    private final List<ResultKeyValueMap> headers = new ArrayList<ResultKeyValueMap>();
     
     /**
      * The cookies.
@@ -183,7 +181,7 @@ public class Request {
      * Headers value getter.
      * @return The headers value.
      */
-    public List<RESTResultKeyValueMap> getHeaders() {
+    public List<ResultKeyValueMap> getHeaders() {
         return headers;
     }
     
@@ -203,7 +201,7 @@ public class Request {
      */
     public boolean addHeader(final String key, final String value) {
         if (headers != null) {
-            RESTResultKeyValueMap restResultKeyValueMap = new RESTResultKeyValueMap();
+            ResultKeyValueMap restResultKeyValueMap = new ResultKeyValueMap();
             restResultKeyValueMap.setKey(key);
             List<String> values = new ArrayList<String>();
             values.add(value);
@@ -222,7 +220,7 @@ public class Request {
      */
     public boolean addHeader(final String key, final List<String> value) {
         if (headers != null) {
-            RESTResultKeyValueMap restResultKeyValueMap = new RESTResultKeyValueMap();
+            ResultKeyValueMap restResultKeyValueMap = new ResultKeyValueMap();
             restResultKeyValueMap.setKey(key);
             restResultKeyValueMap.setValue(value);
             headers.add(restResultKeyValueMap);

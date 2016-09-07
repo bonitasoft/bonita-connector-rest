@@ -3,7 +3,7 @@ package org.bonitasoft.connectors.rest.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bonitasoft.connectors.rest.RESTResultKeyValueMap;
+import org.apache.http.Header;
 
 /**
  * This class reflects the information for a REST response.
@@ -16,24 +16,19 @@ public class Response {
     private String body = "";
 
     /**
-     * The execution time.
-     */
-    private long executionTime = 0L;
-    
-    /**
      * The HTTP status code.
      */
-    private int statusCode = -1;
+    private Integer statusCode = -1;
     
     /**
      * The information message.
      */
-    private String message = "";
+    private String message = null;
     
     /**
      * The headers.
      */
-    private List<RESTResultKeyValueMap> headers = new ArrayList<RESTResultKeyValueMap>();
+    private Header[] headers = null;
     
     /**
      * Body value getter.
@@ -51,31 +46,11 @@ public class Response {
         this.body = body;
     }
 
-
-    
-    /**
-     * Execution time value getter.
-     * @return The execution time value.
-     */
-    public long getExecutionTime() {
-        return executionTime;
-    }
-
-    /**
-     * Execution time value setter.
-     * @param executionTime The new execution time value.
-     */
-   public void setExecutionTime(final long executionTime) {
-        this.executionTime = executionTime;
-    }
-
-
-    
     /**
      * Status code value getter.
      * @return The status code value.
      */
-    public int getStatusCode() {
+    public Integer getStatusCode() {
         return statusCode;
     }
 
@@ -83,7 +58,7 @@ public class Response {
      * Status code value setter.
      * @param statusCode The new status code value.
      */
-    public void setStatusCode(int statusCode) {
+    public void setStatusCode(Integer statusCode) {
         this.statusCode = statusCode;
     }
 
@@ -112,7 +87,7 @@ public class Response {
      * Headers value getter.
      * @return The headers value.
      */
-    public List<RESTResultKeyValueMap> getHeaders() {
+    public Header[] getHeaders() {
         return headers;
     }
 
@@ -121,26 +96,7 @@ public class Response {
      * Headers value setter.
      * @param headers The new headers value.
      */
-    public void setHeaders(final List<RESTResultKeyValueMap> headers) {
+    public void setHeaders(final Header[] headers) {
         this.headers = headers;
-    }
-    
-    /**
-     * Add a header couple in the headers.
-     * @param key The key of the new header.
-     * @param value The lonely value of the new header.
-     * @return True if the header has been added or false otherwise.
-     */
-    public boolean addHeader(final String key, final String value) {
-        if (headers != null) {
-            RESTResultKeyValueMap restResultKeyValueMap = new RESTResultKeyValueMap();
-            restResultKeyValueMap.setKey(key);
-            List<String> values = new ArrayList<String>();
-            values.add(value);
-            restResultKeyValueMap.setValue(values);
-            headers.add(restResultKeyValueMap);
-            return true;
-        }
-        return false;
     }
 }
