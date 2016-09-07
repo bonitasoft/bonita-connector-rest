@@ -14,23 +14,21 @@
 
 package org.bonitasoft.connectors.rest;
 
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.mockito.Mockito;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 
 import org.bonitasoft.engine.api.APIAccessor;
 import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.connector.EngineExecutionContext;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.mockito.Mockito;
 
 import com.github.tomakehurst.wiremock.Log4jConfiguration;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Log4jNotifier;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 /**
  * This class is used to handle WireMock Jetty server and BonitaSoft mock for the REST Connector UTs.
@@ -55,7 +53,7 @@ public class AcceptanceTestBase {
     /**
      * The WireMock server (mock of the REST services)
      */
-    private static WireMockServer wireMockServer;
+    private WireMockServer wireMockServer;
     
     /**
      * The default port number to use for the WireMock server
@@ -70,38 +68,24 @@ public class AcceptanceTestBase {
     /**
      * The currently used port for the WireMock server
      */
-    private static int port = DEFAULT_PORT;
+    private int port = DEFAULT_PORT;
     
     /**
      * The URL of the WireMock server
      */
-    private static String url = "localhost";
+    private String url = "localhost";
 
     /**
-     * The setup of the WireMock server
-     */
-    @BeforeClass
-    public static void setupServer() {
-        port = findFreePort(port);
-        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port).notifier(new Log4jNotifier()));
-        wireMockServer.start();
-    }
-
-    /**
-     * The setdown of the WireMock server
-     */
-    @AfterClass
-    public static void serverShutdown() {
-        wireMockServer.stop();
-    }
-
-    /**
-     * Initialization of the whole test environment
+     * Mount the whole test environment
      * 
      * @throws InterruptedException exception
      */
     @Before
-    public void init() throws InterruptedException {
+    public void mount() throws InterruptedException {
+    	port = findFreePort(port);
+    	wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port).notifier(new Log4jNotifier()));
+    	wireMockServer.start();
+
         setEngineExecutionContext(Mockito.mock(EngineExecutionContext.class));
         apiAccessor = Mockito.mock(APIAccessor.class);
         processAPI = Mockito.mock(ProcessAPI.class);
@@ -110,6 +94,16 @@ public class AcceptanceTestBase {
         Log4jConfiguration.configureLogging(true);
         WireMock.reset();
     }
+    
+    /**
+     * Unmount the whole test environment
+     * 
+     * @throws InterruptedException exception
+     */
+    @After
+    public void unmount() throws InterruptedException {
+      wireMockServer.stop();
+    }
 
     /**
      * Compute the first free port on the localhost
@@ -117,7 +111,7 @@ public class AcceptanceTestBase {
      * @param myport The first port to check (increment from there)
      * @return The number of the port
      */
-    public static int findFreePort(final int myport) {
+    public int findFreePort(final int myport) {
         int newPort = myport;
         boolean free = false;
         while (!free && newPort <= MAX_PORT) {
@@ -135,7 +129,7 @@ public class AcceptanceTestBase {
      * @param myport The port to test
      * @return THe answer as boolean
      */
-    private static boolean isFreePort(final int myport) {
+    private boolean isFreePort(final int myport) {
         try {
             final ServerSocket socket = new ServerSocket(myport);
             socket.close();
@@ -181,7 +175,7 @@ public class AcceptanceTestBase {
      * Get the port
      * @return the port
      */
-    public static int getPort() {
+    public int getPort() {
         return port;
     }
 
@@ -189,15 +183,15 @@ public class AcceptanceTestBase {
      * Set the port
      * @param port the port
      */
-    public static void setPort(final int port) {
-        AcceptanceTestBase.port = port;
+    public void setPort(final int port) {
+        this.port = port;
     }
 
     /**
      * Get the URL
      * @return the URL
      */
-    public static String getUrl() {
+    public String getUrl() {
         return url;
     }
 
@@ -205,8 +199,8 @@ public class AcceptanceTestBase {
      * Set the URL
      * @param url the URL
      */
-    public static void setUrl(final String url) {
-        AcceptanceTestBase.url = url;
+    public void setUrl(final String url) {
+        this.url = url;
     }
 
 }
