@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<implementation:connectorImplementation xmlns:implementation="http://www.bonitasoft.org/ns/connector/implementation/6.0">
+  <implementationId>rest-post-impl</implementationId>
+  <implementationVersion>$implementation.version$</implementationVersion>
+  <definitionId>rest-post</definitionId>
+  <definitionVersion>$definition.version$</definitionVersion>
+  <implementationClassname>org.bonitasoft.connectors.rest.PostConnectorImpl</implementationClassname>
+  <hasSources>false</hasSources>
+  <description>The implementation of the REST POST Connector.</description>
+
+$Dependencies$
+
+</implementation:connectorImplementation>

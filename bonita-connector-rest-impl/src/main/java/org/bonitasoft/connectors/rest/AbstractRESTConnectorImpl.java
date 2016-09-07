@@ -61,7 +61,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 		return (java.lang.String) getInputParameter(URL_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getMethod() {
+    protected java.lang.String getMethod() {
 		return (java.lang.String) getInputParameter(METHOD_INPUT_PARAMETER);
 	}
 
@@ -209,183 +209,183 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	public void validateInputParameters() throws ConnectorValidationException {
 		try {
 			getUrl();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("url type is invalid");
 		}
 		try {
 			getMethod();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("method type is invalid");
 		}
 		try {
 			getContentType();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException(
 					"contentType type is invalid");
 		}
 		try {
 			getCharset();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("charset type is invalid");
 		}
 		try {
 			getUrlCookies();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("urlCookies type is invalid");
 		}
 		try {
 			getUrlHeaders();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("urlHeaders type is invalid");
 		}
 		try {
 			getBody();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("body type is invalid");
 		}
 		try {
 			getDoNotFollowRedirect();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("do_not_follow_redirect type is invalid");
 		}
 		try {
 			getIgnoreBody();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("ignore_body type is invalid");
 		}
 		try {
 			getTLS();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("TLS type is invalid");
 		}
 		try {
 			getTrust_self_signed_certificate();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("trust_self_signed_certificate type is invalid");
 		}
 		try {
 			getHostname_verifier();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("hostname_verifier type is invalid");
 		}
 		try {
 			getTrust_store_file();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("trust_store_file type is invalid");
 		}
 		try {
 			getTrust_store_password();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("trust_store_password type is invalid");
 		}
 		try {
 			getKey_store_file();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("key_store_file type is invalid");
 		}
 		try {
 			getKey_store_password();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("key_store_password type is invalid");
 		}
 		try {
 			getAuth_basic_username();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_username type is invalid");
 		}
 		try {
 			getAuth_basic_password();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_password type is invalid");
 		}
 		try {
 			getAuth_basic_host();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_host type is invalid");
 		}
 		try {
-			String authBasicPortValue = getAuth_basic_port();
+			final String authBasicPortValue = getAuth_basic_port();
 			if(authBasicPortValue != null && !authBasicPortValue.isEmpty()) {
 				Integer.parseInt(authBasicPortValue);
 			}
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_port type is invalid");
-		} catch (NumberFormatException nfe) {
+		} catch (final NumberFormatException nfe) {
 			throw new ConnectorValidationException("auth_basic_port is not a valid number");
 		}
 		try {
 			getAuth_basic_realm();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_realm type is invalid");
 		}
 		try {
 			getAuth_basic_preemptive();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_preemptive type is invalid");
 		}
 		try {
 			getAuth_digest_username();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_digest_username type is invalid");
 		}
 		try {
 			getAuth_digest_password();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_digest_password type is invalid");
 		}
 		try {
 			getAuth_digest_host();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_digest_host type is invalid");
 		}
 		try {
-			String authDigestPortValue = getAuth_digest_port();
+			final String authDigestPortValue = getAuth_digest_port();
 			if(authDigestPortValue != null && !authDigestPortValue.isEmpty()) {
 				Integer.parseInt(authDigestPortValue);
 			}
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_digest_port type is invalid");
-		} catch (NumberFormatException nfe) {
+		} catch (final NumberFormatException nfe) {
 			throw new ConnectorValidationException("auth_digest_port is not a valid number");
 		}
 		try {
 			getAuth_digest_realm();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_digest_realm type is invalid");
 		}
 		try {
 			getAuth_digest_preemptive();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_digest_preemptive type is invalid");
 		}
 		try {
 			getProxy_protocol();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("proxy_protocol type is invalid");
 		}
 		try {
 			getProxy_host();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("proxy_host type is invalid");
 		}
 		try {
-			String portValue = getProxy_port();
+			final String portValue = getProxy_port();
 			if(portValue != null && !portValue.isEmpty()) {
 				Integer.parseInt(portValue);
 			}
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("proxy_port type is invalid");
-		} catch (NumberFormatException nfe) {
+		} catch (final NumberFormatException nfe) {
 			throw new ConnectorValidationException("proxy_port is not a valid number");
 		}
 		try {
 			getProxy_username();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("proxy_username type is invalid");
 		}
 		try {
 			getProxy_password();
-		} catch (ClassCastException cce) {
+		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("proxy_password type is invalid");
 		}
 	}
