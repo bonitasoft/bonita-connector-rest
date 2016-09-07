@@ -17,9 +17,6 @@ package org.bonitasoft.connectors.rest;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-
 import org.bonitasoft.engine.api.APIAccessor;
 import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.connector.EngineExecutionContext;
@@ -55,35 +52,19 @@ public class AcceptanceTestBase {
     /**
      * The WireMock server (mock of the REST services)
      */
-    private static WireMockServer wireMockServer;
-    
-    /**
-     * The default port number to use for the WireMock server
-     */
-    private static final int DEFAULT_PORT = 8089;
-    
-    /**
-     * The maximum number of the port to use for the WireMock server
-     */
-    private static final int MAX_PORT = 65535;
-    
-    /**
-     * The currently used port for the WireMock server
-     */
-    private static int port = DEFAULT_PORT;
+    protected static WireMockServer wireMockServer;
     
     /**
      * The URL of the WireMock server
      */
-    private static String url = "localhost";
+    protected static final String LOCALHOST = "LOCALHOST";
 
     /**
      * The setup of the WireMock server
      */
     @BeforeClass
     public static void setupServer() {
-        port = findFreePort(port);
-        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port).notifier(new Log4jNotifier()));
+        wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(0).notifier(new Log4jNotifier()));
         wireMockServer.start();
     }
 
@@ -97,7 +78,7 @@ public class AcceptanceTestBase {
 
     /**
      * Initialization of the whole test environment
-     * 
+     *
      * @throws InterruptedException exception
      */
     @Before
@@ -106,43 +87,9 @@ public class AcceptanceTestBase {
         apiAccessor = Mockito.mock(APIAccessor.class);
         processAPI = Mockito.mock(ProcessAPI.class);
         Mockito.when(apiAccessor.getProcessAPI()).thenReturn(processAPI);
-        WireMock.configureFor(url, port);
+        WireMock.configureFor(LOCALHOST, wireMockServer.port());
         Log4jConfiguration.configureLogging(true);
         WireMock.reset();
-    }
-
-    /**
-     * Compute the first free port on the localhost
-     * 
-     * @param myport The first port to check (increment from there)
-     * @return The number of the port
-     */
-    public static int findFreePort(final int myport) {
-        int newPort = myport;
-        boolean free = false;
-        while (!free && newPort <= MAX_PORT) {
-            if (isFreePort(newPort)) {
-                free = true;
-            } else {
-                newPort++;
-            }
-        }
-        return newPort;
-    }
-
-    /**
-     * Is the given port free?
-     * @param myport The port to test
-     * @return THe answer as boolean
-     */
-    private static boolean isFreePort(final int myport) {
-        try {
-            final ServerSocket socket = new ServerSocket(myport);
-            socket.close();
-            return true;
-        } catch (final IOException e) {
-            return false;
-        }
     }
 
     /**
@@ -177,36 +124,6 @@ public class AcceptanceTestBase {
         this.apiAccessor = apiAccessor;
     }
 
-    /**
-     * Get the port
-     * @return the port
-     */
-    public static int getPort() {
-        return port;
-    }
 
-    /**
-     * Set the port
-     * @param port the port
-     */
-    public static void setPort(final int port) {
-        AcceptanceTestBase.port = port;
-    }
-
-    /**
-     * Get the URL
-     * @return the URL
-     */
-    public static String getUrl() {
-        return url;
-    }
-
-    /**
-     * Set the URL
-     * @param url the URL
-     */
-    public static void setUrl(final String url) {
-        AcceptanceTestBase.url = url;
-    }
 
 }
