@@ -67,6 +67,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.bonitasoft.connectors.rest.model.Authorization;
+import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.connectors.rest.model.BasicDigestAuthorization;
 import org.bonitasoft.connectors.rest.model.Content;
 import org.bonitasoft.connectors.rest.model.CookiesStore;
@@ -252,35 +253,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             LOGGER.fine("Add the Proxy options");
         }
 
-        if (isBasicAuthSet()) {
+        if (getAuth_type() == AuthorizationType.BASIC) {
             LOGGER.fine("Add basic auth");
             request.setAuthorization(buildBasicAuthorization());
-        } else if (isDigestAuthSet()) {
+        } else if (getAuth_type() == AuthorizationType.DIGEST) {
             LOGGER.fine("Add digest auth");
             request.setAuthorization(buildDigestAuthorization());
         }
-        
         return request;
-    }
-
-    /**
-     * Is the Digest Auth used?
-     * @return If the Digest Auth is used or not
-     */
-    private boolean isDigestAuthSet() {
-        return isStringInputValid(getAuth_digest_username()) 
-                && isStringInputValid(getAuth_digest_password()) 
-                && getAuth_digest_preemptive() != null;
-    }
-
-    /**
-     * Is the Basic Auth used?
-     * @return If the Basic Auth is used or not
-     */
-    private boolean isBasicAuthSet() {
-        return isStringInputValid(getAuth_basic_username()) 
-                && isStringInputValid(getAuth_basic_password()) 
-                && getAuth_basic_preemptive() != null;
     }
 
     /**
@@ -299,7 +279,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private boolean isProxySet() {
         return isStringInputValid(getProxy_host()) 
-                && isStringInputValid(getProxy_port())
         		&& isStringInputValid(getProxy_protocol());
     }
     
@@ -309,20 +288,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private BasicDigestAuthorization buildDigestAuthorization() {
         BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
-        authorization.setUsername(getAuth_digest_username());
-        authorization.setPassword(getAuth_digest_password());
+        authorization.setUsername(getAuth_username());
+        authorization.setPassword(getAuth_password());
     
-        if (isStringInputValid(getAuth_digest_host())) {
-            authorization.setHost(getAuth_digest_host());
+        if (isStringInputValid(getAuth_host())) {
+            authorization.setHost(getAuth_host());
         }
-        if (isStringInputValid(getAuth_digest_port())) {
-            authorization.setPort(Integer.parseInt(getAuth_digest_port()));
+        authorization.setPort(getAuth_port());
+        if (isStringInputValid(getAuth_realm())) {
+            authorization.setRealm(getAuth_realm());
         }
-        if (isStringInputValid(getAuth_digest_realm())) {
-            authorization.setRealm(getAuth_digest_realm());
-        }
-        authorization.setPreemptive(getAuth_digest_preemptive());
-        
+        authorization.setPreemptive(getAuth_preemptive());
         return authorization;
     }
     
@@ -332,19 +308,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private BasicDigestAuthorization buildBasicAuthorization() {
         BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
-        authorization.setUsername(getAuth_basic_username());
-        authorization.setPassword(getAuth_basic_password());
+        authorization.setUsername(getAuth_username());
+        authorization.setPassword(getAuth_password());
     
-        if (isStringInputValid(getAuth_basic_host())) {
-            authorization.setHost(getAuth_basic_host());
+        if (isStringInputValid(getAuth_host())) {
+            authorization.setHost(getAuth_host());
         }
-        if (isStringInputValid(getAuth_basic_port())) {
-            authorization.setPort(Integer.parseInt(getAuth_basic_port()));
+        authorization.setPort(getAuth_port());
+        if (isStringInputValid(getAuth_realm())) {
+            authorization.setRealm(getAuth_realm());
         }
-        if (isStringInputValid(getAuth_basic_realm())) {
-            authorization.setRealm(getAuth_basic_realm());
-        }
-        authorization.setPreemptive(getAuth_basic_preemptive());
+        authorization.setPreemptive(getAuth_preemptive());
         
         return authorization;
     }
@@ -386,7 +360,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         Proxy proxy = new Proxy();
         proxy.setProtocol(ProxyProtocol.valueOf(getProxy_protocol().toUpperCase()));
         proxy.setHost(getProxy_host());
-        proxy.setPort(Integer.parseInt(getProxy_port()));
+        proxy.setPort(getProxy_port());
         
         if(isStringInputValid(getProxy_username())) {
             proxy.setUsername(getProxy_username());
