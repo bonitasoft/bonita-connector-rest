@@ -5,6 +5,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.http.Header;
+import org.apache.http.entity.ContentType;
+import org.apache.http.message.BasicHeader;
+
+
 /**
  * This class reflects the information for a REST request.
  */
@@ -28,7 +33,7 @@ public class Request {
     /**
      * The headers.
      */
-    private final List<ResultKeyValueMap> headers = new ArrayList<ResultKeyValueMap>();
+    private final List<Header> headers = new ArrayList<Header>();
     
     /**
      * The cookies.
@@ -56,14 +61,11 @@ public class Request {
     private boolean ignore = false;
     
     /**
-     * The content information.
-     */
-    private Content content = null;
-    
-    /**
      * The body string.
      */
     private String body = "";
+
+    private ContentType contentType;
 
     /**
      * URL value getter.
@@ -181,7 +183,7 @@ public class Request {
      * Headers value getter.
      * @return The headers value.
      */
-    public List<ResultKeyValueMap> getHeaders() {
+    public List<Header> getHeaders() {
         return headers;
     }
     
@@ -200,33 +202,7 @@ public class Request {
      * @return True if the header has been added or false otherwise.
      */
     public boolean addHeader(final String key, final String value) {
-        if (headers != null) {
-            ResultKeyValueMap restResultKeyValueMap = new ResultKeyValueMap();
-            restResultKeyValueMap.setKey(key);
-            List<String> values = new ArrayList<String>();
-            values.add(value);
-            restResultKeyValueMap.setValue(values);
-            headers.add(restResultKeyValueMap);
-            return true;
-        }
-        return false;
-    }
-    
-    /**
-     * Add a header couple in the headers.
-     * @param key The key of the new header.
-     * @param value The list of values of the new header.
-     * @return True if the header has been added or false otherwise.
-     */
-    public boolean addHeader(final String key, final List<String> value) {
-        if (headers != null) {
-            ResultKeyValueMap restResultKeyValueMap = new ResultKeyValueMap();
-            restResultKeyValueMap.setKey(key);
-            restResultKeyValueMap.setValue(value);
-            headers.add(restResultKeyValueMap);
-            return true;
-        }
-        return false;
+        return headers.add(new BasicHeader(key,value));
     }
     
     /**
@@ -236,30 +212,7 @@ public class Request {
      * @return True if the cookie has been added or false otherwise.
      */
     public boolean addCookie(final String key, final String value) {
-        if (cookies != null) {
-            HttpCookie cookie = new HttpCookie(key,  value);
-            cookies.add(cookie);
-            return true;
-        }
-        return false;
-    }
-
-    
-    /**
-     * Content value getter.
-     * @return The content value.
-     */
-    public Content getContent() {
-        return content;
-    }
-
-    
-    /**
-     * Content value setter.
-     * @param content The content new value.
-     */
-    public void setContent(final Content content) {
-        this.content = content;
+        return cookies.add(new HttpCookie(key,  value));
     }
 
     
@@ -271,13 +224,22 @@ public class Request {
         return body;
     }
 
-    
     /**
      * Body value setter.
      * @param body The body new value.
      */
     public void setBody(final String body) {
         this.body = body;
+    }
+    
+
+    public void setContentType(final ContentType contentType) {
+        this.contentType = contentType;
+    }
+
+
+    public ContentType getContentType() {
+        return contentType;
     }
     
 }

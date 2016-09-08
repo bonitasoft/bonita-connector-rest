@@ -14,20 +14,19 @@
 
 package org.bonitasoft.connectors.rest;
 
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.mockito.Mockito;
-
 import org.bonitasoft.engine.api.APIAccessor;
 import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.connector.EngineExecutionContext;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.mockito.Mockito;
 
 import com.github.tomakehurst.wiremock.Log4jConfiguration;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Log4jNotifier;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 /**
  * This class is used to handle WireMock Jetty server and BonitaSoft mock for the REST Connector UTs.
