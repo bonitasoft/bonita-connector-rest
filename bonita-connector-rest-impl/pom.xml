@@ -5,14 +5,14 @@
     <parent>
         <artifactId>bonita-connector-rest</artifactId>
         <groupId>org.bonitasoft.connectors</groupId>
-        <version>3.0.0</version>
+        <version>1.0.0</version>
     </parent>
 
     <artifactId>bonita-connector-rest-impl</artifactId>
-    <version>3.0.0</version>
+    <version>1.0.0</version>
 
     <properties>
-        <definition.version>3.0.0</definition.version>
+        <definition.version>1.0.0</definition.version>
     </properties>
 
 	<dependencies>
