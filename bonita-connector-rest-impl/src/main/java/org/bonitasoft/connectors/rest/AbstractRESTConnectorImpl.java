@@ -14,6 +14,7 @@
 
 package org.bonitasoft.connectors.rest;
 
+import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.connector.AbstractConnector;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
@@ -35,18 +36,13 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	protected final static String TRUST_STORE_PASSWORD_INPUT_PARAMETER = "trust_store_password";
 	protected final static String KEY_STORE_FILE_INPUT_PARAMETER = "key_store_file";
 	protected final static String KEY_STORE_PASSWORD_INPUT_PARAMETER = "key_store_password";
-	protected final static String AUTH_BASIC_USERNAME_INPUT_PARAMETER = "auth_basic_username";
-	protected final static String AUTH_BASIC_PASSWORD_INPUT_PARAMETER = "auth_basic_password";
-	protected final static String AUTH_BASIC_HOST_INPUT_PARAMETER = "auth_basic_host";
-	protected final static String AUTH_BASIC_PORT_INPUT_PARAMETER = "auth_basic_port";
-	protected final static String AUTH_BASIC_REALM_INPUT_PARAMETER = "auth_basic_realm";
-	protected final static String AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER = "auth_basic_preemptive";
-	protected final static String AUTH_DIGEST_USERNAME_INPUT_PARAMETER = "auth_digest_username";
-	protected final static String AUTH_DIGEST_PASSWORD_INPUT_PARAMETER = "auth_digest_password";
-	protected final static String AUTH_DIGEST_HOST_INPUT_PARAMETER = "auth_digest_host";
-	protected final static String AUTH_DIGEST_PORT_INPUT_PARAMETER = "auth_digest_port";
-	protected final static String AUTH_DIGEST_REALM_INPUT_PARAMETER = "auth_digest_realm";
-	protected final static String AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER = "auth_digest_preemptive";
+	protected final static String AUTH_TYPE_PARAMETER = "auth_type";
+	protected final static String AUTH_USERNAME_INPUT_PARAMETER = "auth_username";
+	protected final static String AUTH_PASSWORD_INPUT_PARAMETER = "auth_password";
+	protected final static String AUTH_HOST_INPUT_PARAMETER = "auth_host";
+	protected final static String AUTH_PORT_INPUT_PARAMETER = "auth_port";
+	protected final static String AUTH_REALM_INPUT_PARAMETER = "auth_realm";
+	protected final static String AUTH_PREEMPTIVE_INPUT_PARAMETER = "auth_preemptive";
 	protected final static String PROXY_PROTOCOL_INPUT_PARAMETER = "proxy_protocol";
 	protected final static String PROXY_HOST_INPUT_PARAMETER = "proxy_host";
 	protected final static String PROXY_PORT_INPUT_PARAMETER = "proxy_port";
@@ -121,54 +117,36 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 		return (java.lang.Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getAuth_basic_username() {
-		return (java.lang.String) getInputParameter(AUTH_BASIC_USERNAME_INPUT_PARAMETER);
+	
+	protected final java.lang.String getAuth_username() {
+		return (java.lang.String) getInputParameter(AUTH_USERNAME_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getAuth_basic_password() {
-		return (java.lang.String) getInputParameter(AUTH_BASIC_PASSWORD_INPUT_PARAMETER);
+	protected final java.lang.String getAuth_password() {
+		return (java.lang.String) getInputParameter(AUTH_PASSWORD_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getAuth_basic_host() {
-		return (java.lang.String) getInputParameter(AUTH_BASIC_HOST_INPUT_PARAMETER);
+	protected final java.lang.String getAuth_host() {
+		return (java.lang.String) getInputParameter(AUTH_HOST_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getAuth_basic_port() {
-		return (java.lang.String) getInputParameter(AUTH_BASIC_PORT_INPUT_PARAMETER);
+	protected final java.lang.Integer getAuth_port() {
+		return (java.lang.Integer) getInputParameter(AUTH_PORT_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getAuth_basic_realm() {
-		return (java.lang.String) getInputParameter(AUTH_BASIC_REALM_INPUT_PARAMETER);
+	protected final java.lang.String getAuth_realm() {
+		return (java.lang.String) getInputParameter(AUTH_REALM_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.Boolean getAuth_basic_preemptive() {
-		return (java.lang.Boolean) getInputParameter(AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER);
+	protected final java.lang.Boolean getAuth_preemptive() {
+		return (java.lang.Boolean) getInputParameter(AUTH_PREEMPTIVE_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getAuth_digest_username() {
-		return (java.lang.String) getInputParameter(AUTH_DIGEST_USERNAME_INPUT_PARAMETER);
+	protected final AuthorizationType getAuth_type() {
+		String inputParameter = (String) getInputParameter(AUTH_TYPE_PARAMETER);
+        return inputParameter != null ? AuthorizationType.valueOf(inputParameter) : AuthorizationType.NONE;
 	}
-
-	protected final java.lang.String getAuth_digest_password() {
-		return (java.lang.String) getInputParameter(AUTH_DIGEST_PASSWORD_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_digest_host() {
-		return (java.lang.String) getInputParameter(AUTH_DIGEST_HOST_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_digest_port() {
-		return (java.lang.String) getInputParameter(AUTH_DIGEST_PORT_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.String getAuth_digest_realm() {
-		return (java.lang.String) getInputParameter(AUTH_DIGEST_REALM_INPUT_PARAMETER);
-	}
-
-	protected final java.lang.Boolean getAuth_digest_preemptive() {
-		return (java.lang.Boolean) getInputParameter(AUTH_DIGEST_PREEMPTIVE_INPUT_PARAMETER);
-	}
-
+	
 	protected final java.lang.String getProxy_protocol() {
 		return (java.lang.String) getInputParameter(PROXY_PROTOCOL_INPUT_PARAMETER);
 	}
@@ -177,8 +155,8 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 		return (java.lang.String) getInputParameter(PROXY_HOST_INPUT_PARAMETER);
 	}
 
-	protected final java.lang.String getProxy_port() {
-		return (java.lang.String) getInputParameter(PROXY_PORT_INPUT_PARAMETER);
+	protected final java.lang.Integer getProxy_port() {
+		return (java.lang.Integer) getInputParameter(PROXY_PORT_INPUT_PARAMETER);
 	}
 
 	protected final java.lang.String getProxy_username() {
@@ -289,74 +267,34 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 			throw new ConnectorValidationException("key_store_password type is invalid");
 		}
 		try {
-			getAuth_basic_username();
+			getAuth_username();
 		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_username type is invalid");
 		}
 		try {
-			getAuth_basic_password();
+			getAuth_password();
 		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_password type is invalid");
 		}
 		try {
-			getAuth_basic_host();
+			getAuth_host();
 		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_host type is invalid");
 		}
 		try {
-			final String authBasicPortValue = getAuth_basic_port();
-			if(authBasicPortValue != null && !authBasicPortValue.isEmpty()) {
-				Integer.parseInt(authBasicPortValue);
-			}
+			getAuth_port();
 		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_port type is invalid");
-		} catch (final NumberFormatException nfe) {
-			throw new ConnectorValidationException("auth_basic_port is not a valid number");
 		}
 		try {
-			getAuth_basic_realm();
+			getAuth_realm();
 		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_realm type is invalid");
 		}
 		try {
-			getAuth_basic_preemptive();
+			getAuth_preemptive();
 		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("auth_basic_preemptive type is invalid");
-		}
-		try {
-			getAuth_digest_username();
-		} catch (final ClassCastException cce) {
-			throw new ConnectorValidationException("auth_digest_username type is invalid");
-		}
-		try {
-			getAuth_digest_password();
-		} catch (final ClassCastException cce) {
-			throw new ConnectorValidationException("auth_digest_password type is invalid");
-		}
-		try {
-			getAuth_digest_host();
-		} catch (final ClassCastException cce) {
-			throw new ConnectorValidationException("auth_digest_host type is invalid");
-		}
-		try {
-			final String authDigestPortValue = getAuth_digest_port();
-			if(authDigestPortValue != null && !authDigestPortValue.isEmpty()) {
-				Integer.parseInt(authDigestPortValue);
-			}
-		} catch (final ClassCastException cce) {
-			throw new ConnectorValidationException("auth_digest_port type is invalid");
-		} catch (final NumberFormatException nfe) {
-			throw new ConnectorValidationException("auth_digest_port is not a valid number");
-		}
-		try {
-			getAuth_digest_realm();
-		} catch (final ClassCastException cce) {
-			throw new ConnectorValidationException("auth_digest_realm type is invalid");
-		}
-		try {
-			getAuth_digest_preemptive();
-		} catch (final ClassCastException cce) {
-			throw new ConnectorValidationException("auth_digest_preemptive type is invalid");
 		}
 		try {
 			getProxy_protocol();
@@ -369,14 +307,9 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 			throw new ConnectorValidationException("proxy_host type is invalid");
 		}
 		try {
-			final String portValue = getProxy_port();
-			if(portValue != null && !portValue.isEmpty()) {
-				Integer.parseInt(portValue);
-			}
+			getProxy_port();
 		} catch (final ClassCastException cce) {
 			throw new ConnectorValidationException("proxy_port type is invalid");
-		} catch (final NumberFormatException nfe) {
-			throw new ConnectorValidationException("proxy_port is not a valid number");
 		}
 		try {
 			getProxy_username();

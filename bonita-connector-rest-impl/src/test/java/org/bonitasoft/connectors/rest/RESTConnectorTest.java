@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.exception.BonitaException;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -318,11 +319,13 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, 
                 ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
         
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_USERNAME_INPUT_PARAMETER, username);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_PASSWORD_INPUT_PARAMETER, password);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_HOST_INPUT_PARAMETER, host);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_REALM_INPUT_PARAMETER, realm);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_BASIC_PREEMPTIVE_INPUT_PARAMETER, preemptive);
+        
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_TYPE_PARAMETER, AuthorizationType.BASIC.name());
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_USERNAME_INPUT_PARAMETER, username);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_PASSWORD_INPUT_PARAMETER, password);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_HOST_INPUT_PARAMETER, host);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_REALM_INPUT_PARAMETER, realm);
+        parametersSet.put(AbstractRESTConnectorImpl.AUTH_PREEMPTIVE_INPUT_PARAMETER, preemptive);
 
         return parametersSet;
     }

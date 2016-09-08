@@ -7,7 +7,6 @@
   <input mandatory="true" name="url" type="java.lang.String"/>
   <input defaultValue="application/json" mandatory="true" name="contentType" type="java.lang.String"/>
   <input defaultValue="UTF-8" mandatory="true" name="charset" type="java.lang.String"/>
-  <input mandatory="false" name="body" type="java.lang.String"/>
   <input mandatory="false" name="urlCookies" type="java.util.List"/>
   <input name="urlHeaders" type="java.util.List"/>
   <input mandatory="false" name="body" type="java.lang.String"/>
@@ -20,21 +19,16 @@
   <input mandatory="false" name="trust_store_password" type="java.lang.String"/>
   <input mandatory="false" name="key_store_file" type="java.lang.String"/>
   <input mandatory="false" name="key_store_password" type="java.lang.String"/>
-  <input name="auth_basic_username" type="java.lang.String"/>
-  <input name="auth_basic_password" type="java.lang.String"/>
-  <input name="auth_basic_host" type="java.lang.String"/>
-  <input name="auth_basic_port" type="java.lang.String"/>
-  <input name="auth_basic_realm" type="java.lang.String"/>
-  <input defaultValue="false" mandatory="false" name="auth_basic_preemptive" type="java.lang.Boolean"/>
-  <input name="auth_digest_username" type="java.lang.String"/>
-  <input name="auth_digest_password" type="java.lang.String"/>
-  <input name="auth_digest_host" type="java.lang.String"/>
-  <input name="auth_digest_port" type="java.lang.String"/>
-  <input name="auth_digest_realm" type="java.lang.String"/>
-  <input defaultValue="false" name="auth_digest_preemptive" type="java.lang.Boolean"/>
+  <input name="auth_type" defaultValue="NONE" type="java.lang.String"/>
+  <input name="auth_username" type="java.lang.String"/>
+  <input name="auth_password" type="java.lang.String"/>
+  <input name="auth_host" type="java.lang.String"/>
+  <input name="auth_port" type="java.lang.Integer"/>
+  <input name="auth_realm" type="java.lang.String"/>
+  <input defaultValue="false" mandatory="false" name="auth_preemptive" type="java.lang.Boolean"/>
   <input name="proxy_protocol" type="java.lang.String"/>
   <input name="proxy_host" type="java.lang.String"/>
-  <input name="proxy_port" type="java.lang.String"/>
+  <input name="proxy_port" type="java.lang.Integer"/>
   <input name="proxy_username" type="java.lang.String"/>
   <input name="proxy_password" type="java.lang.String"/>
   <output name="body" type="java.lang.String"/>
@@ -45,11 +39,15 @@
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
     <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
 		<items>application/json</items>
-		<items>application/xhtml+xml</items>
 		<items>application/xml</items>
+		<items>text/html</items>
 		<items>text/plain</items>
+		<items>text/xml</items>
     </widget>
     <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
+    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
+  </page>
+  <page id="Advanced">
     <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
       <colsCaption>Key</colsCaption>
       <colsCaption>Value</colsCaption>
@@ -58,7 +56,6 @@
       <colsCaption>Key</colsCaption>
       <colsCaption>Value</colsCaption>
     </widget>
-    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
     <widget xsi:type="definition:Checkbox" id="do_not_follow_redirect_widget" inputName="do_not_follow_redirect"/>
     <widget xsi:type="definition:Checkbox" id="ignore_body_widget" inputName="ignore_body"/>
   </page>
@@ -82,21 +79,18 @@
     </widget>
   </page>
   <page id="authenticationPage">
-    <widget xsi:type="definition:Group" id="auth_basic" optional="false">
-      <widget xsi:type="definition:Text" id="auth_basic_username_widget" inputName="auth_basic_username"/>
-      <widget xsi:type="definition:Password" id="auth_basic_password_widget" inputName="auth_basic_password"/>
-      <widget xsi:type="definition:Text" id="auth_basic_host_widget" inputName="auth_basic_host"/>
-      <widget xsi:type="definition:Text" id="auth_basic_port_widget" inputName="auth_basic_port"/>
-      <widget xsi:type="definition:Text" id="auth_basic_realm_widget" inputName="auth_basic_realm"/>
-      <widget xsi:type="definition:Checkbox" id="auth_basic_preemptive_widget" inputName="auth_basic_preemptive"/>
+    <widget xsi:type="definition:RadioGroup" id="auth_type_radio" inputName="auth_type">
+      <choices>NONE</choices>
+      <choices>BASIC</choices>
+      <choices>DIGEST</choices>
     </widget>
-    <widget xsi:type="definition:Group" id="auth_digest" optional="false">
-      <widget xsi:type="definition:Text" id="auth_digest_username_widget" inputName="auth_digest_username"/>
-      <widget xsi:type="definition:Password" id="auth_digest_password_widget" inputName="auth_digest_password"/>
-      <widget xsi:type="definition:Text" id="auth_digest_host_widget" inputName="auth_digest_host"/>
-      <widget xsi:type="definition:Text" id="auth_digest_port_widget" inputName="auth_digest_port"/>
-      <widget xsi:type="definition:Text" id="auth_digest_realm_widget" inputName="auth_digest_realm"/>
-      <widget xsi:type="definition:Checkbox" id="auth_digest_preemptive_widget" inputName="auth_digest_preemptive"/>
+    <widget xsi:type="definition:Group" id="auth_group" optional="false">
+      <widget xsi:type="definition:Text" id="auth_username_widget" inputName="auth_username"/>
+      <widget xsi:type="definition:Password" id="auth_password_widget" inputName="auth_password"/>
+      <widget xsi:type="definition:Text" id="auth_host_widget" inputName="auth_host"/>
+      <widget xsi:type="definition:Text" id="auth_port_widget" inputName="auth_port"/>
+      <widget xsi:type="definition:Text" id="auth_realm_widget" inputName="auth_realm"/>
+      <widget xsi:type="definition:Checkbox" id="auth_preemptive_widget" inputName="auth_preemptive"/>
     </widget>
   </page>
   <page id="proxyPage">
