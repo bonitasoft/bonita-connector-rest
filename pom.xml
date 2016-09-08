@@ -9,7 +9,7 @@
 
     <artifactId>bonita-connector-rest</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.0</version>
+    <version>1.0.0</version>
 
     <properties>
         <bonita.engine.version>7.3.1</bonita.engine.version>
