@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -40,6 +41,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.google.common.collect.Maps;
 
 /**
  * The class for the UTs of the REST Connector
@@ -92,17 +94,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     /**
      * All the tested cookies values
      */
-    private static final List<List<String>> ONE_COOKIES = new ArrayList<List<String>>();
-    private static final List<List<String>> TWO_COOKIES = new ArrayList<List<String>>();
-    private static final List<List<String>> COOKIES_ERROR = new ArrayList<List<String>>();
+    private static final List<List<String>> ONE_COOKIES = new ArrayList<>();
+    private static final List<List<String>> TWO_COOKIES = new ArrayList<>();
+    private static final List<List<String>> COOKIES_ERROR = new ArrayList<>();
 
     //HEADERS
     /**
      * All the tested headers values
      */
-    private static final List<List<String>> ONE_HEADERS = new ArrayList<List<String>>();
-    private static final List<List<String>> TWO_HEADERS = new ArrayList<List<String>>();
-    private static final List<List<String>> HEADERS_ERROR = new ArrayList<List<String>>();
+    private static final List<List<String>> ONE_HEADERS = new ArrayList<>();
+    private static final List<List<String>> TWO_HEADERS = new ArrayList<>();
+    private static final List<List<String>> HEADERS_ERROR = new ArrayList<>();
 
     //BODYS
     /**
@@ -146,44 +148,44 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @BeforeClass
     public static final void initValues() {
-        List<String> cookie1 = new ArrayList<String>();
+        final List<String> cookie1 = new ArrayList<>();
         cookie1.add("cookie1name");
         cookie1.add("cookie1value");
         ONE_COOKIES.add(cookie1);
 
-        List<String> cookie2 = new ArrayList<String>();
+        final List<String> cookie2 = new ArrayList<>();
         cookie2.add("cookie2name");
         cookie2.add("cookie2value");
         TWO_COOKIES.add(cookie1);
         TWO_COOKIES.add(cookie2);
 
-        List<String> cookie3 = new ArrayList<String>();
+        final List<String> cookie3 = new ArrayList<>();
         cookie3.add("cookie3name");
         cookie3.add("cookie3value");
         cookie3.add("cookie3extrat");
-        List<String> cookie4 = new ArrayList<String>();
+        final List<String> cookie4 = new ArrayList<>();
         cookie4.add("cookie4nameonly");
         COOKIES_ERROR.add(cookie1);
         COOKIES_ERROR.add(cookie2);
         COOKIES_ERROR.add(cookie3);
         COOKIES_ERROR.add(cookie4);
 
-        List<String> header1 = new ArrayList<String>();
+        final List<String> header1 = new ArrayList<>();
         header1.add("header1name");
         header1.add("header1value");
         ONE_HEADERS.add(header1);
 
-        List<String> header2 = new ArrayList<String>();
+        final List<String> header2 = new ArrayList<>();
         header2.add("header2name");
         header2.add("header2value");
         TWO_HEADERS.add(header1);
         TWO_HEADERS.add(header2);
 
-        List<String> header3 = new ArrayList<String>();
+        final List<String> header3 = new ArrayList<>();
         header3.add("header3name");
         header3.add("header3value");
         header3.add("header3extrat");
-        List<String> header4 = new ArrayList<String>();
+        final List<String> header4 = new ArrayList<>();
         header4.add("header4nameonly");
         HEADERS_ERROR.add(header1);
         HEADERS_ERROR.add(header2);
@@ -210,7 +212,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private Map<String, Object> buildParametersSet(final String url, final String port, final String method, 
             final String contentType, final String charset, final List<List<String>> cookies, final List<List<String>> headers, 
             final String body, final Boolean redirect, final Boolean ignoreBody, final Boolean trust, final String sslVerifier) {
-        Map<String, Object> parametersSet = new HashMap<String, Object>();
+        final Map<String, Object> parametersSet = new HashMap<>();
         if (url == null && port == null) {
             parametersSet.put(AbstractRESTConnectorImpl.URL_INPUT_PARAMETER, "http://" + LOCALHOST + ":" + wireMockServer.port() + "/");
         } else if (url != null && port == null) {
@@ -316,7 +318,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private Map<String, Object> buildBasicAuthorizationParametersSet(final String username, 
             final String password, final String host, final String realm, final Boolean preemptive) {
-        Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, 
+        final Map<String, Object> parametersSet = buildParametersSet(null, null, GET, PLAIN_TEXT, UTF8, 
                 ONE_COOKIES, ONE_HEADERS, EMPTY, Boolean.FALSE, Boolean.FALSE, Boolean.FALSE, STRICT);
         
         
@@ -337,7 +339,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws BonitaException exception
      */
     private Map<String, Object> executeConnector(final Map<String, Object> parameters) throws BonitaException {
-        RESTConnector rest = new RESTConnector();
+        final RESTConnector rest = new RESTConnector();
         rest.setExecutionContext(getEngineExecutionContext());
         rest.setAPIAccessor(getApiAccessor());
         rest.setInputParameters(parameters);
@@ -536,25 +538,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
-     * Test fake cookie
-     * @throws BonitaException exception
-     * @throws InterruptedException exception
-     */
-    @Test
-    public void fakeValuesCookie() throws BonitaException, InterruptedException {
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("Error validating connector org.bonitasoft.connectors.rest.RESTConnector:\nurlCookies - columns - 3\nurlCookies - columns - 1");
-
-        checkResultIsPresent(executeConnector(buildCookieParametersSet(COOKIES_ERROR)));
-    }
-
-    /**
      * Generate the cookies string
      * @param cookies The cookies values
      * @return The cookie string
      */
     private String generateCookieSet(final List<List<String>> cookies) {
-        StringBuffer strBuffer = new StringBuffer();
+        final StringBuffer strBuffer = new StringBuffer();
 
         if (!cookies.isEmpty()) {
             strBuffer.append(cookies.get(0).get(0) + "=" + cookies.get(0).get(1));
@@ -573,7 +562,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void oneValueHeader() throws BonitaException, InterruptedException {
-        MappingBuilder mb = get(urlEqualTo("/"));
+        final MappingBuilder mb = get(urlEqualTo("/"));
         for (int j = 0; j < ONE_HEADERS.size(); j++) {
             mb.withHeader(ONE_HEADERS.get(j).get(0), equalTo(ONE_HEADERS.get(j).get(1)));
         }
@@ -589,7 +578,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void twoValuesHeader() throws BonitaException, InterruptedException {
-        MappingBuilder mb = get(urlEqualTo("/"));
+        final MappingBuilder mb = get(urlEqualTo("/"));
         for (int j = 0; j < TWO_HEADERS.size(); j++) {
             mb.withHeader(TWO_HEADERS.get(j).get(0), equalTo(TWO_HEADERS.get(j).get(1)));
         }
@@ -598,18 +587,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildHeaderParametersSet(TWO_HEADERS)));
     }
 
-    /**
-     * Test fake header
-     * @throws BonitaException exception
-     * @throws InterruptedException exception
-     */
-    @Test
-    public void fakeValuesHeader() throws BonitaException, InterruptedException {
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("Error validating connector org.bonitasoft.connectors.rest.RESTConnector:\nurlHeaders - columns - 3\nurlHeaders - columns - 1");
-        
-        checkResultIsPresent(executeConnector(buildHeaderParametersSet(HEADERS_ERROR)));
-    }
 
     /**
      * Test empty body
@@ -718,6 +695,24 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         executeConnector(buildPortParametersSet(fakePort));
     }
 
+    @Test
+    public void should_remove_empty_lines_from_input_tables() throws Exception {
+        final RESTConnector restConnector = new RESTConnector();
+        final Map<String, Object> parameters = Maps.newHashMap();
+
+        final List<List<?>> cookies = new ArrayList<>();
+        cookies.add(newArrayList("key1", "value"));
+        cookies.add(newArrayList("", ""));
+        cookies.add(newArrayList(null, null));
+        cookies.add(newArrayList());
+        cookies.add(null);
+        parameters.put(RESTConnector.URLCOOKIES_INPUT_PARAMETER, cookies);
+        restConnector.setInputParameters(parameters);
+
+        final List urlCookies = restConnector.getUrlCookies();
+        assertTrue(urlCookies.size() == 1);
+    }
+
     /**
      * Generic test: should return OK STATUS as the WireMock stub is set each time for the good request shape
      * @param restResult The result of the request
@@ -734,9 +729,9 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private void checkResult(final Map<String, Object> restResult, final int httpStatus) {
         assertEquals(4, restResult.size());
         assertNotNull(restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER));
-        Object statusCode = restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER);
+        final Object statusCode = restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER);
         assertTrue(statusCode instanceof Integer);
-        Integer restStatusCode = (Integer) statusCode;
+        final Integer restStatusCode = (Integer) statusCode;
         assertEquals(httpStatus, restStatusCode.intValue());
     }
 }
