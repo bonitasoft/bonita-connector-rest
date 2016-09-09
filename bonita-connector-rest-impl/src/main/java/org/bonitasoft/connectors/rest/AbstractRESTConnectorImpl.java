@@ -14,9 +14,14 @@
 
 package org.bonitasoft.connectors.rest;
 
+import java.util.List;
+
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.connector.AbstractConnector;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
@@ -70,11 +75,34 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	}
 
 	protected final java.util.List getUrlCookies() {
-		return (java.util.List) getInputParameter(URLCOOKIES_INPUT_PARAMETER);
+		final java.util.List cookies = (java.util.List) getInputParameter(URLCOOKIES_INPUT_PARAMETER);
+        Iterables.removeIf(cookies, emptyLines());
+        return cookies;
 	}
 
-	protected final java.util.List getUrlHeaders() {
-		return (java.util.List) getInputParameter(URLHEADERS_INPUT_PARAMETER);
+    private Predicate<Object> emptyLines() {
+        return new Predicate<Object>() {
+
+            @Override
+            public boolean apply(Object input) {
+                if (input instanceof List) {
+                    final List line = (List) input;
+                    return line.size() != 2 || (emptyCell(line, 0) && emptyCell(line, 1));
+                }
+                return true;
+            }
+
+            private boolean emptyCell(final List line, int cellIndex) {
+                final Object cellValue = line.get(cellIndex);
+                return cellValue == null || cellValue.toString().trim().isEmpty();
+            }
+        };
+    }
+
+    protected final java.util.List getUrlHeaders() {
+        final java.util.List headers = (java.util.List) getInputParameter(URLHEADERS_INPUT_PARAMETER);
+        Iterables.removeIf(headers, emptyLines());
+        return headers;
 	}
 
 	protected final java.lang.String getBody() {
@@ -143,7 +171,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 	}
 
 	protected final AuthorizationType getAuth_type() {
-		String inputParameter = (String) getInputParameter(AUTH_TYPE_PARAMETER);
+		final String inputParameter = (String) getInputParameter(AUTH_TYPE_PARAMETER);
         return inputParameter != null ? AuthorizationType.valueOf(inputParameter) : AuthorizationType.NONE;
 	}
 	
