@@ -3,7 +3,7 @@
   <implementationId>rest-put-impl</implementationId>
   <implementationVersion>$implementation.version$</implementationVersion>
   <definitionId>rest-put</definitionId>
-  <definitionVersion>$definition.version$</definitionVersion>
+  <definitionVersion>1.0.0-SNAPSHOT</definitionVersion>
   <implementationClassname>org.bonitasoft.connectors.rest.PutConnectorImpl</implementationClassname>
   <hasSources>false</hasSources>
   <description>The implementation of the REST PUT Connector.</description>
