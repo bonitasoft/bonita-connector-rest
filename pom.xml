@@ -9,7 +9,7 @@
 
     <artifactId>bonita-connector-rest</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>alpha01</version>
 
     <properties>
         <bonita.engine.version>7.3.1</bonita.engine.version>
@@ -70,6 +70,7 @@
         <developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
         <connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
         <url>https://github.com/bonitasoft/bonita-connector-rest</url>
-    </scm>
+      <tag>1.0.0.alpha01</tag>
+  </scm>
     
 </project>
