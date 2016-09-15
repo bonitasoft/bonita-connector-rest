@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
-  <id>rest-post</id>
-  <version>$definition.version$</version>
+  <id>rest-get</id>
+  <version>1.0.0-SNAPSHOT</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   <input mandatory="true" name="url" type="java.lang.String"/>
@@ -9,7 +9,6 @@
   <input defaultValue="UTF-8" mandatory="true" name="charset" type="java.lang.String"/>
   <input mandatory="false" name="urlCookies" type="java.util.List"/>
   <input name="urlHeaders" type="java.util.List"/>
-  <input mandatory="false" name="body" type="java.lang.String"/>
   <input mandatory="false" name="do_not_follow_redirect" type="java.lang.Boolean"/>
   <input mandatory="false" name="ignore_body" type="java.lang.Boolean"/>
   <input defaultValue="true" mandatory="false" name="TLS" type="java.lang.Boolean"/>
@@ -45,7 +44,6 @@
 		<items>text/xml</items>
     </widget>
     <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
-    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
   </page>
   <page id="Advanced">
     <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
