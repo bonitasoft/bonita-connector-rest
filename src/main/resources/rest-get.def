@@ -5,8 +5,6 @@
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   <input mandatory="true" name="url" type="java.lang.String"/>
-  <input defaultValue="application/json" mandatory="true" name="contentType" type="java.lang.String"/>
-  <input defaultValue="UTF-8" mandatory="true" name="charset" type="java.lang.String"/>
   <input mandatory="false" name="urlCookies" type="java.util.List"/>
   <input name="urlHeaders" type="java.util.List"/>
   <input mandatory="false" name="do_not_follow_redirect" type="java.lang.Boolean"/>
@@ -22,9 +20,9 @@
   <input name="auth_username" type="java.lang.String"/>
   <input name="auth_password" type="java.lang.String"/>
   <input name="auth_host" type="java.lang.String"/>
-  <input name="auth_port" type="java.lang.Integer"/>
+  <input defaultValue="-1" name="auth_port" type="java.lang.Integer"/>
   <input name="auth_realm" type="java.lang.String"/>
-  <input defaultValue="false" mandatory="false" name="auth_preemptive" type="java.lang.Boolean"/>
+  <input defaultValue="true" mandatory="false" name="auth_preemptive" type="java.lang.Boolean"/>
   <input name="proxy_protocol" type="java.lang.String"/>
   <input name="proxy_host" type="java.lang.String"/>
   <input name="proxy_port" type="java.lang.Integer"/>
@@ -36,14 +34,6 @@
   <output name="status_message" type="java.lang.String"/>
   <page id="RESTConnectorWizardPage">
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
-    <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
-		<items>application/json</items>
-		<items>application/xml</items>
-		<items>text/html</items>
-		<items>text/plain</items>
-		<items>text/xml</items>
-    </widget>
-    <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
   </page>
   <page id="Advanced">
     <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
