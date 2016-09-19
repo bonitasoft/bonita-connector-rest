@@ -26,6 +26,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -104,13 +105,13 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
         LOGGER.fine("super validateInputParameters done.");
 
-        final List<String> messages = new ArrayList<String>(0);
+        final List<String> messages = new ArrayList<>(0);
         if (!isStringInputValid(getUrl())) {
             messages.add(URL_INPUT_PARAMETER);
         } else {
             try {
                 new URL(getUrl());
-            } catch (MalformedURLException e) {
+            } catch (final MalformedURLException e) {
                 messages.add(URL_INPUT_PARAMETER);
             }
         }
@@ -119,17 +120,20 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             messages.add(METHOD_INPUT_PARAMETER);
         }
 
-        if (!isStringInputValid(getContentType())) {
-            messages.add(CONTENTTYPE_INPUT_PARAMETER);
-        }
-        if (!isStringInputValid(getCharset())) {
-            messages.add(CHARSET_INPUT_PARAMETER);
+        if (Objects.equals(getMethod(), HTTPMethod.POST.name())
+                || Objects.equals(getMethod(), HTTPMethod.PUT.name())) {
+            if (!isStringInputValid(getContentType())) {
+                messages.add(CONTENTTYPE_INPUT_PARAMETER);
+            }
+            if (!isStringInputValid(getCharset())) {
+                messages.add(CHARSET_INPUT_PARAMETER);
+            }
         }
 
-        List<?> urlCookies = getUrlCookies();
+        final List<?> urlCookies = getUrlCookies();
         messages.addAll(manageKeyValueCouples(urlCookies, URLCOOKIES_INPUT_PARAMETER));
 
-        List<?> urlheaders = getUrlHeaders();
+        final List<?> urlheaders = getUrlHeaders();
         messages.addAll(manageKeyValueCouples(urlheaders, URLHEADERS_INPUT_PARAMETER));
 
         if (!messages.isEmpty()) {
@@ -156,13 +160,13 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The error messages if any or empty list otherwise
      */
     private List<String> manageKeyValueCouples(final List<?> keyValueCouples, final String inputName) {
-        List<String> messages = new ArrayList<String>();
+        final List<String> messages = new ArrayList<>();
         if (keyValueCouples == null) {
             return messages;
         }
-        for (Object keyValueCouple : keyValueCouples) {
+        for (final Object keyValueCouple : keyValueCouples) {
             if (keyValueCouple instanceof List) {
-                List<?> keyValueCoupleRow = (List<?>) keyValueCouple;
+                final List<?> keyValueCoupleRow = (List<?>) keyValueCouple;
                 if (!isItAKeyValueCouple(keyValueCoupleRow)) {
                     messages.add(inputName + " - columns - " + keyValueCoupleRow.size());
                 } else if (!isKeyValueCoupleValid(keyValueCoupleRow)) {
@@ -198,9 +202,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     @Override
     protected void executeBusinessLogic() throws ConnectorException {
         try {
-            Request request = buildRequest();
+            final Request request = buildRequest();
             execute(request);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logException(e);
             throw new ConnectorException(e);
         }
@@ -213,14 +217,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @throws MalformedURLException
      */
     private Request buildRequest() throws MalformedURLException {
-        Request request = new Request();
+        final Request request = new Request();
         request.setUrl(new URL(getUrl()));
         LOGGER.fine("URL set to: " + request.getUrl().toString());
         String bodyStr = "";
         if (getBody() != null) {
             bodyStr = getBody();
+            request.setContentType(ContentType.create(getContentType(), Charset.forName(getCharset())));
         }
-        request.setContentType(ContentType.create(getContentType(),Charset.forName(getCharset())));
+
         request.setBody(bodyStr);
         LOGGER.fine("Body set to: " + request.getBody().toString());
         request.setRestMethod(HTTPMethod.getRESTHTTPMethodFromValue(getMethod()));
@@ -229,13 +234,13 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         LOGGER.fine("Follow redirect set to: " + request.isRedirect());
         request.setIgnore(getIgnoreBody());
         LOGGER.fine("Ignore body set to: " + request.isIgnore());
-        for (Object urlheader : getUrlHeaders()) {
-            List<?> urlheaderRow = (List<?>) urlheader;
+        for (final Object urlheader : getUrlHeaders()) {
+            final List<?> urlheaderRow = (List<?>) urlheader;
             request.addHeader(urlheaderRow.get(0).toString(), urlheaderRow.get(1).toString());
             LOGGER.fine("Add header: " + urlheaderRow.get(0).toString() + " set as " + urlheaderRow.get(1).toString());
         }
-        for (Object urlCookie : getUrlCookies()) {
-            List<?> urlCookieRow = (List<?>) urlCookie;
+        for (final Object urlCookie : getUrlCookies()) {
+            final List<?> urlCookieRow = (List<?>) urlCookie;
             request.addCookie(urlCookieRow.get(0).toString(), urlCookieRow.get(1).toString());
             LOGGER.fine("Add cookie: " + urlCookieRow.get(0).toString() + " set as " + urlCookieRow.get(1).toString());
         }
@@ -287,7 +292,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The Digest Auth according to the input values
      */
     private BasicDigestAuthorization buildDigestAuthorization() {
-        BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
+        final BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
         authorization.setUsername(getAuth_username());
         authorization.setPassword(getAuth_password());
 
@@ -308,7 +313,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The Basic Auth according to the input values
      */
     private BasicDigestAuthorization buildBasicAuthorization() {
-        BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
+        final BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
         authorization.setUsername(getAuth_username());
         authorization.setPassword(getAuth_password());
 
@@ -330,14 +335,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The SSL Req according to the input values
      */
     private SSL buildSSL() {
-        SSL ssl = new SSL();
+        final SSL ssl = new SSL();
         ssl.setSslVerifier(SSLVerifier.getSSLVerifierFromValue(getHostname_verifier().toUpperCase()));
         ssl.setUseSelfSignedCertificate(getTrust_self_signed_certificate());
         ssl.setUseTLS(getTLS());
 
         if (isStringInputValid(getTrust_store_file())
                 && isStringInputValid(getTrust_store_password())) {
-            Store trustStore = new Store();
+            final Store trustStore = new Store();
             trustStore.setFile(new File(getTrust_store_file()));
             trustStore.setPassword(getTrust_store_password());
             ssl.setTrustStore(trustStore);
@@ -345,7 +350,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
         if (isStringInputValid(getKey_store_file())
                 && isStringInputValid(getKey_store_password())) {
-            Store keyStore = new Store();
+            final Store keyStore = new Store();
             keyStore.setFile(new File(getKey_store_file()));
             keyStore.setPassword(getKey_store_password());
             ssl.setKeyStore(keyStore);
@@ -360,7 +365,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The Proxy Req according to the input values
      */
     private Proxy buildProxy() {
-        Proxy proxy = new Proxy();
+        final Proxy proxy = new Proxy();
         proxy.setProtocol(ProxyProtocol.valueOf(getProxy_protocol().toUpperCase()));
         proxy.setHost(getProxy_host());
         proxy.setPort(getProxy_port());
@@ -392,9 +397,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     EntityUtils.consumeQuietly(entity);
                 } else {
                     try (InputStream inputStream = entity.getContent()) {
-                        StringWriter stringWriter = new StringWriter();
+                        final StringWriter stringWriter = new StringWriter();
                         IOUtils.copy(inputStream, stringWriter);
-                        String stringContent = stringWriter.toString();
+                        final String stringContent = stringWriter.toString();
                         if (stringContent != null) {
                             setBody(stringContent.trim());
                         }
@@ -447,13 +452,13 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             requestBuilder.setUri(urlStr);
             setHeaders(requestBuilder, request.getHeaders());
             if (!HTTPMethod.GET.equals(HTTPMethod.valueOf(requestBuilder.getMethod()))) {
-                String body = request.getBody();
+                final String body = request.getBody();
                 if (body != null) {
                     requestBuilder.setEntity(new StringEntity(request.getBody(),request.getContentType()));
                 }
             }
 
-            HttpContext httpContext = setAuthorizations(
+            final HttpContext httpContext = setAuthorizations(
                     requestConfigurationBuilder,
                     request.getAuthorization(),
                     request.getProxy(),
@@ -465,9 +470,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             requestBuilder.setConfig(requestConfigurationBuilder.build());
             httpClientBuilder.setDefaultRequestConfig(requestConfigurationBuilder.build());
 
-            HttpUriRequest httpRequest = requestBuilder.build();
+            final HttpUriRequest httpRequest = requestBuilder.build();
             httpClient = httpClientBuilder.build();
-            CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
+            final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
             LOGGER.fine("Request sent.");
             setOutputs(httpResponse, request);
         } finally {
@@ -475,7 +480,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 if (httpClient != null) {
                     httpClient.close();
                 }
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 logException(ex);
             }
         }
@@ -490,10 +495,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws Exception {
         if (ssl != null) {
-            SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
+            final SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
 
             if (ssl.getTrustStore() != null) {
-                KeyStore trustStore = ssl.getTrustStore().generateKeyStore();
+                final KeyStore trustStore = ssl.getTrustStore().generateKeyStore();
                 if (ssl.isUseSelfSignedCertificate()) {
                     sslContextBuilder.loadTrustMaterial(trustStore, new TrustSelfSignedStrategy());
                 } else {
@@ -502,8 +507,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             }
 
             if (ssl.getKeyStore() != null) {
-                KeyStore keyStore = ssl.getKeyStore().generateKeyStore();
-                String keyStorePassword = ssl.getKeyStore().getPassword();
+                final KeyStore keyStore = ssl.getKeyStore().generateKeyStore();
+                final String keyStorePassword = ssl.getKeyStore().getPassword();
                 sslContextBuilder.loadKeyMaterial(keyStore, keyStorePassword.toCharArray());
             }
 
@@ -515,7 +520,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 sslContextBuilder.useSSL();
             }
 
-            SSLVerifier verifier = ssl.getSslVerifier();
+            final SSLVerifier verifier = ssl.getSslVerifier();
             X509HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.STRICT_HOSTNAME_VERIFIER;
             switch (verifier) {
                 case BROWSER:
@@ -532,7 +537,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     break;
             }
 
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build(), hostnameVerifier);
+            final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build(), hostnameVerifier);
             httpClientBuilder.setSSLSocketFactory(socketFactory);
         }
     }
@@ -546,13 +551,13 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private void setProxy(final Proxy proxy, final HttpClientBuilder httpClientBuilder, final Builder requestConfigurationBuilder) {
         if (proxy != null) {
-            HttpHost httpHost = new HttpHost(proxy.getHost(), proxy.getPort());
+            final HttpHost httpHost = new HttpHost(proxy.getHost(), proxy.getPort());
 
             httpClientBuilder.setProxy(httpHost);
             httpClientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
 
             requestConfigurationBuilder.setProxy(httpHost);
-            ArrayList<String> authPrefs = new ArrayList<String>();
+            final ArrayList<String> authPrefs = new ArrayList<>();
             authPrefs.add(AuthSchemes.BASIC);
             requestConfigurationBuilder.setProxyPreferredAuthSchemes(authPrefs);
         }
@@ -585,10 +590,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final HttpClientBuilder httpClientBuilder,
             final List<HttpCookie> list,
             final String urlHost) {
-        CookieStore cookieStore = new BasicCookieStore();
-        List<HttpCookie> cookies = list;
-        for (HttpCookie cookie : cookies) {
-            BasicClientCookie c = new BasicClientCookie(cookie.getName(), cookie.getValue());
+        final CookieStore cookieStore = new BasicCookieStore();
+        final List<HttpCookie> cookies = list;
+        for (final HttpCookie cookie : cookies) {
+            final BasicClientCookie c = new BasicClientCookie(cookie.getName(), cookie.getValue());
             c.setPath("/");
             c.setVersion(0);
             c.setDomain(urlHost);
@@ -605,7 +610,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param headerData The request headers
      */
     private void setHeaders(final RequestBuilder requestBuilder, final List<Header> headerData) {
-        for (Header aHeaderData : headerData) {
+        for (final Header aHeaderData : headerData) {
            requestBuilder.addHeader(aHeaderData);
         }
     }
@@ -633,9 +638,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         HttpContext httpContext = HttpClientContext.create();
         if (authorization != null) {
             if (authorization instanceof BasicDigestAuthorization) {
-                BasicDigestAuthorization castAuthorization = (BasicDigestAuthorization) authorization;
+                final BasicDigestAuthorization castAuthorization = (BasicDigestAuthorization) authorization;
 
-                List<String> authPrefs = new ArrayList<>();
+                final List<String> authPrefs = new ArrayList<>();
                 if (castAuthorization.isBasic()) {
                     authPrefs.add(AuthSchemes.BASIC);
                 } else {
@@ -643,8 +648,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 }
                 requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
 
-                String username = castAuthorization.getUsername();
-                String password = new String(castAuthorization.getPassword());
+                final String username = castAuthorization.getUsername();
+                final String password = new String(castAuthorization.getPassword());
                 String host = urlHost;
                 if (isStringInputValid(castAuthorization.getHost())) {
                     host = castAuthorization.getHost();
@@ -660,7 +665,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     realm = castAuthorization.getRealm();
                 }
 
-                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
                 credentialsProvider.setCredentials(
                         new AuthScope(host, port, realm),
                         new UsernamePasswordCredentials(username, password));
@@ -668,7 +673,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 
                 if (castAuthorization.isPreemptive() || proxy != null) {
-                    AuthCache authoriationCache = new BasicAuthCache();
+                    final AuthCache authoriationCache = new BasicAuthCache();
                     if (castAuthorization.isPreemptive()) {
                         AuthSchemeBase authorizationScheme = null;
                         if (castAuthorization.isBasic()) {
@@ -679,25 +684,25 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                         authoriationCache.put(new HttpHost(host, port, urlProtocol), authorizationScheme);
                     }
                     if (proxy != null) {
-                        BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
+                        final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
                         authoriationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
                     }
-                    HttpClientContext localContext = HttpClientContext.create();
+                    final HttpClientContext localContext = HttpClientContext.create();
                     localContext.setAuthCache(authoriationCache);
                     httpContext = localContext;
                 }
             }
         } else if (proxy != null) {
-            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             setProxyCrendentials(proxy, credentialsProvider);
             httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 
             // Make it preemptive
             if (proxy.hasCredentials()) {
-                AuthCache authoriationCache = new BasicAuthCache();
-                BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
+                final AuthCache authoriationCache = new BasicAuthCache();
+                final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
                 authoriationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
-                HttpClientContext localContext = HttpClientContext.create();
+                final HttpClientContext localContext = HttpClientContext.create();
                 localContext.setAuthCache(authoriationCache);
                 httpContext = localContext;
             }
@@ -734,9 +739,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
     private void logException(final Exception e) {
-        StringBuffer stringBuffer = new StringBuffer();
+        final StringBuffer stringBuffer = new StringBuffer();
         stringBuffer.append(e.toString());
-        for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+        for (final StackTraceElement stackTraceElement : e.getStackTrace()) {
             stringBuffer.append("\n" + stackTraceElement);
         }
         LOGGER.fine("executeBusinessLogic error: " + stringBuffer.toString());
