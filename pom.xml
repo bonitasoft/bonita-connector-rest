@@ -8,7 +8,7 @@
     </parent>
 
     <artifactId>bonita-connector-rest</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>alpha02</version>
 
     <properties>
         <bonita.engine.version>7.3.1</bonita.engine.version>
@@ -172,7 +172,7 @@
         <developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
         <connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
         <url>https://github.com/bonitasoft/bonita-connector-rest</url>
-      <tag>HEAD</tag>
+      <tag>1.0.0-alpha02</tag>
   </scm>
 
 </project>
