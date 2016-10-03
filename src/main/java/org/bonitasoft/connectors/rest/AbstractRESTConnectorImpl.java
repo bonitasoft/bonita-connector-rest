@@ -15,6 +15,7 @@
 package org.bonitasoft.connectors.rest;
 
 import java.util.List;
+import java.util.Map;
 
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.connector.AbstractConnector;
@@ -110,12 +111,12 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.lang.Boolean getTLS() {
-        java.lang.Boolean tlsParam = (java.lang.Boolean) getInputParameter(TLS_INPUT_PARAMETER);
+        final java.lang.Boolean tlsParam = (java.lang.Boolean) getInputParameter(TLS_INPUT_PARAMETER);
         return tlsParam != null ? tlsParam : Boolean.TRUE;
     }
 
     protected final java.lang.Boolean getTrust_self_signed_certificate() {
-        java.lang.Boolean trustParam = (java.lang.Boolean) getInputParameter(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER);
+        final java.lang.Boolean trustParam = (java.lang.Boolean) getInputParameter(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER);
         return trustParam != null ? trustParam : Boolean.FALSE;
     }
 
@@ -140,12 +141,12 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.lang.Boolean getDoNotFollowRedirect() {
-        java.lang.Boolean follozRedirect = (java.lang.Boolean) getInputParameter(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER);
+        final java.lang.Boolean follozRedirect = (java.lang.Boolean) getInputParameter(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER);
         return follozRedirect != null ? follozRedirect : Boolean.FALSE;
     }
 
     protected final java.lang.Boolean getIgnoreBody() {
-        java.lang.Boolean ignoreBody = (java.lang.Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER);
+        final java.lang.Boolean ignoreBody = (java.lang.Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER);
         return ignoreBody != null ? ignoreBody : Boolean.FALSE ;
     }
 
@@ -170,7 +171,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.lang.Boolean getAuth_preemptive() {
-        java.lang.Boolean preemptive = (java.lang.Boolean) getInputParameter(AUTH_PREEMPTIVE_INPUT_PARAMETER);
+        final java.lang.Boolean preemptive = (java.lang.Boolean) getInputParameter(AUTH_PREEMPTIVE_INPUT_PARAMETER);
         return preemptive != null ? preemptive : Boolean.TRUE;
     }
 
@@ -203,7 +204,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         setOutputParameter(BODY_OUTPUT_PARAMETER, body);
     }
 
-    protected final void setHeaders(java.util.List headers) {
+    protected final void setHeaders(Map<String, String> headers) {
         setOutputParameter(HEADERS_OUTPUT_PARAMETER, headers);
     }
 

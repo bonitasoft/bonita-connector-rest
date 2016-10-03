@@ -33,7 +33,7 @@ public class Request {
     /**
      * The headers.
      */
-    private final List<Header> headers = new ArrayList<Header>();
+    private final List<Header> headers = new ArrayList<>();
     
     /**
      * The cookies.
@@ -242,4 +242,12 @@ public class Request {
         return contentType;
     }
     
+    /*
+     * (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return String.format("[%s] %s", restMethod, url);
+    }
 }

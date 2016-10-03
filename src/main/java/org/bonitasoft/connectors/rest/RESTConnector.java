@@ -24,8 +24,9 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -406,9 +407,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     }
                 }
             }
-            if (response.getAllHeaders() != null) {
-                setHeaders(Arrays.asList(response.getAllHeaders()));
-            }
+            setHeaders(asMap(response.getAllHeaders()));
             setStatusCode(response.getStatusLine().getStatusCode());
             setStatusMessage(response.getStatusLine().getReasonPhrase());
             LOGGER.fine("All outputs have been set.");
@@ -416,6 +415,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             LOGGER.fine("Response is null.");
         }
     }
+
+    private Map<String, String> asMap(Header[] headers) {
+        final Map<String, String> result = new HashMap<>();
+        if (headers != null) {
+            for (final Header header : headers) {
+                result.put(header.getName(), header.getValue());
+            }
+        }
+        return result;
+    }
+
 
     /**
      * Execute a given request
@@ -472,8 +482,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
             final HttpUriRequest httpRequest = requestBuilder.build();
             httpClient = httpClientBuilder.build();
-            final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
             LOGGER.fine("Request sent.");
+            final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
+            LOGGER.fine("Response recieved.");
+            final int statusCode = httpResponse.getStatusLine().getStatusCode();
+            final String re = httpResponse.getStatusLine().getReasonPhrase();
+            if (!statusSuccessful(statusCode)) {
+                throw new ConnectorException(
+                        String.format("%s response status is not successful: %s - %s", request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
+            }
             setOutputs(httpResponse, request);
         } finally {
             try {
@@ -484,6 +501,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 logException(ex);
             }
         }
+    }
+
+    private boolean statusSuccessful(int statusCode) {
+        return statusCode >= 200 && statusCode < 400;
     }
 
     /**
@@ -641,13 +662,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 final BasicDigestAuthorization castAuthorization = (BasicDigestAuthorization) authorization;
 
                 final List<String> authPrefs = new ArrayList<>();
-                if (castAuthorization.isBasic()) {
-                    authPrefs.add(AuthSchemes.BASIC);
-                } else {
-                    authPrefs.add(AuthSchemes.DIGEST);
-                }
+                authPrefs.add(castAuthorization.isBasic() ? AuthSchemes.BASIC : AuthSchemes.DIGEST);
                 requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
-
                 final String username = castAuthorization.getUsername();
                 final String password = new String(castAuthorization.getPassword());
                 String host = urlHost;
@@ -673,22 +689,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 
                 if (castAuthorization.isPreemptive() || proxy != null) {
-                    final AuthCache authoriationCache = new BasicAuthCache();
+                    final AuthCache authenticationCache = new BasicAuthCache();
                     if (castAuthorization.isPreemptive()) {
-                        AuthSchemeBase authorizationScheme = null;
-                        if (castAuthorization.isBasic()) {
-                            authorizationScheme = new BasicScheme(ChallengeState.TARGET);
-                        } else {
-                            authorizationScheme = new DigestScheme(ChallengeState.TARGET);
-                        }
-                        authoriationCache.put(new HttpHost(host, port, urlProtocol), authorizationScheme);
+                        final AuthSchemeBase authorizationScheme = castAuthorization.isBasic() ? new BasicScheme() : new DigestScheme();
+                        authenticationCache.put(new HttpHost(host, port, urlProtocol), authorizationScheme);
                     }
                     if (proxy != null) {
                         final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
-                        authoriationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
+                        authenticationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
                     }
                     final HttpClientContext localContext = HttpClientContext.create();
-                    localContext.setAuthCache(authoriationCache);
+                    localContext.setAuthCache(authenticationCache);
                     httpContext = localContext;
                 }
             }
