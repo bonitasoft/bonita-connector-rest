@@ -3,7 +3,7 @@
   <implementationId>rest-post-impl</implementationId>
   <implementationVersion>$implementation.version$</implementationVersion>
   <definitionId>rest-post</definitionId>
-  <definitionVersion>alpha</definitionVersion>
+  <definitionVersion>alpha3</definitionVersion>
   <implementationClassname>org.bonitasoft.connectors.rest.PostConnectorImpl</implementationClassname>
   <hasSources>false</hasSources>
   <description>The implementation of the REST POST Connector.</description>

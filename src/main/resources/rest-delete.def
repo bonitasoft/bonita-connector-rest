@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
   <id>rest-delete</id>
-  <version>alpha</version>
+  <version>alpha3</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   <input mandatory="true" name="url" type="java.lang.String"/>
