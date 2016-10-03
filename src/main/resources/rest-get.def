@@ -36,11 +36,11 @@
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
   </page>
   <page id="Advanced">
-    <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
+     <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
       <colsCaption>Key</colsCaption>
       <colsCaption>Value</colsCaption>
     </widget>
-    <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
+    <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
       <colsCaption>Key</colsCaption>
       <colsCaption>Value</colsCaption>
     </widget>
