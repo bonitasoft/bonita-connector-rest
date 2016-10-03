@@ -3,7 +3,7 @@
   <implementationId>rest-get-impl</implementationId>
   <implementationVersion>$implementation.version$</implementationVersion>
   <definitionId>rest-get</definitionId>
-  <definitionVersion>1.0.0-SNAPSHOT</definitionVersion>
+  <definitionVersion>alpha</definitionVersion>
   <implementationClassname>org.bonitasoft.connectors.rest.GetConnectorImpl</implementationClassname>
   <hasSources>false</hasSources>
   <description>The implementation of the REST GET Connector.</description>

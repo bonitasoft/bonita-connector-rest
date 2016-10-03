@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
   <id>rest-post</id>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>alpha</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   <input mandatory="true" name="url" type="java.lang.String"/>
@@ -32,7 +32,7 @@
   <input name="proxy_username" type="java.lang.String"/>
   <input name="proxy_password" type="java.lang.String"/>
   <output name="body" type="java.lang.String"/>
-  <output name="headers" type="java.util.List"/>
+  <output name="headers" type="java.util.Map"/>
   <output name="status_code" type="java.lang.Integer"/>
   <output name="status_message" type="java.lang.String"/>
   <page id="RESTConnectorWizardPage">
