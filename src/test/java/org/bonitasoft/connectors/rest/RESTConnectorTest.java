@@ -51,6 +51,7 @@ import com.google.common.collect.Maps;
 public class RESTConnectorTest extends AcceptanceTestBase {
 
 
+    private static final int NB_OUTPUTS = 5;
     //WireMock
     /**
      * All HTTP static strings used by WireMock to do tests
@@ -432,9 +433,13 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void jsonContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
-                .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{ \"name\":\"Romain\" }").withHeader(WM_CONTENT_TYPE, JSON)));
 
-        checkResultIsPresent(executeConnector(buildContentTypeParametersSet(JSON)));
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs.get(AbstractRESTConnectorImpl.BODY_AS_MAP_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(bodyAsMap.get("name"), "Romain");
     }
 
     /**
@@ -713,21 +718,23 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
     /**
      * Generic test: should return OK STATUS as the WireMock stub is set each time for the good request shape
-     * @param restResult The result of the request
+     * 
+     * @param outputs The result of the request
      */
-    private void checkResultIsPresent(final Map<String, Object> restResult) {
-        checkResult(restResult, HttpStatus.SC_OK);
+    private void checkResultIsPresent(final Map<String, Object> outputs) {
+        checkResult(outputs, HttpStatus.SC_OK);
     }
 
     /**
      * Generic test: should return OK STATUS as the WireMock stub is set each time for the good request shape
-     * @param restResult The result of the request
+     * 
+     * @param outputs The result of the request
      * @param httpStatus HTTP Status to be found as a result
      */
-    private void checkResult(final Map<String, Object> restResult, final int httpStatus) {
-        assertEquals(4, restResult.size());
-        assertNotNull(restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER));
-        final Object statusCode = restResult.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER);
+    private void checkResult(final Map<String, Object> outputs, final int httpStatus) {
+        assertEquals(NB_OUTPUTS, outputs.size());
+        assertNotNull(outputs.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER));
+        final Object statusCode = outputs.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER);
         assertTrue(statusCode instanceof Integer);
         final Integer restStatusCode = (Integer) statusCode;
         assertEquals(httpStatus, restStatusCode.intValue());
