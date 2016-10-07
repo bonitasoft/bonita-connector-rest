@@ -29,7 +29,7 @@
   <input name="proxy_username" type="java.lang.String"/>
   <input name="proxy_password" type="java.lang.String"/>
   <output name="bodyAsString" type="java.lang.String"/>
-  <output name="bodyAsMap" type="java.util.Map"/>
+  <output name="bodyAsObject" type="java.lang.Object"/>
   <output name="headers" type="java.util.Map"/>
   <output name="status_code" type="java.lang.Integer"/>
   <output name="status_message" type="java.lang.String"/>
