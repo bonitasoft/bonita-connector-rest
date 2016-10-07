@@ -430,16 +430,29 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void jsonContentType() throws BonitaException, InterruptedException {
+    public void should_retrieve_response_as_a_Map_jsonContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{ \"name\":\"Romain\" }").withHeader(WM_CONTENT_TYPE, JSON)));
 
         final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
         checkResultIsPresent(outputs);
-        final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs.get(AbstractRESTConnectorImpl.BODY_AS_MAP_OUTPUT_PARAMETER);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsMap);
         assertEquals(bodyAsMap.get("name"), "Romain");
+    }
+
+    @Test
+    public void should_retrieve_response_as_a_List_of_Map__jsonContentType() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("[{ \"name\":\"Romain\" }]").withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsMap = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(((Map<String, Object>) ((List) bodyAsMap).get(0)).get("name"), "Romain");
     }
 
     /**
