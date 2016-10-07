@@ -14,6 +14,7 @@
 
 package org.bonitasoft.connectors.rest;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +55,8 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final static String PROXY_PORT_INPUT_PARAMETER = "proxy_port";
     protected final static String PROXY_USERNAME_INPUT_PARAMETER = "proxy_username";
     protected final static String PROXY_PASSWORD_INPUT_PARAMETER = "proxy_password";
-    protected final static String BODY_OUTPUT_PARAMETER = "body";
+    protected final static String BODY_AS_STRING_OUTPUT_PARAMETER = "bodyAsString";
+    protected final static String BODY_AS_MAP_OUTPUT_PARAMETER = "bodyAsMap";
     protected final static String HEADERS_OUTPUT_PARAMETER = "headers";
     protected final static String STATUS_CODE_OUTPUT_PARAMETER = "status_code";
     protected final static String STATUS_MESSAGE_OUTPUT_PARAMETER = "status_message";
@@ -76,7 +78,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.util.List getUrlCookies() {
-        final java.util.List cookies = (java.util.List) getInputParameter(URLCOOKIES_INPUT_PARAMETER);
+        java.util.List cookies = (java.util.List) getInputParameter(URLCOOKIES_INPUT_PARAMETER);
+        if (cookies == null) {
+            cookies = Collections.emptyList();
+        }
         Iterables.removeIf(cookies, emptyLines());
         return cookies;
     }
@@ -101,7 +106,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.util.List getUrlHeaders() {
-        final java.util.List headers = (java.util.List) getInputParameter(URLHEADERS_INPUT_PARAMETER);
+        java.util.List headers = (java.util.List) getInputParameter(URLHEADERS_INPUT_PARAMETER);
+        if (headers == null) {
+            headers = Collections.emptyList();
+        }
         Iterables.removeIf(headers, emptyLines());
         return headers;
     }
@@ -201,7 +209,11 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final void setBody(java.lang.String body) {
-        setOutputParameter(BODY_OUTPUT_PARAMETER, body);
+        setOutputParameter(BODY_AS_STRING_OUTPUT_PARAMETER, body);
+    }
+
+    protected final void setBody(java.util.Map<String, Object> body) {
+        setOutputParameter(BODY_AS_MAP_OUTPUT_PARAMETER, body);
     }
 
     protected final void setHeaders(Map<String, String> headers) {

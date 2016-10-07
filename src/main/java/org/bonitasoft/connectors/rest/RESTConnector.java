@@ -24,6 +24,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +82,9 @@ import org.bonitasoft.connectors.rest.model.SSLVerifier;
 import org.bonitasoft.connectors.rest.model.Store;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 
 /**
  * This main class of the REST Connector implementation
@@ -402,7 +406,18 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                         IOUtils.copy(inputStream, stringWriter);
                         final String stringContent = stringWriter.toString();
                         if (stringContent != null) {
-                            setBody(stringContent.trim());
+                            final String bodyResponse = stringContent.trim();
+                            setBody(bodyResponse);
+                            setBody(Collections.<String, Object> emptyMap());
+                            final Header contentType = entity.getContentType();
+                            if (contentType != null
+                                    && !Strings.isNullOrEmpty(contentType.getValue())
+                                    && contentType.getValue().toLowerCase().contains("json")) {
+                                setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
+                            } else {
+                                LOGGER.warning(String.format("Body as map output cannot be set. Response content type is not json compliant(%s).",
+                                        contentType != null ? contentType.getValue() : "no Content-Type in response header"));
+                            }
                         }
                     }
                 }
