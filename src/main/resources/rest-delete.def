@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
   <id>rest-delete</id>
-  <version>alpha4</version>
+  <version>alpha5</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   <input mandatory="true" name="url" type="java.lang.String"/>
@@ -48,7 +48,22 @@
     <widget xsi:type="definition:Checkbox" id="do_not_follow_redirect_widget" inputName="do_not_follow_redirect"/>
     <widget xsi:type="definition:Checkbox" id="ignore_body_widget" inputName="ignore_body"/>
   </page>
-  <page id="SSLPage">
+  <page id="authenticationPage">
+    <widget xsi:type="definition:RadioGroup" id="auth_type_radio" inputName="auth_type">
+      <choices>NONE</choices>
+      <choices>BASIC</choices>
+      <choices>DIGEST</choices>
+    </widget>
+    <widget xsi:type="definition:Group" id="auth_group" optional="false">
+      <widget xsi:type="definition:Text" id="auth_username_widget" inputName="auth_username"/>
+      <widget xsi:type="definition:Password" id="auth_password_widget" inputName="auth_password"/>
+      <widget xsi:type="definition:Text" id="auth_host_widget" inputName="auth_host"/>
+      <widget xsi:type="definition:Text" id="auth_port_widget" inputName="auth_port"/>
+      <widget xsi:type="definition:Text" id="auth_realm_widget" inputName="auth_realm"/>
+      <widget xsi:type="definition:Checkbox" id="auth_preemptive_widget" inputName="auth_preemptive"/>
+    </widget>
+  </page>
+   <page id="SSLPage">
     <widget xsi:type="definition:Group" id="ssl" optional="false">
       <widget xsi:type="definition:Checkbox" id="TLS_widget" inputName="TLS"/>
       <widget xsi:type="definition:Checkbox" id="trust_self_signed_certificate_widget" inputName="trust_self_signed_certificate"/>
@@ -65,21 +80,6 @@
     <widget xsi:type="definition:Group" id="key_store" optional="false">
       <widget xsi:type="definition:Text" id="key_store_file_widget" inputName="key_store_file"/>
       <widget xsi:type="definition:Password" id="key_store_password_widget" inputName="key_store_password"/>
-    </widget>
-  </page>
-  <page id="authenticationPage">
-    <widget xsi:type="definition:RadioGroup" id="auth_type_radio" inputName="auth_type">
-      <choices>NONE</choices>
-      <choices>BASIC</choices>
-      <choices>DIGEST</choices>
-    </widget>
-    <widget xsi:type="definition:Group" id="auth_group" optional="false">
-      <widget xsi:type="definition:Text" id="auth_username_widget" inputName="auth_username"/>
-      <widget xsi:type="definition:Password" id="auth_password_widget" inputName="auth_password"/>
-      <widget xsi:type="definition:Text" id="auth_host_widget" inputName="auth_host"/>
-      <widget xsi:type="definition:Text" id="auth_port_widget" inputName="auth_port"/>
-      <widget xsi:type="definition:Text" id="auth_realm_widget" inputName="auth_realm"/>
-      <widget xsi:type="definition:Checkbox" id="auth_preemptive_widget" inputName="auth_preemptive"/>
     </widget>
   </page>
   <page id="proxyPage">
