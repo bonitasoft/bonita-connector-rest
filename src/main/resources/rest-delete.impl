@@ -3,7 +3,7 @@
   <implementationId>rest-delete-impl</implementationId>
   <implementationVersion>$implementation.version$</implementationVersion>
   <definitionId>rest-delete</definitionId>
-  <definitionVersion>alpha5</definitionVersion>
+  <definitionVersion>1.0.0</definitionVersion>
   <implementationClassname>org.bonitasoft.connectors.rest.DeleteConnectorImpl</implementationClassname>
   <hasSources>false</hasSources>
   <description>The implementation of the REST Delete Connector.</description>
