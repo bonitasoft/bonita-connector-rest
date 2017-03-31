@@ -172,7 +172,7 @@
         <developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
         <connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
         <url>https://github.com/bonitasoft/bonita-connector-rest</url>
-      <tag>1.0.3</tag>
+        <tag>HEAD</tag>
   </scm>
 
 </project>
