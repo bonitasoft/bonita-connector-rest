@@ -342,6 +342,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         rest.setAPIAccessor(getApiAccessor());
         rest.setInputParameters(parameters);
         rest.validateInputParameters();
+        rest.setSocketTimeout(10000);
         return rest.execute();
     }
 
@@ -455,6 +456,15 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertEquals(((Map<String, Object>) ((List) bodyAsMap).get(0)).get("name"), "Romain");
     }
 
+    @Test
+    public void should_kill_connection_after_timeout() throws BonitaException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withFixedDelay(100000).withStatus(HttpStatus.SC_OK).withBody("").withHeader(WM_CONTENT_TYPE, JSON)));
+
+        thrown.expect(ConnectorException.class);
+        executeConnector(buildContentTypeParametersSet(JSON));
+    }
     /**
      * Test the fake content type
      * @throws BonitaException exception
