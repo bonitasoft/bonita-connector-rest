@@ -98,6 +98,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
     private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
     private static final int CONNECTION_TIMEOUT = 60000;
+    private static final int SOCKET_TIMEOUT = 60000;
 
     private static int SOCKET_TIMEOUT = 60000;
 
@@ -460,6 +461,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
             final Builder requestConfigurationBuilder = RequestConfig.custom();
             requestConfigurationBuilder.setConnectionRequestTimeout(CONNECTION_TIMEOUT);
+            requestConfigurationBuilder.setSocketTimeout(SOCKET_TIMEOUT);
             requestConfigurationBuilder.setRedirectsEnabled(request.isRedirect());
             requestConfigurationBuilder.setConnectTimeout(CONNECTION_TIMEOUT);
             requestConfigurationBuilder.setSocketTimeout(SOCKET_TIMEOUT);
