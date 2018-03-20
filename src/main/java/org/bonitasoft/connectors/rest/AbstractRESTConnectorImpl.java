@@ -60,6 +60,9 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final static String HEADERS_OUTPUT_PARAMETER = "headers";
     protected final static String STATUS_CODE_OUTPUT_PARAMETER = "status_code";
     protected final static String STATUS_MESSAGE_OUTPUT_PARAMETER = "status_message";
+    protected final static String EXCEPTION_OCCURRED_OUTPUT_PARAMETER = "exceptionOccurred";
+    protected final static String EXCEPTION_DETAIL_OUTPUT_PARAMETER = "exceptionDetail";
+    protected final static String EXCEPTION_CLASSNAME_OUTPUT_PARAMETER = "exceptionClassName";
 
     protected final java.lang.String getUrl() {
         return (java.lang.String) getInputParameter(URL_INPUT_PARAMETER);
@@ -226,6 +229,18 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
     protected final void setStatusMessage(java.lang.String statusMessage) {
         setOutputParameter(STATUS_MESSAGE_OUTPUT_PARAMETER, statusMessage);
+    }
+
+    protected final void setExceptionOccurred(java.lang.Boolean occurred) {
+        setOutputParameter(EXCEPTION_OCCURRED_OUTPUT_PARAMETER, occurred);
+    }
+
+    protected final void setExceptionDetail(java.lang.String detail) {
+        setOutputParameter(EXCEPTION_DETAIL_OUTPUT_PARAMETER, detail);
+    }
+
+    protected final void setExceptionClassName(java.lang.Class exception) {
+        setOutputParameter(EXCEPTION_CLASSNAME_OUTPUT_PARAMETER, exception.getName());
     }
 
     @Override

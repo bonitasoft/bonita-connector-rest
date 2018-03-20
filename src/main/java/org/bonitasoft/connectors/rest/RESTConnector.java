@@ -213,7 +213,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             execute(request);
         } catch (final Exception e) {
             logException(e);
-            throw new ConnectorException(e);
+            setExceptionOccurred(true);
+            setExceptionClassName(e.getClass());
+            setExceptionDetail(e.getMessage());
         }
     }
 
@@ -504,13 +506,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             httpClient = httpClientBuilder.build();
             LOGGER.fine("Request sent.");
             final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
-            LOGGER.fine("Response recieved.");
-            final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            final String re = httpResponse.getStatusLine().getReasonPhrase();
-            if (!statusSuccessful(statusCode)) {
-                throw new ConnectorException(
-                        String.format("%s response status is not successful: %s - %s", request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
-            }
+            LOGGER.fine("Response received.");
             setOutputs(httpResponse, request);
         } finally {
             try {
@@ -521,10 +517,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 logException(ex);
             }
         }
-    }
-
-    private boolean statusSuccessful(int statusCode) {
-        return statusCode >= 200 && statusCode < 400;
     }
 
     /**

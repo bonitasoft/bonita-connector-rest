@@ -24,9 +24,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +33,6 @@ import java.util.Map;
 
 import org.apache.http.HttpStatus;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
-import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.exception.BonitaException;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -405,10 +402,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void fakeMethod() throws BonitaException, InterruptedException {
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.bonitasoft.connectors.rest.model.HTTPMethod.FAKE_METHOD");
-
-        checkResultIsPresent(executeConnector(buildMethodParametersSet(METHOD_ERROR)));
+        checkExceptionIsPresent(executeConnector(buildMethodParametersSet(METHOD_ERROR)), "No enum constant org.bonitasoft.connectors.rest.model.HTTPMethod.FAKE_METHOD", "java.lang.IllegalArgumentException");
     }
 
     /**
@@ -462,8 +456,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withFixedDelay(100000).withStatus(HttpStatus.SC_OK).withBody("").withHeader(WM_CONTENT_TYPE, JSON)));
 
-        thrown.expect(ConnectorException.class);
-        executeConnector(buildContentTypeParametersSet(JSON));
+        checkExceptionIsPresent(executeConnector(buildContentTypeParametersSet(JSON)), "Read timed out", "java.net.SocketTimeoutException");
     }
     /**
      * Test the fake content type
@@ -528,10 +521,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void fakeCharset() throws BonitaException, InterruptedException {
-    	thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.nio.charset.UnsupportedCharsetException: FAKE-CHARSET");
-
-        checkResultIsPresent(executeConnector(buildCharsetParametersSet(CHARSET_ERROR)));
+        checkExceptionIsPresent(executeConnector(buildCharsetParametersSet(CHARSET_ERROR)), "FAKE-CHARSET", "java.nio.charset.UnsupportedCharsetException");
     }
 
     /**
@@ -689,8 +679,26 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void noServiceAvailable() throws InterruptedException, BonitaException {
-        thrown.expect(ConnectorException.class);
+        // Does not now throw - thrown.expect(ConnectorException.class);
         executeConnector(buildMethodParametersSet(GET));
+    }
+
+    @Test
+    public void nonSuccessReturnedInResponse() throws InterruptedException, BonitaException
+    {
+        stubFor(get(urlEqualTo("/"))
+              .withRequestBody(equalTo(EMPTY))
+              .willReturn(aResponse().withStatus(HttpStatus.SC_CONFLICT)));
+        checkResult(executeConnector(buildMethodParametersSet(GET)), HttpStatus.SC_CONFLICT);
+    }
+
+    @Test
+    public void exceptionReturnedInResponse() throws InterruptedException, BonitaException {
+        // Reads time out after 10s
+        stubFor(get(urlEqualTo("/"))
+              .withRequestBody(equalTo(EMPTY))
+              .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withFixedDelay(12000)));
+        checkExceptionIsPresent(executeConnector(buildMethodParametersSet(GET)), "Read timed out", "java.net.SocketTimeoutException");
     }
 
     /**
@@ -700,10 +708,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void unreachableURL() throws InterruptedException, BonitaException {
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.net.UnknownHostException: fakeURL");
-
-        executeConnector(buildURLParametersSet(FAKE_URL));
+        checkExceptionIsPresent(executeConnector(buildURLParametersSet(FAKE_URL)), "fakeURL: Temporary failure in name resolution", "java.net.UnknownHostException");
     }
 
     /**
@@ -714,11 +719,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void unreachablePort() throws InterruptedException, BonitaException {
         final String fakePort = "666";
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException");
-        thrown.expectMessage(fakePort);
 
-        executeConnector(buildPortParametersSet(fakePort));
+        checkExceptionIsPresent(executeConnector(buildPortParametersSet(fakePort)), "Connect to LOCALHOST:666 [LOCALHOST/127.0.0.1] failed: Connection refused (Connection refused)","org.apache.http.conn.HttpHostConnectException");
     }
 
     @Test
@@ -746,6 +748,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private void checkResultIsPresent(final Map<String, Object> outputs) {
         checkResult(outputs, HttpStatus.SC_OK);
+    }
+
+    /**
+     * Generic test: should return OK STATUS with an exception indicated with an appropriate message.
+     *
+     * @param outputs The result of the request
+     */
+    private void checkExceptionIsPresent(final Map<String, Object> outputs, final String message, final String exceptionClassName) {
+        assertEquals(Boolean.TRUE, outputs.get("exceptionOccurred"));
+        assertEquals(message, outputs.get("exceptionDetail"));
+        assertEquals(exceptionClassName, outputs.get("exceptionClassName"));
     }
 
     /**
