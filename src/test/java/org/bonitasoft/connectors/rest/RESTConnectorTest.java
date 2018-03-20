@@ -34,6 +34,7 @@ import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.exception.BonitaException;
+import org.hamcrest.MatcherAssert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +42,7 @@ import org.junit.rules.ExpectedException;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.google.common.collect.Maps;
+import org.mockito.Matchers;
 
 /**
  * The class for the UTs of the REST Connector
@@ -708,7 +710,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void unreachableURL() throws InterruptedException, BonitaException {
-        checkExceptionIsPresent(executeConnector(buildURLParametersSet(FAKE_URL)), "fakeURL: Temporary failure in name resolution", "java.net.UnknownHostException");
+        checkExceptionIsPresent(executeConnector(buildURLParametersSet(FAKE_URL)), "fakeURL", "java.net.UnknownHostException");
     }
 
     /**
@@ -720,7 +722,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void unreachablePort() throws InterruptedException, BonitaException {
         final String fakePort = "666";
 
-        checkExceptionIsPresent(executeConnector(buildPortParametersSet(fakePort)), "Connect to LOCALHOST:666 [LOCALHOST/127.0.0.1] failed: Connection refused (Connection refused)","org.apache.http.conn.HttpHostConnectException");
+        checkExceptionIsPresent(executeConnector(buildPortParametersSet(fakePort)), "failed: Connection refused","org.apache.http.conn.HttpHostConnectException");
     }
 
     @Test
@@ -755,9 +757,9 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      *
      * @param outputs The result of the request
      */
-    private void checkExceptionIsPresent(final Map<String, Object> outputs, final String message, final String exceptionClassName) {
+    private void checkExceptionIsPresent(final Map<String, Object> outputs, final String messageSubstring, final String exceptionClassName) {
         assertEquals(Boolean.TRUE, outputs.get("exceptionOccurred"));
-        assertEquals(message, outputs.get("exceptionDetail"));
+        assertTrue(outputs.get("exceptionDetail").toString().contains(messageSubstring));
         assertEquals(exceptionClassName, outputs.get("exceptionClassName"));
     }
 
