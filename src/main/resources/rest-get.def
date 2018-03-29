@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
   <id>rest-get</id>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   <input mandatory="true" name="url" type="java.lang.String"/>
@@ -33,6 +33,9 @@
   <output name="headers" type="java.util.Map"/>
   <output name="status_code" type="java.lang.Integer"/>
   <output name="status_message" type="java.lang.String"/>
+  <output name="exceptionOccurred" type="java.lang.String"/>
+  <output name="exceptionDetail" type="java.lang.String"/>
+  <output name="exceptionClassName" type="java.lang.String"/>
   <page id="RESTConnectorWizardPage">
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
   </page>
