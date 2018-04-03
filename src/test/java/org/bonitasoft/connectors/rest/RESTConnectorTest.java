@@ -132,6 +132,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * All the tested errors
      */
     private static final String FAKE_URL = "fakeURL";
+    private static final String FAKE_BODY_TEXT = "I am not a JSON body";
 
 
     /**
@@ -469,9 +470,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void fakeContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPE_ERROR + "; " + WM_CHARSET + "=" + UTF8))
-                .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(FAKE_BODY_TEXT)));
 
-        checkResultIsPresent(executeConnector(buildContentTypeParametersSet(CONTENT_TYPE_ERROR)));
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(CONTENT_TYPE_ERROR));
+
+        final Object bodyAsMap = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        final Object bodyAsString = outputs.get(AbstractRESTConnectorImpl.BODY_AS_STRING_OUTPUT_PARAMETER);
+
+        assertEquals(bodyAsString, FAKE_BODY_TEXT);
+        assertEquals(bodyAsString, bodyAsMap);
+
+        checkResultIsPresent(outputs);
     }
 
     /**
