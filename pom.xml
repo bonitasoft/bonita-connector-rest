@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.resilient.automation</groupId>
     <artifactId>bonita-connector-rest</artifactId>
-    <version>1.0.10</version>
+    <version>1.0.11-SNAPSHOT</version>
 
     <parent>
         <artifactId>bonita-connectors</artifactId>
@@ -14,7 +14,7 @@
         <developerConnection>scm:git:git@github.com:resilientplc/bonita-connector-rest.git</developerConnection>
         <connection>scm:git:git@github.com:resilientplc/bonita-connector-rest.git</connection>
         <url>https://github.com/resilientplc/bonita-connector-rest</url>
-        <tag>1.0.10</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
