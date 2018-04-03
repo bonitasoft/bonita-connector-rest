@@ -50,7 +50,7 @@ import org.mockito.Matchers;
 public class RESTConnectorTest extends AcceptanceTestBase {
 
 
-    private static final int NB_OUTPUTS = 5;
+    private static final int NB_OUTPUTS = 8;
     //WireMock
     /**
      * All HTTP static strings used by WireMock to do tests
@@ -776,5 +776,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertTrue(statusCode instanceof Integer);
         final Integer restStatusCode = (Integer) statusCode;
         assertEquals(httpStatus, restStatusCode.intValue());
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.EXCEPTION_CLASSNAME_OUTPUT_PARAMETER));
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.EXCEPTION_DETAIL_OUTPUT_PARAMETER));
+        assertEquals(Boolean.FALSE, outputs.get(AbstractRESTConnectorImpl.EXCEPTION_OCCURRED_OUTPUT_PARAMETER));
     }
 }

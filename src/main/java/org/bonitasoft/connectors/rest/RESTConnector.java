@@ -214,7 +214,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         } catch (final Exception e) {
             logException(e);
             setExceptionOccurred(true);
-            setExceptionClassName(e.getClass());
+            setExceptionClassName(e.getClass().getName());
             setExceptionDetail(e.getMessage());
         }
     }
@@ -429,6 +429,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             setHeaders(asMap(response.getAllHeaders()));
             setStatusCode(response.getStatusLine().getStatusCode());
             setStatusMessage(response.getStatusLine().getReasonPhrase());
+
+            setExceptionOccurred(false);
+            setExceptionClassName("");
+            setExceptionDetail("");
             LOGGER.fine("All outputs have been set.");
         } else {
             LOGGER.fine("Response is null.");

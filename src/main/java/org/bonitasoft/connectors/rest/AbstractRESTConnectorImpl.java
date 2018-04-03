@@ -239,8 +239,8 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         setOutputParameter(EXCEPTION_DETAIL_OUTPUT_PARAMETER, detail);
     }
 
-    protected final void setExceptionClassName(java.lang.Class exception) {
-        setOutputParameter(EXCEPTION_CLASSNAME_OUTPUT_PARAMETER, exception.getName());
+    protected final void setExceptionClassName(java.lang.String exceptionClass) {
+        setOutputParameter(EXCEPTION_CLASSNAME_OUTPUT_PARAMETER, exceptionClass);
     }
 
     @Override
