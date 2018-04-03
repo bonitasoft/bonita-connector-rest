@@ -11,9 +11,9 @@
     </parent>
 
     <scm>
-        <developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
-        <connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
-        <url>https://github.com/bonitasoft/bonita-connector-rest</url>
+        <developerConnection>scm:git:git@github.com:resilientplc/bonita-connector-rest.git</developerConnection>
+        <connection>scm:git:git@github.com:resilientplc/bonita-connector-rest.git</connection>
+        <url>https://github.com/resilientplc/bonita-connector-rest</url>
         <tag>HEAD</tag>
     </scm>
 
