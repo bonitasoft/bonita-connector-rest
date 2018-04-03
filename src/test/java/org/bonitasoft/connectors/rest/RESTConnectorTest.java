@@ -1,17 +1,3 @@
-/**
- * Copyright (C) 2014 BonitaSoft S.A.
- * BonitaSoft, 32 rue Gustave Eiffel - 38000 Grenoble
- * This library is free software; you can redistribute it and/or modify it under the terms
- * of the GNU Lesser General Public License as published by the Free Software Foundation
- * version 2.1 of the License.
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License along with this
- * program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301, USA.
- **/
-
 package org.bonitasoft.connectors.rest;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -26,10 +12,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.http.HttpStatus;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
@@ -133,6 +116,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private static final String FAKE_URL = "fakeURL";
     private static final String FAKE_BODY_TEXT = "I am not a JSON body";
+    private static final Map<String, String> FAKE_BODY_MAP;
+    static {
+        Map<String, String> aMap = new HashMap<>();
+        aMap.put("body", FAKE_BODY_TEXT);
+        FAKE_BODY_MAP = Collections.unmodifiableMap(aMap);
+    }
 
 
     /**
@@ -478,7 +467,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsString = outputs.get(AbstractRESTConnectorImpl.BODY_AS_STRING_OUTPUT_PARAMETER);
 
         assertEquals(bodyAsString, FAKE_BODY_TEXT);
-        assertEquals(bodyAsString, bodyAsMap);
+        assertEquals(bodyAsMap, FAKE_BODY_MAP);
 
         checkResultIsPresent(outputs);
     }

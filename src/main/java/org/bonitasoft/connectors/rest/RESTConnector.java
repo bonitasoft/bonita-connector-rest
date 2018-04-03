@@ -421,7 +421,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                             } else {
                                 LOGGER.warning(String.format("Body as map output is set to text not object. Response content type is not json compliant(%s).",
                                         contentType != null ? contentType.getValue() : "no Content-Type in response header"));
-                                setBody((Object)bodyResponse);
+                                HashMap<String, String> map = new HashMap<>();
+                                map.put("body", bodyResponse);
+                                setBody(map);
                             }
                         }
                     }
