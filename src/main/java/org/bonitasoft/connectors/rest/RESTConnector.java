@@ -450,7 +450,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Execute a given request
      * 
      * @param request The request to execute
-     * @return The response of the executed request
      * @throws Exception any exception that might occur
      */
     public void execute(final Request request) throws Exception {

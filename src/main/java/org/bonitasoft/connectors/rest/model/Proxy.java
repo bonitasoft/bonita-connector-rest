@@ -40,7 +40,7 @@ public class Proxy {
 
 	/**
      * Protocol value setter.
-     * @param username The new protocol value.
+     * @param protocol The new protocol value.
      */
 	public void setProtocol(ProxyProtocol protocol) {
 		this.protocol = protocol;
@@ -56,7 +56,7 @@ public class Proxy {
 
 	/**
      * Host value setter.
-     * @param username The new host value.
+     * @param host The new host value.
      */
 	public void setHost(String host) {
 		this.host = host;
@@ -72,7 +72,7 @@ public class Proxy {
 
 	/**
      * Port value setter.
-     * @param username The new port value.
+     * @param port The new port value.
      */
 	public void setPort(Integer port) {
 		this.port = port;
