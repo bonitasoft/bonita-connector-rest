@@ -33,7 +33,7 @@
   <output name="headers" type="java.util.Map"/>
   <output name="status_code" type="java.lang.Integer"/>
   <output name="status_message" type="java.lang.String"/>
-  <output name="exceptionOccurred" type="java.lang.String"/>
+  <output name="exceptionOccurred" type="java.lang.Boolean"/>
   <output name="exceptionDetail" type="java.lang.String"/>
   <output name="exceptionClassName" type="java.lang.String"/>
   <page id="RESTConnectorWizardPage">
