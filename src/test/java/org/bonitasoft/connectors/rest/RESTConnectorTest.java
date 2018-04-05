@@ -467,7 +467,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsString = outputs.get(AbstractRESTConnectorImpl.BODY_AS_STRING_OUTPUT_PARAMETER);
 
         assertEquals(bodyAsString, FAKE_BODY_TEXT);
-        assertEquals(bodyAsMap, FAKE_BODY_MAP);
+        assertEquals(bodyAsMap, Collections.EMPTY_MAP);
 
         checkResultIsPresent(outputs);
     }
@@ -756,9 +756,16 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param outputs The result of the request
      */
     private void checkExceptionIsPresent(final Map<String, Object> outputs, final String messageSubstring, final String exceptionClassName) {
+        assertEquals(NB_OUTPUTS, outputs.size());
         assertEquals(Boolean.TRUE, outputs.get("exceptionOccurred"));
         assertTrue(outputs.get("exceptionDetail").toString().contains(messageSubstring));
         assertEquals(exceptionClassName, outputs.get("exceptionClassName"));
+
+        assertEquals(Collections.EMPTY_MAP, outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER));
+        assertEquals(new Integer(-1), outputs.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER));
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.BODY_AS_STRING_OUTPUT_PARAMETER));
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.STATUS_MESSAGE_OUTPUT_PARAMETER));
+        assertEquals(Collections.EMPTY_MAP, outputs.get(AbstractRESTConnectorImpl.HEADERS_OUTPUT_PARAMETER));
     }
 
     /**

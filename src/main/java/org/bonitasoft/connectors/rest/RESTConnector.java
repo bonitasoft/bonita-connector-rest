@@ -23,12 +23,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -216,6 +211,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             setExceptionOccurred(true);
             setExceptionClassName(e.getClass().getName());
             setExceptionDetail(e.getMessage());
+            setBody(Collections.EMPTY_MAP);
+            setStatusCode(-1);
+            setBody("");
+            setStatusMessage("");
+            setHeaders(Collections.EMPTY_MAP);
         }
     }
 
@@ -419,11 +419,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                                     && contentType.getValue().toLowerCase().contains("json")) {
                                 setBody(new ObjectMapper().readValue(bodyResponse, bodyResponse.startsWith("[") ? List.class : HashMap.class));
                             } else {
-                                LOGGER.warning(String.format("Body as map output is set to text not object. Response content type is not json compliant(%s).",
-                                        contentType != null ? contentType.getValue() : "no Content-Type in response header"));
-                                HashMap<String, String> map = new HashMap<>();
-                                map.put("body", bodyResponse);
-                                setBody(map);
+                                LOGGER.warning(String.format("Body as map output cannot be set. Response content type is not json compliant(%s).",
+                                         contentType != null ? contentType.getValue() : "no Content-Type in response header"));
+                                setBody(Collections.EMPTY_MAP);
                             }
                         }
                     }
