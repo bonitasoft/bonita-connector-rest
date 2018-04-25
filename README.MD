@@ -11,12 +11,12 @@ It supports advanced security configuration like BASIC and DIGEST authentication
 
 __Clone__ or __fork__ this repository, then at the root of the project run:
 
-`mvn clean verify`
+`./mvnw clean verify`
 
 ## Release
 
 Before releasing a new version make sure that the versionning of `.def` files are consistent with the implementation. In order to create a new release of the connector use the [_maven release plugin_](http://maven.apache.org/maven-release/maven-release-plugin/):
 
-`mvn release:prepare`
+`./mvnw release:prepare`
 
 It creates a new git _tag_ and update the current development version. New tags are automatically built on our CI infrastructure.
