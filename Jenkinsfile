@@ -1,15 +1,18 @@
-def mvn(args) {
-    sh "${tool 'maven'}/bin/mvn ${args}"
-}
+timestamps {
+    ansiColor('xterm') {
+        node {
+            stage('Setup') {
+                checkout scm
+            }
 
-node {
-    checkout scm
-
-    stage('build')
-    try {
-        mvn 'clean verify'
-        archive 'target/bonita-connector-rest-*.zip'
-    } finally {
-        junit '**/target/surefire-reports/*.xml'
+            stage('Build') {
+                try {
+                    sh './mvnw clean verify'
+                    archiveArtifacts 'target/bonita-connector-rest-*.zip'
+                } finally {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
     }
 }
