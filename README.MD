@@ -9,6 +9,15 @@ It supports advanced security configuration like BASIC and DIGEST authentication
 
 ## Build
 
+### Prerequisites
+
+The parent of this project is not available in public repository so you must install it locally or in your corporate
+repository manager.
+
+So, install [bonita-connectors](https://github.com/bonitasoft/bonita-connectors) first.
+
+### Build
+
 __Clone__ or __fork__ this repository, then at the root of the project run:
 
 `./mvnw clean verify`
