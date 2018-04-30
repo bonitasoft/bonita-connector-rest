@@ -1,10 +1,13 @@
-def mvn(args) {
-    sh "${tool 'maven'}/bin/mvn ${args}"
-}
+timestamps {
+    ansiColor('xterm') {
+        node {
+            stage('Setup') {
+                checkout scm
+            }
 
-node {
-    checkout scm
-
-    stage('release version')
-    mvn 'release:prepare -B'
+            stage('Release') {
+                sh './mvnw release:prepare -B'
+            }
+        }
+    }
 }
