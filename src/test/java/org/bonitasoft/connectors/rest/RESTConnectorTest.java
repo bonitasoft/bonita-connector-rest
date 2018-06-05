@@ -1,17 +1,3 @@
-/**
- * Copyright (C) 2014 BonitaSoft S.A.
- * BonitaSoft, 32 rue Gustave Eiffel - 38000 Grenoble
- * This library is free software; you can redistribute it and/or modify it under the terms
- * of the GNU Lesser General Public License as published by the Free Software Foundation
- * version 2.1 of the License.
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU Lesser General Public License for more details.
- * You should have received a copy of the GNU Lesser General Public License along with this
- * program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301, USA.
- **/
-
 package org.bonitasoft.connectors.rest;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -24,19 +10,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.http.HttpStatus;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
-import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.exception.BonitaException;
+import org.hamcrest.MatcherAssert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +25,7 @@ import org.junit.rules.ExpectedException;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.google.common.collect.Maps;
+import org.mockito.Matchers;
 
 /**
  * The class for the UTs of the REST Connector
@@ -51,7 +33,7 @@ import com.google.common.collect.Maps;
 public class RESTConnectorTest extends AcceptanceTestBase {
 
 
-    private static final int NB_OUTPUTS = 5;
+    private static final int NB_OUTPUTS = 8;
     //WireMock
     /**
      * All HTTP static strings used by WireMock to do tests
@@ -133,6 +115,13 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * All the tested errors
      */
     private static final String FAKE_URL = "fakeURL";
+    private static final String FAKE_BODY_TEXT = "I am not a JSON body";
+    private static final Map<String, String> FAKE_BODY_MAP;
+    static {
+        Map<String, String> aMap = new HashMap<>();
+        aMap.put("body", FAKE_BODY_TEXT);
+        FAKE_BODY_MAP = Collections.unmodifiableMap(aMap);
+    }
 
 
     /**
@@ -405,10 +394,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void fakeMethod() throws BonitaException, InterruptedException {
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.lang.IllegalArgumentException: No enum constant org.bonitasoft.connectors.rest.model.HTTPMethod.FAKE_METHOD");
-
-        checkResultIsPresent(executeConnector(buildMethodParametersSet(METHOD_ERROR)));
+        checkExceptionIsPresent(executeConnector(buildMethodParametersSet(METHOD_ERROR)), "No enum constant org.bonitasoft.connectors.rest.model.HTTPMethod.FAKE_METHOD", "java.lang.IllegalArgumentException");
     }
 
     /**
@@ -462,8 +448,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withFixedDelay(100000).withStatus(HttpStatus.SC_OK).withBody("").withHeader(WM_CONTENT_TYPE, JSON)));
 
-        thrown.expect(ConnectorException.class);
-        executeConnector(buildContentTypeParametersSet(JSON));
+        checkExceptionIsPresent(executeConnector(buildContentTypeParametersSet(JSON)), "Read timed out", "java.net.SocketTimeoutException");
     }
     /**
      * Test the fake content type
@@ -474,9 +459,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void fakeContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPE_ERROR + "; " + WM_CHARSET + "=" + UTF8))
-                .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody(FAKE_BODY_TEXT)));
 
-        checkResultIsPresent(executeConnector(buildContentTypeParametersSet(CONTENT_TYPE_ERROR)));
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(CONTENT_TYPE_ERROR));
+
+        final Object bodyAsMap = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        final Object bodyAsString = outputs.get(AbstractRESTConnectorImpl.BODY_AS_STRING_OUTPUT_PARAMETER);
+
+        assertEquals(bodyAsString, FAKE_BODY_TEXT);
+        assertEquals(bodyAsMap, Collections.EMPTY_MAP);
+
+        checkResultIsPresent(outputs);
     }
 
     /**
@@ -528,10 +521,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void fakeCharset() throws BonitaException, InterruptedException {
-    	thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.nio.charset.UnsupportedCharsetException: FAKE-CHARSET");
-
-        checkResultIsPresent(executeConnector(buildCharsetParametersSet(CHARSET_ERROR)));
+        checkExceptionIsPresent(executeConnector(buildCharsetParametersSet(CHARSET_ERROR)), "FAKE-CHARSET", "java.nio.charset.UnsupportedCharsetException");
     }
 
     /**
@@ -689,8 +679,26 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void noServiceAvailable() throws InterruptedException, BonitaException {
-        thrown.expect(ConnectorException.class);
+        // Does not now throw - thrown.expect(ConnectorException.class);
         executeConnector(buildMethodParametersSet(GET));
+    }
+
+    @Test
+    public void nonSuccessReturnedInResponse() throws InterruptedException, BonitaException
+    {
+        stubFor(get(urlEqualTo("/"))
+              .withRequestBody(equalTo(EMPTY))
+              .willReturn(aResponse().withStatus(HttpStatus.SC_CONFLICT)));
+        checkResult(executeConnector(buildMethodParametersSet(GET)), HttpStatus.SC_CONFLICT);
+    }
+
+    @Test
+    public void exceptionReturnedInResponse() throws InterruptedException, BonitaException {
+        // Reads time out after 10s
+        stubFor(get(urlEqualTo("/"))
+              .withRequestBody(equalTo(EMPTY))
+              .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withFixedDelay(12000)));
+        checkExceptionIsPresent(executeConnector(buildMethodParametersSet(GET)), "Read timed out", "java.net.SocketTimeoutException");
     }
 
     /**
@@ -700,10 +708,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void unreachableURL() throws InterruptedException, BonitaException {
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("java.net.UnknownHostException: fakeURL");
-
-        executeConnector(buildURLParametersSet(FAKE_URL));
+        checkExceptionIsPresent(executeConnector(buildURLParametersSet(FAKE_URL)), "fakeURL", "java.net.UnknownHostException");
     }
 
     /**
@@ -714,11 +719,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void unreachablePort() throws InterruptedException, BonitaException {
         final String fakePort = "666";
-        thrown.expect(BonitaException.class);
-        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException");
-        thrown.expectMessage(fakePort);
 
-        executeConnector(buildPortParametersSet(fakePort));
+        checkExceptionIsPresent(executeConnector(buildPortParametersSet(fakePort)), "failed: Connection refused","org.apache.http.conn.HttpHostConnectException");
     }
 
     @Test
@@ -749,6 +751,24 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Generic test: should return OK STATUS with an exception indicated with an appropriate message.
+     *
+     * @param outputs The result of the request
+     */
+    private void checkExceptionIsPresent(final Map<String, Object> outputs, final String messageSubstring, final String exceptionClassName) {
+        assertEquals(NB_OUTPUTS, outputs.size());
+        assertEquals(Boolean.TRUE, outputs.get("exceptionOccurred"));
+        assertTrue(outputs.get("exceptionDetail").toString().contains(messageSubstring));
+        assertEquals(exceptionClassName, outputs.get("exceptionClassName"));
+
+        assertEquals(Collections.EMPTY_MAP, outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER));
+        assertEquals(new Integer(-1), outputs.get(AbstractRESTConnectorImpl.STATUS_CODE_OUTPUT_PARAMETER));
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.BODY_AS_STRING_OUTPUT_PARAMETER));
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.STATUS_MESSAGE_OUTPUT_PARAMETER));
+        assertEquals(Collections.EMPTY_MAP, outputs.get(AbstractRESTConnectorImpl.HEADERS_OUTPUT_PARAMETER));
+    }
+
+    /**
      * Generic test: should return OK STATUS as the WireMock stub is set each time for the good request shape
      * 
      * @param outputs The result of the request
@@ -761,5 +781,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertTrue(statusCode instanceof Integer);
         final Integer restStatusCode = (Integer) statusCode;
         assertEquals(httpStatus, restStatusCode.intValue());
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.EXCEPTION_CLASSNAME_OUTPUT_PARAMETER));
+        assertEquals("", outputs.get(AbstractRESTConnectorImpl.EXCEPTION_DETAIL_OUTPUT_PARAMETER));
+        assertEquals(Boolean.FALSE, outputs.get(AbstractRESTConnectorImpl.EXCEPTION_OCCURRED_OUTPUT_PARAMETER));
     }
 }

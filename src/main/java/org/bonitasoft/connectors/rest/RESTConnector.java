@@ -23,12 +23,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -213,7 +208,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             execute(request);
         } catch (final Exception e) {
             logException(e);
-            throw new ConnectorException(e);
+            setExceptionOccurred(true);
+            setExceptionClassName(e.getClass().getName());
+            setExceptionDetail(e.getMessage());
+            setBody(Collections.EMPTY_MAP);
+            setStatusCode(-1);
+            setBody("");
+            setStatusMessage("");
+            setHeaders(Collections.EMPTY_MAP);
         }
     }
 
@@ -418,7 +420,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                                 setBody(new ObjectMapper().readValue(bodyResponse, bodyResponse.startsWith("[") ? List.class : HashMap.class));
                             } else {
                                 LOGGER.warning(String.format("Body as map output cannot be set. Response content type is not json compliant(%s).",
-                                        contentType != null ? contentType.getValue() : "no Content-Type in response header"));
+                                         contentType != null ? contentType.getValue() : "no Content-Type in response header"));
+                                setBody(Collections.EMPTY_MAP);
                             }
                         }
                     }
@@ -427,6 +430,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             setHeaders(asMap(response.getAllHeaders()));
             setStatusCode(response.getStatusLine().getStatusCode());
             setStatusMessage(response.getStatusLine().getReasonPhrase());
+
+            setExceptionOccurred(false);
+            setExceptionClassName("");
+            setExceptionDetail("");
             LOGGER.fine("All outputs have been set.");
         } else {
             LOGGER.fine("Response is null.");
@@ -448,7 +455,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Execute a given request
      * 
      * @param request The request to execute
-     * @return The response of the executed request
      * @throws Exception any exception that might occur
      */
     public void execute(final Request request) throws Exception {
@@ -504,13 +510,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             httpClient = httpClientBuilder.build();
             LOGGER.fine("Request sent.");
             final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
-            LOGGER.fine("Response recieved.");
-            final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            final String re = httpResponse.getStatusLine().getReasonPhrase();
-            if (!statusSuccessful(statusCode)) {
-                throw new ConnectorException(
-                        String.format("%s response status is not successful: %s - %s", request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
-            }
+            LOGGER.fine("Response received.");
             setOutputs(httpResponse, request);
         } finally {
             try {
@@ -521,10 +521,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 logException(ex);
             }
         }
-    }
-
-    private boolean statusSuccessful(int statusCode) {
-        return statusCode >= 200 && statusCode < 400;
     }
 
     /**

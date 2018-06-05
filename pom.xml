@@ -1,5 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <groupId>com.resilient.automation</groupId>
+    <artifactId>bonita-connector-rest</artifactId>
+    <version>1.0.14-SNAPSHOT</version>
 
     <parent>
         <artifactId>bonita-connectors</artifactId>
@@ -7,8 +10,25 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>bonita-connector-rest</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <scm>
+        <developerConnection>scm:git:git@github.com:resilientplc/bonita-connector-rest.git</developerConnection>
+        <connection>scm:git:git@github.com:resilientplc/bonita-connector-rest.git</connection>
+        <url>https://github.com/resilientplc/bonita-connector-rest</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>Releases</name>
+            <url>http://maven.teamphone.priv:8180/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>http://maven.teamphone.priv:8180/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <properties>
         <bonita.engine.version>7.3.1</bonita.engine.version>
@@ -167,12 +187,51 @@
         </plugins>
     </build>
 
-
-    <scm>
-        <developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
-        <connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
-        <url>https://github.com/bonitasoft/bonita-connector-rest</url>
-        <tag>HEAD</tag>
-  </scm>
+    <profiles>
+        <profile>
+          <id>sonar</id>
+          <properties>
+            <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+            <sonar.organization>resilientplc</sonar.organization>
+          </properties>
+          <build>
+            <plugins>
+              <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                  <execution>
+                    <id>jacoco-initialize</id>
+                    <goals>
+                      <goal>prepare-agent</goal>
+                    </goals>
+                  </execution>
+                  <execution>
+                    <id>jacoco-site</id>
+                    <phase>package</phase>
+                    <goals>
+                      <goal>report</goal>
+                    </goals>
+                  </execution>
+                </executions>
+              </plugin>
+              <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.3.0.603</version>
+                <executions>
+                  <execution>
+                    <phase>verify</phase>
+                    <goals>
+                      <goal>sonar</goal>
+                    </goals>
+                  </execution>
+                </executions>
+              </plugin>
+            </plugins>
+          </build>
+        </profile>
+    </profiles>
 
 </project>
