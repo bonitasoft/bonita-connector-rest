@@ -31,8 +31,8 @@
   <input name="proxy_port" type="java.lang.Integer"/>
   <input name="proxy_username" type="java.lang.String"/>
   <input name="proxy_password" type="java.lang.String"/>
-  <input name="socket_timeout_ms" type="java.lang.Integer"/>
-  <input name="connection_timeout_ms" type="java.lang.Integer"/>
+  <input name="socket_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
+  <input name="connection_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
   <output name="bodyAsString" type="java.lang.String"/>
   <output name="bodyAsObject" type="java.lang.Object"/>
   <output name="headers" type="java.util.Map"/>

@@ -97,8 +97,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private static final String HTTP_PROTOCOL = "HTTP";
     private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
     private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
-    private static final int DEFAULT_CONNECTION_TIMEOUT = 60000;
-    private static final int DEFAULT_SOCKET_TIMEOUT = 60000;
 
     /**
      * The class logger
@@ -458,10 +456,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final String urlHost = url.getHost();
 
             final Builder requestConfigurationBuilder = RequestConfig.custom();
-            requestConfigurationBuilder.setConnectionRequestTimeout(DEFAULT_CONNECTION_TIMEOUT);
+            requestConfigurationBuilder.setConnectionRequestTimeout(getConnectionTimeoutMs());
             requestConfigurationBuilder.setRedirectsEnabled(request.isRedirect());
-            requestConfigurationBuilder.setConnectTimeout(getConnectionTimeoutMs() != null ? getConnectionTimeoutMs() : DEFAULT_CONNECTION_TIMEOUT);
-            requestConfigurationBuilder.setSocketTimeout(getSocketTimeoutMs() != null ? getSocketTimeoutMs() : DEFAULT_SOCKET_TIMEOUT);
+            requestConfigurationBuilder.setConnectTimeout(getConnectionTimeoutMs());
+            requestConfigurationBuilder.setSocketTimeout(getSocketTimeoutMs());
 
 
             final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
