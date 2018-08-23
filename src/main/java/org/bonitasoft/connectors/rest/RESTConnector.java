@@ -97,9 +97,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private static final String HTTP_PROTOCOL = "HTTP";
     private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
     private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
-    private static final int CONNECTION_TIMEOUT = 60000;
-
-    private static int SOCKET_TIMEOUT = 60000;
 
     /**
      * The class logger
@@ -459,10 +456,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final String urlHost = url.getHost();
 
             final Builder requestConfigurationBuilder = RequestConfig.custom();
-            requestConfigurationBuilder.setConnectionRequestTimeout(CONNECTION_TIMEOUT);
+            requestConfigurationBuilder.setConnectionRequestTimeout(getConnectionTimeoutMs());
             requestConfigurationBuilder.setRedirectsEnabled(request.isRedirect());
-            requestConfigurationBuilder.setConnectTimeout(CONNECTION_TIMEOUT);
-            requestConfigurationBuilder.setSocketTimeout(SOCKET_TIMEOUT);
+            requestConfigurationBuilder.setConnectTimeout(getConnectionTimeoutMs());
+            requestConfigurationBuilder.setSocketTimeout(getSocketTimeoutMs());
 
 
             final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
@@ -778,14 +775,5 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         LOGGER.fine("executeBusinessLogic error: " + stringBuffer.toString());
     }
 
-    //for tests purpose only
-    protected static int getSocketTimeout() {
-        return SOCKET_TIMEOUT;
-    }
-
-    //for tests purpose only
-    protected static void setSocketTimeout(int socketTimeout) {
-        SOCKET_TIMEOUT = socketTimeout;
-    }
 
 }
