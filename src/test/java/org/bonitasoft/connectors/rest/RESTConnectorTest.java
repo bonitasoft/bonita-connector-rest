@@ -467,6 +467,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         executeConnector(parameters);
     }
 
+    @Test
+    public void should_have_default_timeout() {
+        assertTrue(new RESTConnector().getSocketTimeoutMs() > 0);
+        assertTrue(new RESTConnector().getConnectionTimeoutMs() > 0);
+    }
+
     /**
      * Test the fake content type
      * @throws BonitaException exception

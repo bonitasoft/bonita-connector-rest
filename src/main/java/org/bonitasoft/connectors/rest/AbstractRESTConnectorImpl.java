@@ -62,6 +62,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final static String SOCKET_TIMEOUT_MS_PARAMETER = "socket_timeout_ms";
     protected final static String CONNECTION_TIMEOUT_MS_PARAMETER = "connection_timeout_ms";
 
+
+    protected final static int SOCKET_TIMEOUT_MS_DEFAULT_VALUE = 60_000;
+    protected final static int CONNECTION_TIMEOUT_MS_DEFAULT_VALUE =  60_000;
+
     protected final java.lang.String getUrl() {
         return (java.lang.String) getInputParameter(URL_INPUT_PARAMETER);
     }
@@ -211,12 +215,12 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
     protected final Integer getSocketTimeoutMs() {
         Integer socketTimeoutMs = (Integer) getInputParameter(SOCKET_TIMEOUT_MS_PARAMETER);
-        return socketTimeoutMs != null ? socketTimeoutMs : -1;//no value means unlimited
+        return socketTimeoutMs != null ? socketTimeoutMs : SOCKET_TIMEOUT_MS_DEFAULT_VALUE;
     }
 
     protected final Integer getConnectionTimeoutMs() {
         Integer connectionTimeoutMs = (Integer) getInputParameter(CONNECTION_TIMEOUT_MS_PARAMETER);
-        return connectionTimeoutMs != null ? connectionTimeoutMs : -1;//no value means unlimited
+        return connectionTimeoutMs != null ? connectionTimeoutMs : CONNECTION_TIMEOUT_MS_DEFAULT_VALUE;
     }
 
     protected final void setBody(java.lang.String body) {
