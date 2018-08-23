@@ -342,7 +342,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         rest.setAPIAccessor(getApiAccessor());
         rest.setInputParameters(parameters);
         rest.validateInputParameters();
-        rest.setSocketTimeout(10000);
         return rest.execute();
     }
 
@@ -457,14 +456,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
-    public void should_kill_connection_after_timeout() throws BonitaException {
+    public void should_close_connection_when_delay_is_more_than_socket_timeout() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
-                .willReturn(aResponse().withFixedDelay(100000).withStatus(HttpStatus.SC_OK).withBody("").withHeader(WM_CONTENT_TYPE, JSON)));
+                .willReturn(aResponse().withFixedDelay(1000).withStatus(HttpStatus.SC_OK).withBody("").withHeader(WM_CONTENT_TYPE, JSON)));
 
         thrown.expect(ConnectorException.class);
-        executeConnector(buildContentTypeParametersSet(JSON));
+        Map<String, Object> parameters = buildContentTypeParametersSet(JSON);
+        parameters.put("socket_timeout_ms", 50);
+        executeConnector(parameters);
     }
+
     /**
      * Test the fake content type
      * @throws BonitaException exception
