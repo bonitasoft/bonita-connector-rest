@@ -1,13 +1,16 @@
 timestamps {
-    ansiColor('xterm') {
         node {
-            stage('Setup') {
-                checkout scm
-            }
+                stage('Setup') {
+                    checkout scm
+                }
 
-            stage('Release') {
-                sh './mvnw release:prepare -B'
+                stage('Release') {
+                       withCredentials([usernamePassword(
+                            credentialsId: 'github',
+                            passwordVariable: 'GIT_PASSWORD',
+                            usernameVariable: 'GIT_USERNAME')]) {
+                                sh './mvnw release:prepare -B'
+                       }
+                }
             }
-        }
-    }
 }

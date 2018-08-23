@@ -14,16 +14,15 @@
 
 package org.bonitasoft.connectors.rest;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.connector.AbstractConnector;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
@@ -60,6 +59,12 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final static String HEADERS_OUTPUT_PARAMETER = "headers";
     protected final static String STATUS_CODE_OUTPUT_PARAMETER = "status_code";
     protected final static String STATUS_MESSAGE_OUTPUT_PARAMETER = "status_message";
+    protected final static String SOCKET_TIMEOUT_MS_PARAMETER = "socket_timeout_ms";
+    protected final static String CONNECTION_TIMEOUT_MS_PARAMETER = "connection_timeout_ms";
+
+
+    protected final static int SOCKET_TIMEOUT_MS_DEFAULT_VALUE = 60_000;
+    protected final static int CONNECTION_TIMEOUT_MS_DEFAULT_VALUE =  60_000;
 
     protected final java.lang.String getUrl() {
         return (java.lang.String) getInputParameter(URL_INPUT_PARAMETER);
@@ -206,6 +211,16 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
     protected final java.lang.String getProxy_password() {
         return (java.lang.String) getInputParameter(PROXY_PASSWORD_INPUT_PARAMETER);
+    }
+
+    protected final Integer getSocketTimeoutMs() {
+        Integer socketTimeoutMs = (Integer) getInputParameter(SOCKET_TIMEOUT_MS_PARAMETER);
+        return socketTimeoutMs != null ? socketTimeoutMs : SOCKET_TIMEOUT_MS_DEFAULT_VALUE;
+    }
+
+    protected final Integer getConnectionTimeoutMs() {
+        Integer connectionTimeoutMs = (Integer) getInputParameter(CONNECTION_TIMEOUT_MS_PARAMETER);
+        return connectionTimeoutMs != null ? connectionTimeoutMs : CONNECTION_TIMEOUT_MS_DEFAULT_VALUE;
     }
 
     protected final void setBody(java.lang.String body) {
@@ -365,6 +380,16 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             getProxy_password();
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException("proxy_password type is invalid");
+        }
+        try {
+            getSocketTimeoutMs();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(SOCKET_TIMEOUT_MS_PARAMETER + " type is invalid");
+        }
+        try {
+            getConnectionTimeoutMs();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(CONNECTION_TIMEOUT_MS_PARAMETER + " type is invalid");
         }
     }
 }
