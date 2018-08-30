@@ -434,7 +434,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         final Map<String, String> result = new HashMap<>();
         if (headers != null) {
             for (final Header header : headers) {
-                result.put(header.getName(), header.getValue());
+                String name = header.getName();
+                if (!result.containsKey(name)) {
+                    result.put(name, header.getValue());
+                } else {
+                    String currentValue = result.get(name);
+                    if (header.getValue() != null && !header.getValue().isEmpty())
+                    result.put(name, currentValue + ";" + header.getValue());
+                }
             }
         }
         return result;
