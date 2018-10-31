@@ -696,9 +696,18 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws BonitaException 
      */
     @Test
-    public void noServiceAvailable() throws InterruptedException, BonitaException {
-        thrown.expect(ConnectorException.class);
-        executeConnector(buildMethodParametersSet(GET));
+    public void should_throw_a_ConnectorException__when_noServiceAvailable_and_FailOnErrorStatus_is_true() throws InterruptedException, BonitaException {
+    	 Map<String, Object> inputs = buildMethodParametersSet(GET);
+    	 inputs.put(AbstractRESTConnectorImpl.FAIL_ON_ERROR_STATUS_PARAMETER, true);
+    	 thrown.expect(ConnectorException.class);
+         executeConnector(inputs);
+    }
+    
+
+    @Test
+    public void should_not_throw_a_ConnectorException__when_noServiceAvailable_and_FailOnErrorStatus_is_False() throws InterruptedException, BonitaException {
+		Map<String, Object> outputs = executeConnector(buildMethodParametersSet(GET));
+        assertEquals(outputs.get("status_code"), 404);
     }
 
     /**

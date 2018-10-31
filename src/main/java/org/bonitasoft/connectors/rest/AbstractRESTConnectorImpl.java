@@ -14,15 +14,14 @@
 
 package org.bonitasoft.connectors.rest;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import org.bonitasoft.connectors.rest.model.AuthorizationType;
-import org.bonitasoft.engine.connector.AbstractConnector;
-import org.bonitasoft.engine.connector.ConnectorValidationException;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+
+import org.bonitasoft.connectors.rest.model.AuthorizationType;
+import org.bonitasoft.engine.connector.AbstractConnector;
+import org.bonitasoft.engine.connector.ConnectorValidationException;
 
 public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
@@ -61,6 +60,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final static String STATUS_MESSAGE_OUTPUT_PARAMETER = "status_message";
     protected final static String SOCKET_TIMEOUT_MS_PARAMETER = "socket_timeout_ms";
     protected final static String CONNECTION_TIMEOUT_MS_PARAMETER = "connection_timeout_ms";
+    protected final static String FAIL_ON_ERROR_STATUS_PARAMETER = "fail_on_error_status";
 
 
     protected final static int SOCKET_TIMEOUT_MS_DEFAULT_VALUE = 60_000;
@@ -87,7 +87,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         if (cookies == null) {
             cookies = Collections.emptyList();
         }
-        Iterables.removeIf(cookies, emptyLines());
+        cookies.removeIf(emptyLines());
         return cookies;
     }
 
@@ -95,7 +95,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return new Predicate<Object>() {
 
             @Override
-            public boolean apply(Object input) {
+            public boolean test(Object input) {
                 if (input instanceof List) {
                     final List line = (List) input;
                     return line.size() != 2 || (emptyCell(line, 0) && emptyCell(line, 1));
@@ -115,7 +115,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         if (headers == null) {
             headers = Collections.emptyList();
         }
-        Iterables.removeIf(headers, emptyLines());
+        headers.removeIf(emptyLines());
         return headers;
     }
 
@@ -162,6 +162,13 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         final java.lang.Boolean ignoreBody = (java.lang.Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER);
         return ignoreBody != null ? ignoreBody : Boolean.FALSE ;
     }
+    
+    protected final java.lang.Boolean getFailOnErrorStatus() {
+        final java.lang.Boolean failOnErrorStatus = (java.lang.Boolean) getInputParameter(FAIL_ON_ERROR_STATUS_PARAMETER);
+        return failOnErrorStatus != null ? failOnErrorStatus : Boolean.FALSE ;
+    }
+    
+    
 
     protected final java.lang.String getAuth_username() {
         return (java.lang.String) getInputParameter(AUTH_USERNAME_INPUT_PARAMETER);

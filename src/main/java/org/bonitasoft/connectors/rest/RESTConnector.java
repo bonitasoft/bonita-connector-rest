@@ -84,7 +84,6 @@ import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 
 /**
  * This main class of the REST Connector implementation
@@ -102,6 +101,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * The class logger
      */
     private static final Logger LOGGER = Logger.getLogger(RESTConnector.class.getName());
+    
+	private ObjectMapper objectMapper  = new ObjectMapper();
 
     @Override
     public void validateInputParameters() throws ConnectorValidationException {
@@ -410,9 +411,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                             setBody(Collections.<String, Object> emptyMap());
                             final Header contentType = entity.getContentType();
                             if (contentType != null
-                                    && !Strings.isNullOrEmpty(contentType.getValue())
+                                    && contentType.getValue() != null
+                                    && !contentType.getValue().isEmpty()
                                     && contentType.getValue().toLowerCase().contains("json")) {
-                                setBody(new ObjectMapper().readValue(bodyResponse, bodyResponse.startsWith("[") ? List.class : HashMap.class));
+                            	if( bodyResponse.startsWith("[")) {
+                            		setBody(objectMapper.readValue(bodyResponse,List.class));
+                            	}else {
+                            		setBody(objectMapper.readValue(bodyResponse,HashMap.class));
+                            	}
                             } else {
                                 LOGGER.warning(String.format("Body as map output cannot be set. Response content type is not json compliant(%s).",
                                         contentType != null ? contentType.getValue() : "no Content-Type in response header"));
@@ -510,8 +516,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
             LOGGER.fine("Response recieved.");
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            final String re = httpResponse.getStatusLine().getReasonPhrase();
-            if (!statusSuccessful(statusCode)) {
+            if (getFailOnErrorStatus() && !statusSuccessful(statusCode)) {
                 throw new ConnectorException(
                         String.format("%s response status is not successful: %s - %s", request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
             }
