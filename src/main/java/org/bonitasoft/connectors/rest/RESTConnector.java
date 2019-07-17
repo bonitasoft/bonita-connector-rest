@@ -190,7 +190,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return If the key and the value is valid or not
      */
     private boolean isKeyValueCoupleValid(final List<?> keyValueCoupleRow) {
-        return keyValueCoupleRow.get(0) != null && !keyValueCoupleRow.get(0).toString().isEmpty() && keyValueCoupleRow.get(1) != null;
+        return keyValueCoupleRow.get(0) != null && !keyValueCoupleRow.get(0).toString().isEmpty()
+                && keyValueCoupleRow.get(1) != null;
     }
 
     /**
@@ -391,7 +392,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param response The response of the sent request
      * @param request
      * @throws
-     *         @throws IOException
+     * @throws IOException
      */
     private void setOutputs(final HttpResponse response, Request request) throws IOException {
         if (response != null) {
@@ -404,22 +405,26 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                         final StringWriter stringWriter = new StringWriter();
                         IOUtils.copy(inputStream, stringWriter);
                         final String stringContent = stringWriter.toString();
-                        if (stringContent != null) {
-                            final String bodyResponse = stringContent.trim();
-                            setBody(bodyResponse);
-                            setBody(Collections.<String, Object> emptyMap());
-                            final Header contentType = entity.getContentType();
-                            if (contentType != null
-                                    && !Strings.isNullOrEmpty(contentType.getValue())
-                                    && contentType.getValue().toLowerCase().contains("json")) {
-                                setBody(new ObjectMapper().readValue(bodyResponse, bodyResponse.startsWith("[") ? List.class : HashMap.class));
-                            } else {
-                                LOGGER.warning(String.format("Body as map output cannot be set. Response content type is not json compliant(%s).",
-                                        contentType != null ? contentType.getValue() : "no Content-Type in response header"));
-                            }
+                        final String bodyResponse = stringContent != null ? stringContent.trim() : "";
+                        setBody(bodyResponse);
+                        setBody(Collections.<String, Object> emptyMap());
+                        final Header contentType = entity.getContentType();
+                        if (contentType != null
+                                && !Strings.isNullOrEmpty(contentType.getValue())
+                                && contentType.getValue().toLowerCase().contains("json")) {
+                            setBody(new ObjectMapper().readValue(bodyResponse,
+                                    bodyResponse.startsWith("[") ? List.class : HashMap.class));
+                        } else {
+                            LOGGER.warning(String.format(
+                                    "Body as map output cannot be set. Response content type is not json compliant(%s).",
+                                    contentType != null ? contentType.getValue()
+                                            : "no Content-Type in response header"));
                         }
                     }
                 }
+            } else {
+                setBody("");
+                setBody(Collections.<String, Object> emptyMap());
             }
             setHeaders(asMap(response.getAllHeaders()));
             setStatusCode(response.getStatusLine().getStatusCode());
@@ -440,13 +445,12 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 } else {
                     String currentValue = result.get(name);
                     if (header.getValue() != null && !header.getValue().isEmpty())
-                    result.put(name, currentValue + ";" + header.getValue());
+                        result.put(name, currentValue + ";" + header.getValue());
                 }
             }
         }
         return result;
     }
-
 
     /**
      * Execute a given request
@@ -468,7 +472,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             requestConfigurationBuilder.setConnectTimeout(getConnectionTimeoutMs());
             requestConfigurationBuilder.setSocketTimeout(getSocketTimeoutMs());
 
-
             final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
             httpClientBuilder.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
             setSSL(request.getSsl(), httpClientBuilder);
@@ -476,7 +479,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             setCookies(requestConfigurationBuilder, httpClientBuilder, request.getCookies(), urlHost);
 
             final RequestBuilder requestBuilder = getRequestBuilderFromMethod(request.getRestMethod());
-            requestBuilder.setVersion(new ProtocolVersion(HTTP_PROTOCOL, HTTP_PROTOCOL_VERSION_MAJOR, HTTP_PROTOCOL_VERSION_MINOR));
+            requestBuilder.setVersion(
+                    new ProtocolVersion(HTTP_PROTOCOL, HTTP_PROTOCOL_VERSION_MAJOR, HTTP_PROTOCOL_VERSION_MINOR));
             int urlPort = url.getPort();
             if (url.getPort() == -1) {
                 urlPort = url.getDefaultPort();
@@ -488,7 +492,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             if (!HTTPMethod.GET.equals(HTTPMethod.valueOf(requestBuilder.getMethod()))) {
                 final String body = request.getBody();
                 if (body != null) {
-                    requestBuilder.setEntity(new StringEntity(request.getBody(),request.getContentType()));
+                    requestBuilder.setEntity(new StringEntity(request.getBody(), request.getContentType()));
                 }
             }
 
@@ -513,7 +517,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final String re = httpResponse.getStatusLine().getReasonPhrase();
             if (!statusSuccessful(statusCode)) {
                 throw new ConnectorException(
-                        String.format("%s response status is not successful: %s - %s", request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
+                        String.format("%s response status is not successful: %s - %s", request, statusCode,
+                                httpResponse.getStatusLine().getReasonPhrase()));
             }
             setOutputs(httpResponse, request);
         } finally {
@@ -582,7 +587,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     break;
             }
 
-            final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build(), hostnameVerifier);
+            final SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(sslContextBuilder.build(),
+                    hostnameVerifier);
             httpClientBuilder.setSSLSocketFactory(socketFactory);
         }
     }
@@ -594,7 +600,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param httpClientBuilder The request builder
      * @throws Exception
      */
-    private void setProxy(final Proxy proxy, final HttpClientBuilder httpClientBuilder, final Builder requestConfigurationBuilder) {
+    private void setProxy(final Proxy proxy, final HttpClientBuilder httpClientBuilder,
+            final Builder requestConfigurationBuilder) {
         if (proxy != null) {
             final HttpHost httpHost = new HttpHost(proxy.getHost(), proxy.getPort());
 
@@ -618,7 +625,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         if (proxy != null && proxy.hasCredentials()) {
             credentialsProvider.setCredentials(
                     new AuthScope(proxy.getHost(), proxy.getPort()),
-                    new UsernamePasswordCredentials(proxy.getUsername(), proxy.getPassword() == null ? "" : proxy.getPassword()));
+                    new UsernamePasswordCredentials(proxy.getUsername(),
+                            proxy.getPassword() == null ? "" : proxy.getPassword()));
         }
     }
 
@@ -656,7 +664,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private void setHeaders(final RequestBuilder requestBuilder, final List<Header> headerData) {
         for (final Header aHeaderData : headerData) {
-           requestBuilder.addHeader(aHeaderData);
+            requestBuilder.addHeader(aHeaderData);
         }
     }
 
@@ -715,7 +723,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 if (castAuthorization.isPreemptive() || proxy != null) {
                     final AuthCache authenticationCache = new BasicAuthCache();
                     if (castAuthorization.isPreemptive()) {
-                        final AuthSchemeBase authorizationScheme = castAuthorization.isBasic() ? new BasicScheme() : new DigestScheme();
+                        final AuthSchemeBase authorizationScheme = castAuthorization.isBasic() ? new BasicScheme()
+                                : new DigestScheme();
                         authenticationCache.put(new HttpHost(host, port, urlProtocol), authorizationScheme);
                     }
                     if (proxy != null) {
@@ -763,7 +772,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             case DELETE:
                 return RequestBuilder.delete();
             default:
-                throw new IllegalStateException("Impossible to get the RequestBuilder from the \"" + method.name() + "\" name.");
+                throw new IllegalStateException(
+                        "Impossible to get the RequestBuilder from the \"" + method.name() + "\" name.");
         }
     }
 
@@ -781,6 +791,5 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         }
         LOGGER.fine("executeBusinessLogic error: " + stringBuffer.toString());
     }
-
 
 }
