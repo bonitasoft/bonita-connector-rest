@@ -5,11 +5,11 @@ package org.bonitasoft.connectors.rest.model;
  */
 public class Proxy {
 
-	/**
+    /**
      * The protocol value.
      */
     private ProxyProtocol protocol = ProxyProtocol.HTTP;
-    
+
     /**
      * The host value.
      */
@@ -24,7 +24,7 @@ public class Proxy {
      * The username value.
      */
     private String username = null;
-    
+
     /**
      * The password value.
      */
@@ -32,54 +32,61 @@ public class Proxy {
 
     /**
      * Protocol value getter.
+     * 
      * @return The protocol value.
      */
-	public ProxyProtocol getProtocol() {
-		return protocol;
-	}
+    public ProxyProtocol getProtocol() {
+        return protocol;
+    }
 
-	/**
+    /**
      * Protocol value setter.
-     * @param username The new protocol value.
+     * 
+     * @param protocol The new protocol value.
      */
-	public void setProtocol(ProxyProtocol protocol) {
-		this.protocol = protocol;
-	}
+    public void setProtocol(ProxyProtocol protocol) {
+        this.protocol = protocol;
+    }
 
-	/**
+    /**
      * Host value getter.
+     * 
      * @return The host value.
      */
-	public String getHost() {
-		return host;
-	}
+    public String getHost() {
+        return host;
+    }
 
-	/**
+    /**
      * Host value setter.
-     * @param username The new host value.
+     * 
+     * @param host The new host value.
      */
-	public void setHost(String host) {
-		this.host = host;
-	}
+    public void setHost(String host) {
+        this.host = host;
+    }
 
-	/**
+    /**
      * Port value getter.
+     * 
      * @return The port value.
      */
-	public Integer getPort() {
-		return port;
-	}
+    public Integer getPort() {
+        return port;
+    }
 
-	/**
+    /**
      * Port value setter.
-     * @param username The new port value.
+     * 
+     * @param port The new port value.
      */
-	public void setPort(Integer port) {
-		this.port = port;
-	}
+    public void setPort(Integer port) {
+        this.port = port;
+    }
 
-	/**
+    /**
      * Username value getter.
+     * 
      * @return The username value.
      */
     public String getUsername() {
@@ -88,6 +95,7 @@ public class Proxy {
 
     /**
      * Username value setter.
+     * 
      * @param username The new username value.
      */
     public void setUsername(final String username) {
@@ -96,6 +104,7 @@ public class Proxy {
 
     /**
      * Password value getter.
+     * 
      * @return The password value.
      */
     public String getPassword() {
@@ -104,14 +113,16 @@ public class Proxy {
 
     /**
      * Password value setter.
+     * 
      * @param password The new password value.
      */
     public void setPassword(final String password) {
         this.password = password;
     }
-    
+
     /**
      * Check if it has credentials.
+     * 
      * @return if it has credentials.
      */
     public boolean hasCredentials() {
