@@ -472,6 +472,106 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertEquals(bodyAsMap.get("name"), "Romain");
     }
 
+    /**
+     * Test the json simple string value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_string_value_should_not_raise_exception() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("\"this is a string\"")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>)outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(bodyAsMap.size(), 0);
+    }
+
+    /**
+     * Test the json simple numeric value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_numeric_value_should_not_raise_exception() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("123.45")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>)outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(bodyAsMap.size(), 0);
+    }
+
+    /**
+     * Test the json simple boolean value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_boolean_value_should_not_raise_exception() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("true")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>)outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(bodyAsMap.size(), 0);
+    }
+
+    /**
+     * Test the json simple date value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_date_value_should_not_raise_exception() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("2012-04-23T18:25:43.511Z")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>)outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(bodyAsMap.size(), 0);
+    }
+
+    /**
+     * Test the json simple null value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_null_value_should_not_raise_exception() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("null")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>)outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(bodyAsMap.size(), 0);
+    }
+
     @Test
     public void should_retrieve_response_as_a_List_of_Map__jsonContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
