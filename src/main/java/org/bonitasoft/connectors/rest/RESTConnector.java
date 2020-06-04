@@ -83,6 +83,8 @@ import org.bonitasoft.connectors.rest.model.Store;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 
@@ -412,8 +414,19 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                         if (contentType != null
                                 && !Strings.isNullOrEmpty(contentType.getValue())
                                 && contentType.getValue().toLowerCase().contains("json")) {
-                            setBody(new ObjectMapper().readValue(bodyResponse,
-                                    bodyResponse.startsWith("[") ? List.class : HashMap.class));
+                            try {
+                                if (bodyResponse.startsWith("[")) {
+                                    setBody(new ObjectMapper().readValue(bodyResponse, List.class));
+                                } else if(bodyResponse.startsWith("{")) {
+                                    setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
+                                } else { 
+                                        setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
+                                }
+                            } catch (JsonParseException | JsonMappingException e) {
+                                LOGGER.warning(String.format(
+                                    "BodyAsObject output cannot be set. Response content is not valid json(%s).",
+                                    bodyResponse));
+                            }
                         } else {
                             LOGGER.warning(String.format(
                                     "Body as map output cannot be set. Response content type is not json compliant(%s).",

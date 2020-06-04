@@ -26,9 +26,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -472,6 +476,130 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertEquals(bodyAsMap.get("name"), "Romain");
     }
 
+    /**
+     * Test the json content type with wrong content
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void should_not_raise_exception_on_json_parsing_error() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{ this is not valid json ! }")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs
+                .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(bodyAsMap.size(), 0);
+    }
+
+    /**
+     * Test the json simple string value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_string_value_should_return_string_object() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("\"this is a string\"")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final String bodyAsString = (String) bodyAsObject;
+        assertEquals(bodyAsString, "this is a string");
+    }
+
+    /**
+     * Test the json simple numeric value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_numeric_value_should_return_number_object() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("123.45")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final Number bodyAsNumber = (Number) bodyAsObject;
+        assertEquals(bodyAsNumber, 123.45);
+    }
+
+    /**
+     * Test the json simple boolean value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_boolean_value_should_return_boolean_object() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("true")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final Boolean bodyAsBoolean = (Boolean)bodyAsObject;
+        assertEquals(bodyAsBoolean, true);
+    }
+
+    /**
+     * Test the json simple date value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_date_value_should_return_iso8601_date_string() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("\"2012-04-23T18:25:43+02:00\"")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final Instant bodyAsInstant = OffsetDateTime.parse((String) bodyAsObject).toInstant();
+        assertEquals(bodyAsInstant, new GregorianCalendar(2012, 3, 23, 18, 25, 43).toInstant());
+    }
+
+    /**
+     * Test the json simple null value
+     * 
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_null_value_should_return_null() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("null")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNull(bodyAsObject);
+    }
+
     @Test
     public void should_retrieve_response_as_a_List_of_Map__jsonContentType() throws BonitaException, InterruptedException {
         stubFor(post(urlEqualTo("/"))
@@ -484,6 +612,21 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsMap = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsMap);
         assertEquals(((Map<String, Object>) ((List) bodyAsMap).get(0)).get("name"), "Romain");
+    }
+
+    @Test
+    public void should_retrieve_response_as_a_List_of_string() throws BonitaException, InterruptedException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("[\"abc\", \"def\"]")
+                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final List<String> bodyAsList = (List<String>) outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsList);
+        assertEquals(bodyAsList.get(0), "abc");
+        assertEquals(bodyAsList.get(1), "def");
     }
 
     @Test
