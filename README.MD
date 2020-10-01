@@ -1,22 +1,26 @@
-# REST Connector
+# Rest Connector
 
-Enables interactions in your BonitaBPM processes with a REST API.
-
-## Description
-
-This connector provides the 4 main actions available in REST: _GET_,_POST_,_PUT_ and _DELETE_. 
-It supports advanced security configuration like BASIC and DIGEST authentication mechanism, proxy and SSL configuration.
+[![Actions Status](https://github.com/bonitasoft/bonita-connector-rest/workflows/Build/badge.svg)](https://github.com/bonitasoft/bonita-connector-rest/actions?query=workflow%3ABuild)
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=bonitasoft_bonita-connector-rest&metric=alert_status)](https://sonarcloud.io/dashboard?id=bonitasoft_bonita-connector-rest)
+[![GitHub release](https://img.shields.io/github/v/release/bonitasoft/bonita-connector-rest?color=blue&label=Release)](https://github.com/bonitasoft/bonita-connector-rest/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/org.bonitasoft.connectors/bonita-connector-rest.svg?label=Maven%20Central&color=orange)](https://search.maven.org/search?q=g:%22org.bonitasoft.connectors%22%20AND%20a:%22bonita-connector-rest%22)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-yellow.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
 ## Build
 
 __Clone__ or __fork__ this repository, then at the root of the project run:
 
-`./mvnw clean verify`
+`./mvnw`
 
 ## Release
 
-Before releasing a new version make sure that the versionning of `.def` files are consistent with the implementation. In order to create a new release of the connector use the [_maven release plugin_](http://maven.apache.org/maven-release/maven-release-plugin/):
+In order to create a new release push a `release-<version>` branch with the desired version in pom.xml.
+Update the `master` with the next SNAPSHOT version.
 
-`./mvnw release:prepare`
+## Contributing
 
-It creates a new git _tag_ and update the current development version. New tags are automatically built on our CI infrastructure.
+We would love you to contribute, pull requests are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+
+## License
+
+The sources and documentation in this project are released under the [GPLv2 License](LICENSE)

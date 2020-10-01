@@ -1,31 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
-  <id>rest-post</id>
-  <version>1.1.0</version>
+  <id>${delete.def.id}</id>
+  <version>${delete.def.version}</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
-  <input mandatory="true" name="url" type="java.lang.String"/>
-  <input defaultValue="application/json" mandatory="true" name="contentType" type="java.lang.String"/>
-  <input defaultValue="UTF-8" mandatory="true" name="charset" type="java.lang.String"/>
-  <input mandatory="false" name="urlCookies" type="java.util.List"/>
+  
+  <!-- inputs -->
+  <input name="url" type="java.lang.String" mandatory="true"/>
+  <input name="urlCookies" type="java.util.List" mandatory="false"/>
   <input name="urlHeaders" type="java.util.List"/>
-  <input mandatory="false" name="body" type="java.lang.String"/>
-  <input mandatory="false" name="do_not_follow_redirect" type="java.lang.Boolean"/>
-  <input mandatory="false" name="ignore_body" type="java.lang.Boolean"/>
-  <input defaultValue="true" mandatory="false" name="TLS" type="java.lang.Boolean"/>
-  <input defaultValue="false" mandatory="false" name="trust_self_signed_certificate" type="java.lang.Boolean"/>
-  <input mandatory="false" name="hostname_verifier" type="java.lang.String"/>
-  <input mandatory="false" name="trust_store_file" type="java.lang.String"/>
-  <input mandatory="false" name="trust_store_password" type="java.lang.String"/>
-  <input mandatory="false" name="key_store_file" type="java.lang.String"/>
-  <input mandatory="false" name="key_store_password" type="java.lang.String"/>
-  <input name="auth_type" defaultValue="NONE" type="java.lang.String"/>
+  <input name="do_not_follow_redirect" type="java.lang.Boolean" mandatory="false"/>
+  <input name="ignore_body" type="java.lang.Boolean" mandatory="false"/>
+  <input name="TLS" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
+  <input name="trust_self_signed_certificate" type="java.lang.Boolean" mandatory="false" defaultValue="false"/>
+  <input name="hostname_verifier" type="java.lang.String" mandatory="false"/>
+  <input name="trust_store_file" type="java.lang.String" mandatory="false"/>
+  <input name="trust_store_password" type="java.lang.String" mandatory="false"/>
+  <input name="key_store_file" type="java.lang.String" mandatory="false"/>
+  <input name="key_store_password" type="java.lang.String" mandatory="false"/>
+  <input name="auth_type" type="java.lang.String" defaultValue="NONE"/>
   <input name="auth_username" type="java.lang.String"/>
   <input name="auth_password" type="java.lang.String"/>
   <input name="auth_host" type="java.lang.String"/>
   <input name="auth_port" type="java.lang.Integer"/>
   <input name="auth_realm" type="java.lang.String"/>
-  <input defaultValue="true" mandatory="false" name="auth_preemptive" type="java.lang.Boolean"/>
+  <input name="auth_preemptive" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
   <input name="proxy_protocol" type="java.lang.String"/>
   <input name="proxy_host" type="java.lang.String"/>
   <input name="proxy_port" type="java.lang.Integer"/>
@@ -33,25 +32,20 @@
   <input name="proxy_password" type="java.lang.String"/>
   <input name="socket_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
   <input name="connection_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
+  
+  <!-- outputs -->
   <output name="bodyAsString" type="java.lang.String"/>
   <output name="bodyAsObject" type="java.lang.Object"/>
   <output name="headers" type="java.util.Map"/>
   <output name="status_code" type="java.lang.Integer"/>
   <output name="status_message" type="java.lang.String"/>
+  
+  <!-- pages -->
   <page id="RESTConnectorWizardPage">
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
-    <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
-		<items>application/json</items>
-		<items>application/xml</items>
-		<items>text/html</items>
-		<items>text/plain</items>
-		<items>text/xml</items>
-    </widget>
-    <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
-    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
   </page>
   <page id="Advanced">
-   <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
+    <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
       <colsCaption>Key</colsCaption>
       <colsCaption>Value</colsCaption>
     </widget>
@@ -79,7 +73,7 @@
       <widget xsi:type="definition:Checkbox" id="auth_preemptive_widget" inputName="auth_preemptive"/>
     </widget>
   </page>
-  <page id="SSLPage">
+   <page id="SSLPage">
     <widget xsi:type="definition:Group" id="ssl" optional="false">
       <widget xsi:type="definition:Checkbox" id="TLS_widget" inputName="TLS"/>
       <widget xsi:type="definition:Checkbox" id="trust_self_signed_certificate_widget" inputName="trust_self_signed_certificate"/>
