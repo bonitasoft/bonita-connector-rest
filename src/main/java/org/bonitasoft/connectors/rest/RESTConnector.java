@@ -402,38 +402,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 if (request.isIgnore()) {
                     EntityUtils.consumeQuietly(entity);
                 } else {
-                    try (InputStream inputStream = entity.getContent()) {
-                        final StringWriter stringWriter = new StringWriter();
-                        IOUtils.copy(inputStream, stringWriter);
-                        final String stringContent = stringWriter.toString();
-                        final String bodyResponse = stringContent != null ? stringContent.trim() : "";
-                        setBody(bodyResponse);
-                        setBody(Collections.<String, Object> emptyMap());
-                        final Header contentType = entity.getContentType();
-                        if (contentType != null
-                                && contentType.getValue() != null
-                                && !contentType.getValue().isEmpty()
-                                && contentType.getValue().toLowerCase().contains("json")) {
-                            try {
-                                if (bodyResponse.startsWith("[")) {
-                                    setBody(new ObjectMapper().readValue(bodyResponse, List.class));
-                                } else if (bodyResponse.startsWith("{")) {
-                                    setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
-                                } else {
-                                    setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
-                                }
-                            } catch (JsonParseException | JsonMappingException e) {
-                                LOGGER.warning(String.format(
-                                        "BodyAsObject output cannot be set. Response content is not valid json(%s).",
-                                        bodyResponse));
-                            }
-                        } else {
-                            LOGGER.warning(String.format(
-                                    "Body as map output cannot be set. Response content type is not json compliant(%s).",
-                                    contentType != null ? contentType.getValue()
-                                            : "no Content-Type in response header"));
-                        }
-                    }
+                    parseResponse(entity);
                 }
             } else {
                 setBody("");
@@ -445,6 +414,41 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             LOGGER.fine("All outputs have been set.");
         } else {
             LOGGER.fine("Response is null.");
+        }
+    }
+
+    private void parseResponse(final HttpEntity entity) throws IOException {
+        try (InputStream inputStream = entity.getContent()) {
+            final StringWriter stringWriter = new StringWriter();
+            IOUtils.copy(inputStream, stringWriter, Charset.defaultCharset());
+            final String stringContent = stringWriter.toString();
+            final String bodyResponse = stringContent != null ? stringContent.trim() : "";
+            setBody(bodyResponse);
+            setBody(Collections.<String, Object> emptyMap());
+            final Header contentType = entity.getContentType();
+            if (contentType != null
+                    && contentType.getValue() != null
+                    && !contentType.getValue().isEmpty()
+                    && contentType.getValue().toLowerCase().contains("json")) {
+                try {
+                    if (bodyResponse.startsWith("[")) {
+                        setBody(new ObjectMapper().readValue(bodyResponse, List.class));
+                    } else if (bodyResponse.startsWith("{")) {
+                        setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
+                    } else {
+                        setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
+                    }
+                } catch (JsonParseException | JsonMappingException e) {
+                    LOGGER.warning(String.format(
+                            "BodyAsObject output cannot be set. Response content is not valid json(%s).",
+                            bodyResponse));
+                }
+            } else {
+                LOGGER.warning(String.format(
+                        "Body as map output cannot be set. Response content type is not json compliant(%s).",
+                        contentType != null ? contentType.getValue()
+                                : "no Content-Type in response header"));
+            }
         }
     }
 
