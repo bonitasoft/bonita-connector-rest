@@ -31,8 +31,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -578,7 +578,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsObject);
         final Instant bodyAsInstant = OffsetDateTime.parse((String) bodyAsObject).toInstant();
-        assertEquals(bodyAsInstant, new GregorianCalendar(2012, 3, 23, 18, 25, 43).toInstant());
+        assertEquals(bodyAsInstant, OffsetDateTime.of(2012, 4, 23, 18, 25, 43, 0, ZoneOffset.ofHours(2)).toInstant());
     }
 
     /**
