@@ -86,7 +86,6 @@ import org.bonitasoft.engine.connector.ConnectorValidationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 
 /**
  * This main class of the REST Connector implementation
@@ -412,20 +411,21 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                         setBody(Collections.<String, Object> emptyMap());
                         final Header contentType = entity.getContentType();
                         if (contentType != null
-                                && !Strings.isNullOrEmpty(contentType.getValue())
+                                && contentType.getValue() != null
+                                && !contentType.getValue().isEmpty()
                                 && contentType.getValue().toLowerCase().contains("json")) {
                             try {
                                 if (bodyResponse.startsWith("[")) {
                                     setBody(new ObjectMapper().readValue(bodyResponse, List.class));
-                                } else if(bodyResponse.startsWith("{")) {
+                                } else if (bodyResponse.startsWith("{")) {
                                     setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
-                                } else { 
-                                        setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
+                                } else {
+                                    setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
                                 }
                             } catch (JsonParseException | JsonMappingException e) {
                                 LOGGER.warning(String.format(
-                                    "BodyAsObject output cannot be set. Response content is not valid json(%s).",
-                                    bodyResponse));
+                                        "BodyAsObject output cannot be set. Response content is not valid json(%s).",
+                                        bodyResponse));
                             }
                         } else {
                             LOGGER.warning(String.format(
