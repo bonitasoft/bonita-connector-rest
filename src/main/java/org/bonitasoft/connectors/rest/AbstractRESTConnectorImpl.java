@@ -14,15 +14,14 @@
 
 package org.bonitasoft.connectors.rest;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import org.bonitasoft.connectors.rest.model.AuthorizationType;
-import org.bonitasoft.engine.connector.AbstractConnector;
-import org.bonitasoft.engine.connector.ConnectorValidationException;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+
+import org.bonitasoft.connectors.rest.model.AuthorizationType;
+import org.bonitasoft.engine.connector.AbstractConnector;
+import org.bonitasoft.engine.connector.ConnectorValidationException;
 
 public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
@@ -62,9 +61,8 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final static String SOCKET_TIMEOUT_MS_PARAMETER = "socket_timeout_ms";
     protected final static String CONNECTION_TIMEOUT_MS_PARAMETER = "connection_timeout_ms";
 
-
     protected final static int SOCKET_TIMEOUT_MS_DEFAULT_VALUE = 60_000;
-    protected final static int CONNECTION_TIMEOUT_MS_DEFAULT_VALUE =  60_000;
+    protected final static int CONNECTION_TIMEOUT_MS_DEFAULT_VALUE = 60_000;
 
     protected final java.lang.String getUrl() {
         return (java.lang.String) getInputParameter(URL_INPUT_PARAMETER);
@@ -87,7 +85,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         if (cookies == null) {
             cookies = Collections.emptyList();
         }
-        Iterables.removeIf(cookies, emptyLines());
+        cookies.removeIf(emptyLines());
         return cookies;
     }
 
@@ -95,7 +93,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return new Predicate<Object>() {
 
             @Override
-            public boolean apply(Object input) {
+            public boolean test(Object input) {
                 if (input instanceof List) {
                     final List line = (List) input;
                     return line.size() != 2 || (emptyCell(line, 0) && emptyCell(line, 1));
@@ -115,7 +113,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         if (headers == null) {
             headers = Collections.emptyList();
         }
-        Iterables.removeIf(headers, emptyLines());
+        headers.removeIf(emptyLines());
         return headers;
     }
 
@@ -129,7 +127,8 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.lang.Boolean getTrust_self_signed_certificate() {
-        final java.lang.Boolean trustParam = (java.lang.Boolean) getInputParameter(TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER);
+        final java.lang.Boolean trustParam = (java.lang.Boolean) getInputParameter(
+                TRUST_SELF_SIGNED_CERTIFICATE_INPUT_PARAMETER);
         return trustParam != null ? trustParam : Boolean.FALSE;
     }
 
@@ -154,13 +153,14 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.lang.Boolean getDoNotFollowRedirect() {
-        final java.lang.Boolean follozRedirect = (java.lang.Boolean) getInputParameter(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER);
+        final java.lang.Boolean follozRedirect = (java.lang.Boolean) getInputParameter(
+                DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER);
         return follozRedirect != null ? follozRedirect : Boolean.FALSE;
     }
 
     protected final java.lang.Boolean getIgnoreBody() {
         final java.lang.Boolean ignoreBody = (java.lang.Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER);
-        return ignoreBody != null ? ignoreBody : Boolean.FALSE ;
+        return ignoreBody != null ? ignoreBody : Boolean.FALSE;
     }
 
     protected final java.lang.String getAuth_username() {

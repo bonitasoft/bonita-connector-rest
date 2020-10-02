@@ -31,8 +31,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -376,7 +376,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void getMethod() throws BonitaException, InterruptedException {
+    public void getMethod() throws BonitaException {
         stubFor(get(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
@@ -390,7 +390,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void postMethod() throws BonitaException, InterruptedException {
+    public void postMethod() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
@@ -404,7 +404,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void putMethod() throws BonitaException, InterruptedException {
+    public void putMethod() throws BonitaException {
         stubFor(put(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
@@ -418,7 +418,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void deleteMethod() throws BonitaException, InterruptedException {
+    public void deleteMethod() throws BonitaException {
         stubFor(delete(urlEqualTo("/"))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
@@ -432,7 +432,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void fakeMethod() throws BonitaException, InterruptedException {
+    public void fakeMethod() throws BonitaException {
         thrown.expect(BonitaException.class);
         thrown.expectMessage(
                 "java.lang.IllegalArgumentException: No enum constant org.bonitasoft.connectors.rest.model.HTTPMethod.FAKE_METHOD");
@@ -447,7 +447,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void plainTextContentType() throws BonitaException, InterruptedException {
+    public void plainTextContentType() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -462,7 +462,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void should_retrieve_response_as_a_Map_jsonContentType() throws BonitaException, InterruptedException {
+    public void should_retrieve_response_as_a_Map_jsonContentType() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{ \"name\":\"Romain\" }")
@@ -483,7 +483,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void should_not_raise_exception_on_json_parsing_error() throws BonitaException, InterruptedException {
+    public void should_not_raise_exception_on_json_parsing_error() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{ this is not valid json ! }")
@@ -504,7 +504,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void json_simple_string_value_should_return_string_object() throws BonitaException, InterruptedException {
+    public void json_simple_string_value_should_return_string_object() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("\"this is a string\"")
@@ -525,7 +525,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void json_simple_numeric_value_should_return_number_object() throws BonitaException, InterruptedException {
+    public void json_simple_numeric_value_should_return_number_object() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("123.45")
@@ -546,7 +546,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void json_simple_boolean_value_should_return_boolean_object() throws BonitaException, InterruptedException {
+    public void json_simple_boolean_value_should_return_boolean_object() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("true")
@@ -556,7 +556,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(outputs);
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsObject);
-        final Boolean bodyAsBoolean = (Boolean)bodyAsObject;
+        final Boolean bodyAsBoolean = (Boolean) bodyAsObject;
         assertEquals(bodyAsBoolean, true);
     }
 
@@ -567,7 +567,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void json_simple_date_value_should_return_iso8601_date_string() throws BonitaException, InterruptedException {
+    public void json_simple_date_value_should_return_iso8601_date_string() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("\"2012-04-23T18:25:43+02:00\"")
@@ -578,7 +578,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsObject);
         final Instant bodyAsInstant = OffsetDateTime.parse((String) bodyAsObject).toInstant();
-        assertEquals(bodyAsInstant, new GregorianCalendar(2012, 3, 23, 18, 25, 43).toInstant());
+        assertEquals(bodyAsInstant, OffsetDateTime.of(2012, 4, 23, 18, 25, 43, 0, ZoneOffset.ofHours(2)).toInstant());
     }
 
     /**
@@ -588,7 +588,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void json_simple_null_value_should_return_null() throws BonitaException, InterruptedException {
+    public void json_simple_null_value_should_return_null() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("null")
@@ -601,7 +601,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
-    public void should_retrieve_response_as_a_List_of_Map__jsonContentType() throws BonitaException, InterruptedException {
+    public void should_retrieve_response_as_a_List_of_Map__jsonContentType() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("[{ \"name\":\"Romain\" }]")
@@ -615,7 +615,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
-    public void should_retrieve_response_as_a_List_of_string() throws BonitaException, InterruptedException {
+    public void should_retrieve_response_as_a_List_of_string() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("[\"abc\", \"def\"]")
@@ -623,7 +623,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
         checkResultIsPresent(outputs);
-        final List<String> bodyAsList = (List<String>) outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        final List<String> bodyAsList = (List<String>) outputs
+                .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsList);
         assertEquals(bodyAsList.get(0), "abc");
         assertEquals(bodyAsList.get(1), "def");
@@ -655,7 +656,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void fakeContentType() throws BonitaException, InterruptedException {
+    public void fakeContentType() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(CONTENT_TYPE_ERROR + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -670,7 +671,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void utf8Charset() throws BonitaException, InterruptedException {
+    public void utf8Charset() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -685,7 +686,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void iso88591Charset() throws BonitaException, InterruptedException {
+    public void iso88591Charset() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -700,7 +701,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void usASCIICharset() throws BonitaException, InterruptedException {
+    public void usASCIICharset() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + US_ASCII))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -715,7 +716,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void fakeCharset() throws BonitaException, InterruptedException {
+    public void fakeCharset() throws BonitaException {
         thrown.expect(BonitaException.class);
         thrown.expectMessage("java.nio.charset.UnsupportedCharsetException: FAKE-CHARSET");
 
@@ -729,7 +730,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void oneValueCookie() throws BonitaException, InterruptedException {
+    public void oneValueCookie() throws BonitaException {
         stubFor(get(urlEqualTo("/"))
                 .withHeader(WM_COOKIES, equalTo(generateCookieSet(ONE_COOKIES)))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -744,7 +745,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void twoValuesCookie() throws BonitaException, InterruptedException {
+    public void twoValuesCookie() throws BonitaException {
         stubFor(get(urlEqualTo("/"))
                 .withHeader(WM_COOKIES, equalTo(generateCookieSet(TWO_COOKIES)))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -778,7 +779,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void oneValueHeader() throws BonitaException, InterruptedException {
+    public void oneValueHeader() throws BonitaException {
         final MappingBuilder mb = get(urlEqualTo("/"));
         for (int j = 0; j < ONE_HEADERS.size(); j++) {
             mb.withHeader(ONE_HEADERS.get(j).get(0), equalTo(ONE_HEADERS.get(j).get(1)));
@@ -795,7 +796,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void twoValuesHeader() throws BonitaException, InterruptedException {
+    public void twoValuesHeader() throws BonitaException {
         final MappingBuilder mb = get(urlEqualTo("/"));
         for (int j = 0; j < TWO_HEADERS.size(); j++) {
             mb.withHeader(TWO_HEADERS.get(j).get(0), equalTo(TWO_HEADERS.get(j).get(1)));
@@ -812,7 +813,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void emptyBody() throws BonitaException, InterruptedException {
+    public void emptyBody() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withRequestBody(equalTo(EMPTY))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -827,7 +828,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void notEmptyBody() throws BonitaException, InterruptedException {
+    public void notEmptyBody() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withRequestBody(equalTo(FULL))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -842,7 +843,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void basicAuthWithUsernameAndPassword() throws BonitaException, InterruptedException {
+    public void basicAuthWithUsernameAndPassword() throws BonitaException {
         stubFor(get(urlEqualTo("/"))
                 .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -857,7 +858,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void basicAuthWithUsernamePasswordAndLocalhost() throws BonitaException, InterruptedException {
+    public void basicAuthWithUsernamePasswordAndLocalhost() throws BonitaException {
         stubFor(get(urlEqualTo("/"))
                 .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -873,7 +874,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void basicAuthWithUsernamePasswordAndRealm() throws BonitaException, InterruptedException {
+    public void basicAuthWithUsernamePasswordAndRealm() throws BonitaException {
         stubFor(get(urlEqualTo("/"))
                 .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -889,7 +890,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws BonitaException
      */
     @Test
-    public void noServiceAvailable() throws InterruptedException, BonitaException {
+    public void noServiceAvailable() throws BonitaException {
         thrown.expect(ConnectorException.class);
         executeConnector(buildMethodParametersSet(GET));
     }
@@ -901,7 +902,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws BonitaException
      */
     @Test
-    public void unreachableURL() throws InterruptedException, BonitaException {
+    public void unreachableURL() throws BonitaException {
         thrown.expect(BonitaException.class);
         thrown.expectMessage("java.net.UnknownHostException: fakeURL");
 
@@ -915,7 +916,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws BonitaException
      */
     @Test
-    public void unreachablePort() throws InterruptedException, BonitaException {
+    public void unreachablePort() throws BonitaException {
         final String fakePort = "666";
         thrown.expect(BonitaException.class);
         thrown.expectMessage("org.apache.http.conn.HttpHostConnectException");

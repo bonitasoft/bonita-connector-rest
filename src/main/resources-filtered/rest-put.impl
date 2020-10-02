@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<implementation:connectorImplementation xmlns:implementation="http://www.bonitasoft.org/ns/connector/implementation/6.0">
+  <implementationId>${put.impl.id}</implementationId>
+  <implementationVersion>${put.impl.version}</implementationVersion>
+  <definitionId>${put.def.id}</definitionId>
+  <definitionVersion>${put.def.version}</definitionVersion>
+  <implementationClassname>${put.main-class}</implementationClassname>
+  <hasSources>false</hasSources>
+  <description>The implementation of the REST PUT Connector.</description>
+
+<!-- retrieved from the pom.xml at build time -->
+${connector-dependencies}
+
+</implementation:connectorImplementation>

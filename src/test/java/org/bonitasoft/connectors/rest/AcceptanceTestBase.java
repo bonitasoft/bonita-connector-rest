@@ -30,19 +30,19 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 /**
  * This class is used to handle WireMock Jetty server and BonitaSoft mock for the REST Connector UTs.
- *
  */
 public class AcceptanceTestBase {
+
     /**
      * The engine execution context of the BonitaSoft mock
      */
     private EngineExecutionContext engineExecutionContext;
-    
+
     /**
      * The apiAccessor BonitaSoft mock
      */
     private APIAccessor apiAccessor;
-    
+
     /**
      * The process API BonitaSoft mock
      */
@@ -52,7 +52,7 @@ public class AcceptanceTestBase {
      * The WireMock server (mock of the REST services)
      */
     protected static WireMockServer wireMockServer;
-    
+
     /**
      * The URL of the WireMock server
      */
@@ -81,7 +81,7 @@ public class AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Before
-    public void init() throws InterruptedException {
+    public void init() {
         setEngineExecutionContext(Mockito.mock(EngineExecutionContext.class));
         apiAccessor = Mockito.mock(APIAccessor.class);
         processAPI = Mockito.mock(ProcessAPI.class);
@@ -93,6 +93,7 @@ public class AcceptanceTestBase {
 
     /**
      * Get the engine execution context
+     * 
      * @return the engine execution context
      */
     public EngineExecutionContext getEngineExecutionContext() {
@@ -101,6 +102,7 @@ public class AcceptanceTestBase {
 
     /**
      * Set the engine execution context
+     * 
      * @param engineExecutionContext the engine execution context
      */
     public void setEngineExecutionContext(final EngineExecutionContext engineExecutionContext) {
@@ -109,6 +111,7 @@ public class AcceptanceTestBase {
 
     /**
      * Get the API accessor
+     * 
      * @return the API accessor
      */
     public APIAccessor getApiAccessor() {
@@ -117,12 +120,11 @@ public class AcceptanceTestBase {
 
     /**
      * Set the API accessor
+     * 
      * @param apiAccessor the API accessor
      */
     public void setApiAccessor(final APIAccessor apiAccessor) {
         this.apiAccessor = apiAccessor;
     }
-
-
 
 }
