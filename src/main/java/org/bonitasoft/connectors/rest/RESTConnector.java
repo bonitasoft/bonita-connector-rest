@@ -16,8 +16,6 @@ package org.bonitasoft.connectors.rest;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.net.HttpCookie;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -31,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -142,7 +139,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         messages.addAll(manageKeyValueCouples(urlheaders, URLHEADERS_INPUT_PARAMETER));
 
         if (!messages.isEmpty()) {
-            LOGGER.fine("validateInputParameters error: " + messages.toString());
+            LOGGER.fine(() -> String.format("validateInputParameters error: %s", messages.toString()));
             throw new ConnectorValidationException(this, messages);
         }
     }
@@ -261,10 +258,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             LOGGER.fine("Add the Proxy options");
         }
 
-        if (getAuth_type() == AuthorizationType.BASIC) {
+        if (getAuthType() == AuthorizationType.BASIC) {
             LOGGER.fine("Add basic auth");
             request.setAuthorization(buildBasicAuthorization());
-        } else if (getAuth_type() == AuthorizationType.DIGEST) {
+        } else if (getAuthType() == AuthorizationType.DIGEST) {
             LOGGER.fine("Add digest auth");
             request.setAuthorization(buildDigestAuthorization());
         }
@@ -277,9 +274,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return If the SSL is used or not
      */
     private boolean isSSLSet() {
-        return isStringInputValid(getTrust_store_file())
-                && isStringInputValid(getKey_store_file())
-                || getTrust_self_signed_certificate();
+        return isStringInputValid(getTrustStoreFile())
+                && isStringInputValid(getKeyStoreFile())
+                || getTrustSelfSignedCertificate();
     }
 
     /**
@@ -288,8 +285,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return If a Proxy is used or not
      */
     private boolean isProxySet() {
-        return isStringInputValid(getProxy_host())
-                && isStringInputValid(getProxy_protocol());
+        return isStringInputValid(getProxyHost())
+                && isStringInputValid(getProxyProtocol());
     }
 
     /**
@@ -299,17 +296,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private BasicDigestAuthorization buildDigestAuthorization() {
         final BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
-        authorization.setUsername(getAuth_username());
-        authorization.setPassword(getAuth_password());
+        authorization.setUsername(getAuthUsername());
+        authorization.setPassword(getAuthPassword());
 
-        if (isStringInputValid(getAuth_host())) {
-            authorization.setHost(getAuth_host());
+        if (isStringInputValid(getAuthHost())) {
+            authorization.setHost(getAuthHost());
         }
-        authorization.setPort(getAuth_port());
-        if (isStringInputValid(getAuth_realm())) {
-            authorization.setRealm(getAuth_realm());
+        authorization.setPort(getAuthPort());
+        if (isStringInputValid(getAuthRealm())) {
+            authorization.setRealm(getAuthRealm());
         }
-        authorization.setPreemptive(getAuth_preemptive());
+        authorization.setPreemptive(getAuthPreemptive());
         return authorization;
     }
 
@@ -320,17 +317,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private BasicDigestAuthorization buildBasicAuthorization() {
         final BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
-        authorization.setUsername(getAuth_username());
-        authorization.setPassword(getAuth_password());
+        authorization.setUsername(getAuthUsername());
+        authorization.setPassword(getAuthPassword());
 
-        if (isStringInputValid(getAuth_host())) {
-            authorization.setHost(getAuth_host());
+        if (isStringInputValid(getAuthHost())) {
+            authorization.setHost(getAuthHost());
         }
-        authorization.setPort(getAuth_port());
-        if (isStringInputValid(getAuth_realm())) {
-            authorization.setRealm(getAuth_realm());
+        authorization.setPort(getAuthPort());
+        if (isStringInputValid(getAuthRealm())) {
+            authorization.setRealm(getAuthRealm());
         }
-        authorization.setPreemptive(getAuth_preemptive());
+        authorization.setPreemptive(getAuthPreemptive());
 
         return authorization;
     }
@@ -342,23 +339,23 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private SSL buildSSL() {
         final SSL ssl = new SSL();
-        ssl.setSslVerifier(SSLVerifier.getSSLVerifierFromValue(getHostname_verifier().toUpperCase()));
-        ssl.setUseSelfSignedCertificate(getTrust_self_signed_certificate());
+        ssl.setSslVerifier(SSLVerifier.getSSLVerifierFromValue(getHostnameVerifier().toUpperCase()));
+        ssl.setUseSelfSignedCertificate(getTrustSelfSignedCertificate());
         ssl.setUseTLS(getTLS());
 
-        if (isStringInputValid(getTrust_store_file())
-                && isStringInputValid(getTrust_store_password())) {
+        if (isStringInputValid(getTrustStoreFile())
+                && isStringInputValid(getTrustStorePassword())) {
             final Store trustStore = new Store();
-            trustStore.setFile(new File(getTrust_store_file()));
-            trustStore.setPassword(getTrust_store_password());
+            trustStore.setFile(new File(getTrustStoreFile()));
+            trustStore.setPassword(getTrustStorePassword());
             ssl.setTrustStore(trustStore);
         }
 
-        if (isStringInputValid(getKey_store_file())
-                && isStringInputValid(getKey_store_password())) {
+        if (isStringInputValid(getKeyStoreFile())
+                && isStringInputValid(getKeyStorePassword())) {
             final Store keyStore = new Store();
-            keyStore.setFile(new File(getKey_store_file()));
-            keyStore.setPassword(getKey_store_password());
+            keyStore.setFile(new File(getKeyStoreFile()));
+            keyStore.setPassword(getKeyStorePassword());
             ssl.setKeyStore(keyStore);
         }
 
@@ -372,16 +369,16 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private Proxy buildProxy() {
         final Proxy proxy = new Proxy();
-        proxy.setProtocol(ProxyProtocol.valueOf(getProxy_protocol().toUpperCase()));
-        proxy.setHost(getProxy_host());
-        proxy.setPort(getProxy_port());
+        proxy.setProtocol(ProxyProtocol.valueOf(getProxyProtocol().toUpperCase()));
+        proxy.setHost(getProxyHost());
+        proxy.setPort(getProxyPort());
 
-        if (isStringInputValid(getProxy_username())) {
-            proxy.setUsername(getProxy_username());
+        if (isStringInputValid(getProxyUsername())) {
+            proxy.setUsername(getProxyUsername());
         }
 
-        if (isStringInputValid(getProxy_password())) {
-            proxy.setPassword(getProxy_password());
+        if (isStringInputValid(getProxyPassword())) {
+            proxy.setPassword(getProxyPassword());
         }
 
         return proxy;
@@ -418,37 +415,31 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     private void parseResponse(final HttpEntity entity) throws IOException {
-        try (InputStream inputStream = entity.getContent()) {
-            final StringWriter stringWriter = new StringWriter();
-            IOUtils.copy(inputStream, stringWriter, Charset.defaultCharset());
-            final String stringContent = stringWriter.toString();
-            final String bodyResponse = stringContent != null ? stringContent.trim() : "";
-            setBody(bodyResponse);
-            setBody(Collections.<String, Object> emptyMap());
-            final Header contentType = entity.getContentType();
-            if (contentType != null
-                    && contentType.getValue() != null
-                    && !contentType.getValue().isEmpty()
-                    && contentType.getValue().toLowerCase().contains("json")) {
-                try {
-                    if (bodyResponse.startsWith("[")) {
-                        setBody(new ObjectMapper().readValue(bodyResponse, List.class));
-                    } else if (bodyResponse.startsWith("{")) {
-                        setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
-                    } else {
-                        setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
-                    }
-                } catch (JsonParseException | JsonMappingException e) {
-                    LOGGER.warning(String.format(
-                            "BodyAsObject output cannot be set. Response content is not valid json(%s).",
-                            bodyResponse));
+        String stringContent = EntityUtils.toString(entity, Charset.defaultCharset());
+        final String bodyResponse = stringContent != null ? stringContent.trim() : "";
+        setBody(bodyResponse);
+        setBody(Collections.<String, Object> emptyMap());
+        ContentType contentType = ContentType.get(entity);
+        if (contentType != null
+                && ContentType.APPLICATION_JSON.getMimeType().equals(contentType.getMimeType())) {
+            try {
+                if (bodyResponse.startsWith("[")) {
+                    setBody(new ObjectMapper().readValue(bodyResponse, List.class));
+                } else if (bodyResponse.startsWith("{")) {
+                    setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
+                } else {
+                    setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
                 }
-            } else {
+            } catch (JsonParseException | JsonMappingException e) {
                 LOGGER.warning(String.format(
-                        "Body as map output cannot be set. Response content type is not json compliant(%s).",
-                        contentType != null ? contentType.getValue()
-                                : "no Content-Type in response header"));
+                        "BodyAsObject output cannot be set. Response content is not valid json(%s).",
+                        bodyResponse));
             }
+        } else {
+            LOGGER.warning(() -> String.format(
+                    "Body as map output cannot be set. Response content type is not json compliant(%s).",
+                    contentType != null ? contentType
+                            : "no Content-Type in response header"));
         }
     }
 
@@ -530,7 +521,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
             LOGGER.fine("Response recieved.");
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            final String re = httpResponse.getStatusLine().getReasonPhrase();
             if (!statusSuccessful(statusCode)) {
                 throw new ConnectorException(
                         String.format("%s response status is not successful: %s - %s", request, statusCode,

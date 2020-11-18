@@ -29,6 +29,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -454,6 +455,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         checkResultIsPresent(executeConnector(buildContentTypeParametersSet(PLAIN_TEXT)));
     }
+    
 
     /**
      * Test the json content type
@@ -686,12 +688,38 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @throws InterruptedException exception
      */
     @Test
-    public void iso88591Charset() throws BonitaException {
+    public void iso88591CharsetRequest() throws BonitaException {
         stubFor(post(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(executeConnector(buildCharsetParametersSet(ISO_8859_1)));
+    }
+    
+    @Test
+    public void iso88591CharsetResponse() throws BonitaException, UnsupportedEncodingException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
+                .willReturn(aResponse()
+                        .withHeader(WM_CONTENT_TYPE, PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1)
+                        .withBody(new String("le text reçu a été encodé en ISO-8859-1").getBytes(ISO_8859_1))
+                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSet(ISO_8859_1));
+        assertEquals("le text reçu a été encodé en ISO-8859-1", output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
+    }
+    
+    @Test
+    public void utf8CharsetResponse() throws BonitaException, UnsupportedEncodingException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
+                .willReturn(aResponse()
+                        .withHeader(WM_CONTENT_TYPE, PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8)
+                        .withBody(new String("le text reçu a été encodé en UTF8").getBytes(UTF8))
+                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSet(UTF8));
+        assertEquals("le text reçu a été encodé en UTF8", output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
     }
 
     /**
