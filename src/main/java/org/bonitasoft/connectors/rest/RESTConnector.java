@@ -522,9 +522,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             LOGGER.fine("Response recieved.");
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
             if (!statusSuccessful(statusCode)) {
-                throw new ConnectorException(
-                        String.format("%s response status is not successful: %s - %s", request, statusCode,
-                                httpResponse.getStatusLine().getReasonPhrase()));
+                LOGGER.warning(() -> String.format("%s response status is not successful: %s - %s", request, statusCode,
+                        httpResponse.getStatusLine().getReasonPhrase()));
             }
             setOutputs(httpResponse, request);
         } finally {

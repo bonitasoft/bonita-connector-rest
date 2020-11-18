@@ -919,8 +919,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void noServiceAvailable() throws BonitaException {
-        thrown.expect(ConnectorException.class);
-        executeConnector(buildMethodParametersSet(GET));
+        Map<String, Object> output = executeConnector(buildMethodParametersSet(GET));
+        assertEquals(404, output.get(RESTConnector.STATUS_CODE_OUTPUT_PARAMETER));
     }
 
     /**
