@@ -100,6 +100,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * The class logger
      */
     private static final Logger LOGGER = Logger.getLogger(RESTConnector.class.getName());
+    /**
+     * Forces the character encoding of the HTTP response body to the default JVM Charset if no Charset is defined in the response header.
+     * If this property is not set, the ISO-8859-1 Charset is used as fallback, as specified in the specification.
+     */
+    static final String DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY = "org.bonitasoft.connectors.rest.response.fallbackToJVMCharset";
 
     @Override
     public void validateInputParameters() throws ConnectorValidationException {
@@ -415,7 +420,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     private void parseResponse(final HttpEntity entity) throws IOException {
-        String stringContent = EntityUtils.toString(entity, Charset.defaultCharset());
+        boolean fallbackToDefaultCharset = Boolean.parseBoolean(System.getProperty(DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY));
+        String stringContent = EntityUtils.toString(entity,fallbackToDefaultCharset ? Charset.defaultCharset() : null);
         final String bodyResponse = stringContent != null ? stringContent.trim() : "";
         setBody(bodyResponse);
         setBody(Collections.<String, Object> emptyMap());
