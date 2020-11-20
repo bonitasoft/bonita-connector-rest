@@ -24,12 +24,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -42,6 +40,7 @@ import org.apache.http.HttpStatus;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.exception.BonitaException;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,6 +55,7 @@ import com.google.common.collect.Maps;
 public class RESTConnectorTest extends AcceptanceTestBase {
 
     private static final int NB_OUTPUTS = 5;
+    
     //WireMock
     /**
      * All HTTP static strings used by WireMock to do tests
@@ -192,6 +192,11 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         HEADERS_ERROR.add(header2);
         HEADERS_ERROR.add(header3);
         HEADERS_ERROR.add(header4);
+    }
+    
+    @After
+    public void resetSystemProperies() throws Exception {
+        System.setProperty(RESTConnector.DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY, "");
     }
 
     /**
@@ -707,6 +712,31 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         Map<String, Object> output = executeConnector(buildCharsetParametersSet(ISO_8859_1));
         assertEquals("le text reçu a été encodé en ISO-8859-1", output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
+    }
+    
+    @Test
+    public void useISO88591CharsetWhenNoContentType() throws BonitaException, UnsupportedEncodingException {
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
+                .willReturn(aResponse()
+                        .withBody(new String("le text reçu n'a pas de header").getBytes(ISO_8859_1))
+                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSet(ISO_8859_1));
+        assertEquals("le text reçu n'a pas de header", output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
+    }
+    
+    @Test
+    public void useDefaultCharsetWhenNoContentTypeAndFallbackPropertyIsSet() throws BonitaException, UnsupportedEncodingException {
+        System.setProperty(RESTConnector.DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY, "true");
+        stubFor(post(urlEqualTo("/"))
+                .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
+                .willReturn(aResponse()
+                        .withBody(new String("le text reçu a été encodé avec le charset par default").getBytes(Charset.defaultCharset()))
+                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSet(ISO_8859_1));
+        assertEquals("le text reçu a été encodé avec le charset par default", output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
     }
     
     @Test
