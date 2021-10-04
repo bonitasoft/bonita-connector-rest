@@ -15,7 +15,6 @@
   <input name="do_not_follow_redirect" type="java.lang.Boolean" mandatory="false"/>
   <input name="ignore_body" type="java.lang.Boolean" mandatory="false"/>
   <input name="TLS" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
-  <input name="trust_self_signed_certificate" type="java.lang.Boolean" mandatory="false" defaultValue="false"/>
   <input name="hostname_verifier" type="java.lang.String" mandatory="false"/>
   <input name="trust_store_file" type="java.lang.String" mandatory="false"/>
   <input name="trust_store_password" type="java.lang.String" mandatory="false"/>
@@ -35,6 +34,7 @@
   <input name="proxy_password" type="java.lang.String"/>
   <input name="socket_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
   <input name="connection_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
+  <input name="trust_strategy" type="java.lang.String" mandatory="false" defaultValue="DEFAULT"/>
   
   <!-- outputs -->
   <output name="bodyAsString" type="java.lang.String"/>
@@ -88,12 +88,8 @@
   <page id="SSLPage">
     <widget xsi:type="definition:Group" id="ssl" optional="false">
       <widget xsi:type="definition:Checkbox" id="TLS_widget" inputName="TLS"/>
-      <widget xsi:type="definition:Checkbox" id="trust_self_signed_certificate_widget" inputName="trust_self_signed_certificate"/>
-      <widget xsi:type="definition:Select" id="hostname_verifier_widget" inputName="hostname_verifier">
-        <items>Strict</items>
-        <items>Browser Compatible</items>
-        <items>Allow All</items>
-      </widget>
+      <widget xsi:type="definition:Text" id="trust_certificate_strategy_widget" inputName="trust_strategy"/>
+      <widget xsi:type="definition:Text" id="hostname_verifier_widget" inputName="hostname_verifier" />
     </widget>
     <widget xsi:type="definition:Group" id="trust_store" optional="false">
       <widget xsi:type="definition:Text" id="trust_store_file_widget" inputName="trust_store_file"/>
