@@ -20,16 +20,13 @@ public class SSL {
      */
     private SSLVerifier sslVerifier = SSLVerifier.STRICT;
 
-    /**
-     * Is the self signed certificate has to be used.
-     */
-    private boolean useSelfSignedCertificate = false;
+    private TrustCertificateStrategy trustCertificateStrategy = TrustCertificateStrategy.DEFAULT;
 
     /**
      * Is TLS has to be used.
      */
     private boolean useTLS = false;
-    
+
     /**
      * Trust store value getter.
      * @return The truststore value.
@@ -78,20 +75,12 @@ public class SSL {
         this.sslVerifier = sslVerifier;
     }
 
-    /**
-     * Use self signed certificate value getter.
-     * @return The Use self signed certificate value.
-     */
-    public boolean isUseSelfSignedCertificate() {
-        return useSelfSignedCertificate;
+    public TrustCertificateStrategy getTrustCertificateStrategy() {
+        return trustCertificateStrategy;
     }
 
-    /**
-     * Use self signed certificate value setter.
-     * @param useSelfSignedCertificate The Use self signed certificate new value.
-     */
-    public void setUseSelfSignedCertificate(final boolean useSelfSignedCertificate) {
-        this.useSelfSignedCertificate = useSelfSignedCertificate;
+    public void setTrustCertificateStrategy(final TrustCertificateStrategy trustCertificateStrategy) {
+        this.trustCertificateStrategy = trustCertificateStrategy;
     }
     
     /**

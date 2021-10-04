@@ -1,382 +1,387 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.bonitasoft.connectors</groupId>
-    <artifactId>bonita-connector-rest</artifactId>
-    <version>1.0.11-SNAPSHOT</version>
+	<groupId>org.bonitasoft.connectors</groupId>
+	<artifactId>bonita-connector-rest</artifactId>
+	<version>1.1.0-SNAPSHOT</version>
 
-    <name>Bonita Rest Connector</name>
-    <description>Rest Connector for Bonita</description>
-    <url>https://www.bonitasoft.com</url>
+	<name>Bonita Rest Connector</name>
+	<description>Rest Connector for Bonita</description>
+	<url>https://www.bonitasoft.com</url>
 
-    <developers>
-        <developer>
-            <id>bonitasoft</id>
-            <name>Bonitasoft</name>
-            <email>rd.user@bonitasoft.com</email>
-            <organization>Bonitasoft</organization>
-            <organizationUrl>https://www.bonitasoft.com</organizationUrl>
-        </developer>
-    </developers>
+	<developers>
+		<developer>
+			<id>bonitasoft</id>
+			<name>Bonitasoft</name>
+			<email>rd.user@bonitasoft.com</email>
+			<organization>Bonitasoft</organization>
+			<organizationUrl>https://www.bonitasoft.com</organizationUrl>
+		</developer>
+	</developers>
 
-    <licenses>
-        <license>
-            <name>GPL-v2.0</name>
-            <url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
-        </license>
-    </licenses>
+	<licenses>
+		<license>
+			<name>GPL-v2.0</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+		</license>
+	</licenses>
 
-    <properties>
-        <!-- Maven -->
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.build.timestamp.format>yyyy.MM.dd-hh.mm</maven.build.timestamp.format>
+	<properties>
+		<!-- Maven -->
+		<java.version>1.8</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.build.timestamp.format>yyyy.MM.dd-hh.mm</maven.build.timestamp.format>
 
-        <!--Get Connector -->
-        <get.def.id>rest-get</get.def.id>
-        <get.def.version>1.1.0</get.def.version>
-        <get.impl.id>${get.def.id}-impl</get.impl.id>
-        <get.impl.version>${project.version}</get.impl.version>
-        <get.main-class>org.bonitasoft.connectors.rest.GetConnectorImpl</get.main-class>
+		<!--Get Connector -->
+		<get.def.id>rest-get</get.def.id>
+		<get.def.version>1.2.0</get.def.version>
+		<get.impl.id>${get.def.id}-impl</get.impl.id>
+		<get.impl.version>${project.version}</get.impl.version>
+		<get.main-class>org.bonitasoft.connectors.rest.GetConnectorImpl</get.main-class>
 
-        <!--Post Connector -->
-        <post.def.id>rest-post</post.def.id>
-        <post.def.version>1.1.0</post.def.version>
-        <post.impl.id>${post.def.id}-impl</post.impl.id>
-        <post.impl.version>${project.version}</post.impl.version>
-        <post.main-class>org.bonitasoft.connectors.rest.PostConnectorImpl</post.main-class>
+		<!--Post Connector -->
+		<post.def.id>rest-post</post.def.id>
+		<post.def.version>1.2.0</post.def.version>
+		<post.impl.id>${post.def.id}-impl</post.impl.id>
+		<post.impl.version>${project.version}</post.impl.version>
+		<post.main-class>org.bonitasoft.connectors.rest.PostConnectorImpl</post.main-class>
 
-        <!--Put Connector -->
-        <put.def.id>rest-put</put.def.id>
-        <put.def.version>1.1.0</put.def.version>
-        <put.impl.id>${put.def.id}-impl</put.impl.id>
-        <put.impl.version>${project.version}</put.impl.version>
-        <put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</put.main-class>
-        
-        <!--Delete Connector -->
-        <delete.def.id>rest-delete</delete.def.id>
-        <delete.def.version>1.1.0</delete.def.version>
-        <delete.impl.id>${delete.def.id}-impl</delete.impl.id>
-        <delete.impl.version>${project.version}</delete.impl.version>
-        <delete.main-class>org.bonitasoft.connectors.rest.DeleteConnectorImpl</delete.main-class>
+		<!--Put Connector -->
+		<put.def.id>rest-put</put.def.id>
+		<put.def.version>1.2.0</put.def.version>
+		<put.impl.id>${put.def.id}-impl</put.impl.id>
+		<put.impl.version>${project.version}</put.impl.version>
+		<put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</put.main-class>
 
-        <!-- Connector dependencies -->
-        <commons-logging.version>1.1.3</commons-logging.version>
-        <commons-codec.version>1.6</commons-codec.version>
-        <jackson-core.version>2.10.1</jackson-core.version>
-            
-        <!-- Bonita -->
-        <bonita.engine.version>7.11.0</bonita.engine.version>
+		<!--Delete Connector -->
+		<delete.def.id>rest-delete</delete.def.id>
+		<delete.def.version>1.2.0</delete.def.version>
+		<delete.impl.id>${delete.def.id}-impl</delete.impl.id>
+		<delete.impl.version>${project.version}</delete.impl.version>
+		<delete.main-class>org.bonitasoft.connectors.rest.DeleteConnectorImpl</delete.main-class>
 
-        <!-- Test -->
-        <mockito.version>1.9.5</mockito.version>
-        <wiremock.version>1.50</wiremock.version>
-        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
-        <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
+		<!-- Connector dependencies -->
+		<commons-logging.version>1.1.3</commons-logging.version>
+		<commons-codec.version>1.6</commons-codec.version>
+		<jackson-core.version>2.10.1</jackson-core.version>
 
-        <!-- Maven plugins -->
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven-assembly-plugin.version>3.1.1</maven-assembly-plugin.version>
-        <groovy-maven-plugin.version>2.1.1</groovy-maven-plugin.version>
-        <groovy-all.version>2.4.16</groovy-all.version>
-        <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
-        <maven-source-plugin.version>3.2.0</maven-source-plugin.version>
+		<!-- Bonita -->
+		<bonita.engine.version>7.11.0</bonita.engine.version>
 
-        <!-- Sonar -->
-        <sonar.projectKey>bonitasoft_bonita-connector-rest</sonar.projectKey>
-        <sonar.organization>bonitasoft</sonar.organization>
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    </properties>
-    
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.bonitasoft.engine</groupId>
-                <artifactId>bonita-engine</artifactId>
-                <version>${bonita.engine.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-core</artifactId>
-                <version>${jackson-core.version}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+		<!-- Test -->
+		<mockito.version>1.9.5</mockito.version>
+		<wiremock.version>1.50</wiremock.version>
+		<jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+		<sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
 
+		<!-- Maven plugins -->
+		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<maven-assembly-plugin.version>3.1.1</maven-assembly-plugin.version>
+		<groovy-maven-plugin.version>2.1.1</groovy-maven-plugin.version>
+		<groovy-all.version>2.4.16</groovy-all.version>
+		<maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
+		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+		<maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+		<maven-source-plugin.version>3.2.0</maven-source-plugin.version>
 
-    <dependencies>
-        <!-- Bonita -->
-        <dependency>
-            <artifactId>bonita-common</artifactId>
-            <groupId>org.bonitasoft.engine</groupId>
-            <version>${bonita.engine.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- connector -->
-       <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>${commons-logging.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>${commons-codec.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        
-        <!-- tests -->
-        <dependency>
-            <artifactId>junit</artifactId>
-            <groupId>junit</groupId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <version>${wiremock.version}</version>
-            <classifier>standalone</classifier>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+		<!-- Sonar -->
+		<sonar.projectKey>bonitasoft_bonita-connector-rest</sonar.projectKey>
+		<sonar.organization>bonitasoft</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.bonitasoft.engine</groupId>
+				<artifactId>bonita-engine</artifactId>
+				<version>${bonita.engine.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-core</artifactId>
+				<version>${jackson-core.version}</version>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 
-    <build>
-        <defaultGoal>verify</defaultGoal>
-        <resources>
-            <resource>
-                <directory>src/main/resources-filtered</directory>
-                <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-            </resource>
-        </resources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>${maven-assembly-plugin.version}</version>
-                    <configuration>
-                        <descriptorSourceDirectory>${project.basedir}/src/assembly</descriptorSourceDirectory>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>package-connectors</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>single</goal>
-                            </goals>
-                            <configuration>
-                                <appendAssemblyId>true</appendAssemblyId>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.gmaven</groupId>
-                    <artifactId>groovy-maven-plugin</artifactId>
-                    <version>${groovy-maven-plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.codehaus.groovy</groupId>
-                            <artifactId>groovy-all</artifactId>
-                            <version>${groovy-all.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven-surefire-plugin.version}</version>
-                    <configuration>
-                        <enableAssertions>true</enableAssertions>
-                        <forkCount>1</forkCount>
-                        <reuseForks>true</reuseForks>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco-maven-plugin.version}</version>
-                    <configuration>
-                        <append>true</append>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>prepare-agent</id>
-                            <goals>
-                                <goal>prepare-agent</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>prepare-agent-integration</id>
-                            <goals>
-                                <goal>prepare-agent-integration</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>jacoco-site</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>report</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.sonarsource.scanner.maven</groupId>
-                    <artifactId>sonar-maven-plugin</artifactId>
-                    <version>${sonar-maven-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>${nexus-staging-maven-plugin.version}</version>
-                    <extensions>true</extensions>
-                    <configuration>
-                        <serverId>ossrh</serverId>
-                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                        <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+	<dependencies>
+		<!-- Bonita -->
+		<dependency>
+			<artifactId>bonita-common</artifactId>
+			<groupId>org.bonitasoft.engine</groupId>
+			<version>${bonita.engine.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.gmaven</groupId>
-                <artifactId>groovy-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <configuration>
-                            <source>${project.basedir}/src/script/dependencies-as-var.groovy</source>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${maven-source-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+		<!-- connector -->
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>${commons-logging.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<scope>provided</scope>
+		</dependency>
 
-    <profiles>
-        <!-- Deployment profile (required so these plugins are only used when deploying) -->
-        <profile>
-            <id>deploy</id>
-            <build>
-                <plugins>
-                    <!-- GPG plugin -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                                <configuration>
-                                    <!-- Prevent `gpg` from using pinentry programs -->
-                                    <gpgArguments>
-                                        <arg>--pinentry-mode</arg>
-                                        <arg>loopback</arg>
-                                    </gpgArguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+		<!-- tests -->
+		<dependency>
+			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock</artifactId>
+			<version>${wiremock.version}</version>
+			<classifier>standalone</classifier>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
-    <distributionManagement>
-        <!-- Central Repository -->
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
-    <scm>
-        <developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
-        <connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
-        <url>https://github.com/bonitasoft/bonita-connector-rest</url>
-        <tag>HEAD</tag>
-    </scm>
+	<build>
+		<defaultGoal>verify</defaultGoal>
+		<resources>
+			<resource>
+				<directory>src/main/resources-filtered</directory>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>${maven-assembly-plugin.version}</version>
+					<configuration>
+						<descriptorSourceDirectory>${project.basedir}/src/assembly</descriptorSourceDirectory>
+					</configuration>
+					<executions>
+						<execution>
+							<id>package-connectors</id>
+							<phase>package</phase>
+							<goals>
+								<goal>single</goal>
+							</goals>
+							<configuration>
+								<appendAssemblyId>true</appendAssemblyId>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.gmaven</groupId>
+					<artifactId>groovy-maven-plugin</artifactId>
+					<version>${groovy-maven-plugin.version}</version>
+					<dependencies>
+						<dependency>
+							<groupId>org.codehaus.groovy</groupId>
+							<artifactId>groovy-all</artifactId>
+							<version>${groovy-all.version}</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven-surefire-plugin.version}</version>
+					<configuration>
+						<enableAssertions>true</enableAssertions>
+						<forkCount>1</forkCount>
+						<reuseForks>true</reuseForks>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco-maven-plugin.version}</version>
+					<configuration>
+						<append>true</append>
+					</configuration>
+					<executions>
+						<execution>
+							<id>prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>prepare-agent-integration</id>
+							<goals>
+								<goal>prepare-agent-integration</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>jacoco-site</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>report</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.sonarsource.scanner.maven</groupId>
+					<artifactId>sonar-maven-plugin</artifactId>
+					<version>${sonar-maven-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.sonatype.plugins</groupId>
+					<artifactId>nexus-staging-maven-plugin</artifactId>
+					<version>${nexus-staging-maven-plugin.version}</version>
+					<extensions>true</extensions>
+					<configuration>
+						<serverId>ossrh</serverId>
+						<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+						<autoReleaseAfterClose>false</autoReleaseAfterClose>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.gmaven</groupId>
+				<artifactId>groovy-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>execute</goal>
+						</goals>
+						<configuration>
+							<source>${project.basedir}/src/script/dependencies-as-var.groovy</source>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<!-- Deployment profile (required so these plugins are only used when deploying) -->
+		<profile>
+			<id>deploy</id>
+			<build>
+				<plugins>
+					<!-- GPG plugin -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<configuration>
+									<!-- Prevent `gpg` from using pinentry programs -->
+									<gpgArguments>
+										<arg>--pinentry-mode</arg>
+										<arg>loopback</arg>
+									</gpgArguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<distributionManagement>
+		<!-- Central Repository -->
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<scm>
+		<developerConnection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
+		<connection>scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</connection>
+		<url>https://github.com/bonitasoft/bonita-connector-rest</url>
+		<tag>HEAD</tag>
+	</scm>
 
 </project>
