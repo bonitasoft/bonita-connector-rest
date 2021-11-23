@@ -40,10 +40,13 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
 import org.bonitasoft.engine.connector.ConnectorException;
@@ -1034,6 +1037,21 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 				.isInstanceOf(ConnectorValidationException.class)
 				.hasMessage("'unknownStrategy' option is invalid for trust_strategy. Only one of [DEFAULT, TRUST_SELF_SIGNED, TRUST_ALL] is supported.");
 	}
+	
+	@Test
+    public void should_support_url_encoded_content_type() throws Exception {
+	    LinkedHashMap requestBody = new LinkedHashMap();
+	    requestBody.put("name","value1");
+	    requestBody.put("token","value2");
+        stubFor(post(urlEqualTo("/"))
+	            .withHeader(WM_CONTENT_TYPE, equalTo(ContentType.APPLICATION_FORM_URLENCODED.getMimeType() + "; " + WM_CHARSET + "=" + UTF8))
+                .withRequestBody(containing(WireMockUtil.toFormUrlEncoded(requestBody)))
+	            .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildContentTypeParametersSet(ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
+        parameters.put(AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER, "name=value1&token=value2");
+        checkResultIsPresent(executeConnector(parameters));
+    }
 
 	/**
 	 * Generic test: should return OK STATUS as the WireMock stub is set each time
@@ -1059,5 +1077,37 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 		assertTrue(statusCode instanceof Integer);
 		final Integer restStatusCode = (Integer) statusCode;
 		assertEquals(httpStatus, restStatusCode.intValue());
+	}
+	
+	public static class WireMockUtil {
+	    public static String toFormUrlEncoded(LinkedHashMap<String, String> map) {
+	        if (map == null) {
+	            return "";
+	        }
+	        StringBuilder sb = new StringBuilder();
+	        Iterator<String> it = map.keySet().iterator();
+	        while (it.hasNext()) {
+	            String key = it.next();
+	            String value = map.get(key);
+	            appendFormUrlEncoded(key,value,sb);
+	            if (it.hasNext()) {
+	                sb.append('&');
+	            }
+	        }
+	        return sb.toString();
+	    }
+
+	    public static String toFormUrlEncoded(String key, String value) {
+	        StringBuilder sb = new StringBuilder();
+	        appendFormUrlEncoded(key, value,sb);
+	        return sb.toString();
+	    }
+
+	    public static void appendFormUrlEncoded(String key, String value, StringBuilder sb) {
+	        sb.append(key).append('=');
+	        if (value != null) {
+	            sb.append(value);
+	        }
+	    }
 	}
 }

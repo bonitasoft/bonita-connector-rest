@@ -239,12 +239,16 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 		String bodyStr = "";
 		if (getBody() != null) {
 			bodyStr = getBody();
-			request.setContentType(ContentType.create(getContentType(), Charset.forName(getCharset())));
 		}
-
+		
 		request.setBody(bodyStr);
 		LOGGER.fine("Body set to: " + request.getBody().toString());
 		request.setRestMethod(HTTPMethod.getRESTHTTPMethodFromValue(getMethod()));
+		
+		if(request.getRestMethod() == HTTPMethod.POST || request.getRestMethod() == HTTPMethod.PUT) {
+		    request.setContentType(ContentType.create(getContentType(), Charset.forName(getCharset())));
+		}
+		
 		LOGGER.fine("Method set to: " + request.getRestMethod().toString());
 		request.setRedirect(!getDoNotFollowRedirect());
 		LOGGER.fine("Follow redirect set to: " + request.isRedirect());
@@ -252,7 +256,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 		LOGGER.fine("Ignore body set to: " + request.isIgnore());
 		for (final Object urlheader : getUrlHeaders()) {
 			final List<?> urlheaderRow = (List<?>) urlheader;
-			request.addHeader(urlheaderRow.get(0).toString(), urlheaderRow.get(1).toString());
+			String name = urlheaderRow.get(0).toString();
+            String value = urlheaderRow.get(1).toString();
+            request.addHeader(name, value);
 			LOGGER.fine("Add header: " + urlheaderRow.get(0).toString() + " set as " + urlheaderRow.get(1).toString());
 		}
 		for (final Object urlCookie : getUrlCookies()) {

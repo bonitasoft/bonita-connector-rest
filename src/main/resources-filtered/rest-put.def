@@ -49,6 +49,7 @@
     <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
 		<items>application/json</items>
 		<items>application/xml</items>
+		<items>application/x-www-form-urlencoded</items>
 		<items>text/html</items>
 		<items>text/plain</items>
 		<items>text/xml</items>
