@@ -1,101 +1,99 @@
 package org.bonitasoft.connectors.rest.model;
 
-/**
- * This class reflects the information for SSL.
- */
+/** This class reflects the information for SSL. */
 public class SSL {
-    
-    /**
-     * The truststore.
-     */
-    private Store trustStore = null;
 
-    /**
-     * The key store.
-     */
-    private Store keyStore = null;
+  /** The truststore. */
+  private Store trustStore = null;
 
-    /**
-     * The SSL verifier.
-     */
-    private SSLVerifier sslVerifier = SSLVerifier.STRICT;
+  /** The key store. */
+  private Store keyStore = null;
 
-    private TrustCertificateStrategy trustCertificateStrategy = TrustCertificateStrategy.DEFAULT;
+  /** The SSL verifier. */
+  private SSLVerifier sslVerifier = SSLVerifier.STRICT;
 
-    /**
-     * Is TLS has to be used.
-     */
-    private boolean useTLS = false;
+  private TrustCertificateStrategy trustCertificateStrategy = TrustCertificateStrategy.DEFAULT;
 
-    /**
-     * Trust store value getter.
-     * @return The truststore value.
-     */
-    public Store getTrustStore() {
-        return trustStore;
-    }
+  /** Is TLS has to be used. */
+  private boolean useTLS = false;
 
-    /**
-     * Truststore value setter.
-     * @param trustStore The truststore new value.
-     */
-    public void setTrustStore(final Store trustStore) {
-        this.trustStore = trustStore;
-    }
-    
-    /**
-     * Key store value getter.
-     * @return The key store value.
-     */
-    public Store getKeyStore() {
-        return keyStore;
-    }
+  /**
+   * Trust store value getter.
+   *
+   * @return The truststore value.
+   */
+  public Store getTrustStore() {
+    return trustStore;
+  }
 
-    /**
-     * Keystore value setter.
-     * @param keyStore The keystore new value.
-     */
-    public void setKeyStore(final Store keyStore) {
-        this.keyStore = keyStore;
-    }
+  /**
+   * Truststore value setter.
+   *
+   * @param trustStore The truststore new value.
+   */
+  public void setTrustStore(final Store trustStore) {
+    this.trustStore = trustStore;
+  }
 
-    /**
-     * SSL verifier value getter.
-     * @return The SSL verifier value.
-     */
-    public SSLVerifier getSslVerifier() {
-        return sslVerifier;
-    }
+  /**
+   * Key store value getter.
+   *
+   * @return The key store value.
+   */
+  public Store getKeyStore() {
+    return keyStore;
+  }
 
-    /**
-     * SSL verifier value setter.
-     * @param sslVerifier The SSL verifier new value.
-     */
-    public void setSslVerifier(final SSLVerifier sslVerifier) {
-        this.sslVerifier = sslVerifier;
-    }
+  /**
+   * Keystore value setter.
+   *
+   * @param keyStore The keystore new value.
+   */
+  public void setKeyStore(final Store keyStore) {
+    this.keyStore = keyStore;
+  }
 
-    public TrustCertificateStrategy getTrustCertificateStrategy() {
-        return trustCertificateStrategy;
-    }
+  /**
+   * SSL verifier value getter.
+   *
+   * @return The SSL verifier value.
+   */
+  public SSLVerifier getSslVerifier() {
+    return sslVerifier;
+  }
 
-    public void setTrustCertificateStrategy(final TrustCertificateStrategy trustCertificateStrategy) {
-        this.trustCertificateStrategy = trustCertificateStrategy;
-    }
-    
-    /**
-     * Use TLS value getter.
-     * @return The Use TLS value.
-     */
-    public boolean isUseTLS() {
-        return useTLS;
-    }
+  /**
+   * SSL verifier value setter.
+   *
+   * @param sslVerifier The SSL verifier new value.
+   */
+  public void setSslVerifier(final SSLVerifier sslVerifier) {
+    this.sslVerifier = sslVerifier;
+  }
 
-    /**
-     * Use TLS setter.
-     * @param useTLS The Use TLS new value.
-     */
-    public void setUseTLS(final boolean useTLS) {
-        this.useTLS = useTLS;
-    }
+  public TrustCertificateStrategy getTrustCertificateStrategy() {
+    return trustCertificateStrategy;
+  }
+
+  public void setTrustCertificateStrategy(final TrustCertificateStrategy trustCertificateStrategy) {
+    this.trustCertificateStrategy = trustCertificateStrategy;
+  }
+
+  /**
+   * Use TLS value getter.
+   *
+   * @return The Use TLS value.
+   */
+  public boolean isUseTLS() {
+    return useTLS;
+  }
+
+  /**
+   * Use TLS setter.
+   *
+   * @param useTLS The Use TLS new value.
+   */
+  public void setUseTLS(final boolean useTLS) {
+    this.useTLS = useTLS;
+  }
 }

@@ -1,164 +1,161 @@
 package org.bonitasoft.connectors.rest.model;
 
-/**
- * This class reflects the information for a Basic or Digest authorization of a HTTP request.
- */
+/** This class reflects the information for a Basic or Digest authorization of a HTTP request. */
 public class BasicDigestAuthorization implements Authorization {
 
-    /**
-     * Is the authorization information for a Basic authorization.
-     */
-    private boolean basic = true;
-    
-    /**
-     * The username value.
-     */
-    private String username = null;
-    
-    /**
-     * The password value.
-     */
-    private String password = null;
-    
-    /**
-     * The host value.
-     */
-    private String host = null;
-    
-    /**
-     * The port value.
-     */
-    private Integer port = null;
-    
-    /**
-     * The realm value.
-     */
-    private String realm = null;
-    
-    /**
-     * Is this authorization preemptive.
-     */
-    private boolean isPreemptive = true;
+  /** Is the authorization information for a Basic authorization. */
+  private boolean basic = true;
 
-    /**
-     * Constructor setting if the authorization is a Basic typed one.
-     * Default Constructor.
-     * @param basic States if it is a Basic authorization.
-     */
-    public BasicDigestAuthorization(final boolean basic) {
-        this.basic = basic;
-    }
-    
-    /**
-     * Username value getter.
-     * @return The username value.
-     */
-    public String getUsername() {
-        return username;
-    }
+  /** The username value. */
+  private String username = null;
 
-    /**
-     * Username value setter.
-     * @param username The new username value.
-     */
-    public void setUsername(final String username) {
-        this.username = username;
-    }
+  /** The password value. */
+  private String password = null;
 
-    /**
-     * Password value getter.
-     * @return The password value.
-     */
-    public String getPassword() {
-        return password;
-    }
+  /** The host value. */
+  private String host = null;
 
-    /**
-     * Password value setter.
-     * @param password The new password value.
-     */
-    public void setPassword(final String password) {
-        this.password = password;
-    }
+  /** The port value. */
+  private Integer port = null;
 
-    /**
-     * Host value getter.
-     * @return The host value.
-     */
-    public String getHost() {
-        return host;
-    }
+  /** The realm value. */
+  private String realm = null;
 
-    /**
-     * Host value setter.
-     * @param host The new Host value.
-     */
-    public void setHost(final String host) {
-        this.host = host;
-    }
-    
-    /**
-     * Port value getter.
-     * @return The port value.
-     */
-    public Integer getPort() {
-        return port;
-    }
+  /** Is this authorization preemptive. */
+  private boolean isPreemptive = true;
 
-    /**
-     * Port value setter.
-     * @param port The new Port value.
-     */
-    public void setPort(final Integer port) {
-        this.port = port;
-    }
+  /**
+   * Constructor setting if the authorization is a Basic typed one. Default Constructor.
+   *
+   * @param basic States if it is a Basic authorization.
+   */
+  public BasicDigestAuthorization(final boolean basic) {
+    this.basic = basic;
+  }
 
-    /**
-     * Realm value getter.
-     * @return The realm value.
-     */
-    public String getRealm() {
-        return realm;
-    }
+  /**
+   * Username value getter.
+   *
+   * @return The username value.
+   */
+  public String getUsername() {
+    return username;
+  }
 
-    /**
-     * Realm value setter.
-     * @param realm The new realm value.
-     */
-    public void setRealm(final String realm) {
-        this.realm = realm;
-    }
+  /**
+   * Username value setter.
+   *
+   * @param username The new username value.
+   */
+  public void setUsername(final String username) {
+    this.username = username;
+  }
 
-    /**
-     * Preemptive value getter.
-     * @return The preemptive value.
-     */
-    public boolean isPreemptive() {
-        return isPreemptive;
-    }
+  /**
+   * Password value getter.
+   *
+   * @return The password value.
+   */
+  public String getPassword() {
+    return password;
+  }
 
-    /**
-     * Preemptive value setter.
-     * @param isPreemptive The new preemptive value.
-     */
-    public void setPreemptive(final boolean isPreemptive) {
-        this.isPreemptive = isPreemptive;
-    }
+  /**
+   * Password value setter.
+   *
+   * @param password The new password value.
+   */
+  public void setPassword(final String password) {
+    this.password = password;
+  }
 
-    /**
-     * Basic value getter.
-     * @return The basic value.
-     */
-    public boolean isBasic() {
-        return basic;
-    }
+  /**
+   * Host value getter.
+   *
+   * @return The host value.
+   */
+  public String getHost() {
+    return host;
+  }
 
-    /**
-     * Basic value setter.
-     * @param basic The new basic value.
-     */
-    public void setBasic(final boolean basic) {
-        this.basic = basic;
-    }
-    
+  /**
+   * Host value setter.
+   *
+   * @param host The new Host value.
+   */
+  public void setHost(final String host) {
+    this.host = host;
+  }
+
+  /**
+   * Port value getter.
+   *
+   * @return The port value.
+   */
+  public Integer getPort() {
+    return port;
+  }
+
+  /**
+   * Port value setter.
+   *
+   * @param port The new Port value.
+   */
+  public void setPort(final Integer port) {
+    this.port = port;
+  }
+
+  /**
+   * Realm value getter.
+   *
+   * @return The realm value.
+   */
+  public String getRealm() {
+    return realm;
+  }
+
+  /**
+   * Realm value setter.
+   *
+   * @param realm The new realm value.
+   */
+  public void setRealm(final String realm) {
+    this.realm = realm;
+  }
+
+  /**
+   * Preemptive value getter.
+   *
+   * @return The preemptive value.
+   */
+  public boolean isPreemptive() {
+    return isPreemptive;
+  }
+
+  /**
+   * Preemptive value setter.
+   *
+   * @param isPreemptive The new preemptive value.
+   */
+  public void setPreemptive(final boolean isPreemptive) {
+    this.isPreemptive = isPreemptive;
+  }
+
+  /**
+   * Basic value getter.
+   *
+   * @return The basic value.
+   */
+  public boolean isBasic() {
+    return basic;
+  }
+
+  /**
+   * Basic value setter.
+   *
+   * @param basic The new basic value.
+   */
+  public void setBasic(final boolean basic) {
+    this.basic = basic;
+  }
 }

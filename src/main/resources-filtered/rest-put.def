@@ -11,7 +11,7 @@
   <input name="charset" type="java.lang.String" mandatory="true" defaultValue="UTF-8"/>
   <input name="urlCookies" type="java.util.List" mandatory="false"/>
   <input name="urlHeaders" type="java.util.List"/>
-  <input name="body" type="java.lang.String" mandatory="false"/>
+  <input name="body" type="java.io.Serializable" mandatory="false"/>
   <input name="do_not_follow_redirect" type="java.lang.Boolean" mandatory="false"/>
   <input name="ignore_body" type="java.lang.Boolean" mandatory="false"/>
   <input name="TLS" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
@@ -48,6 +48,7 @@
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
     <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
 		<items>application/json</items>
+		<items>application/octet-stream</items>
 		<items>application/xml</items>
 		<items>application/x-www-form-urlencoded</items>
 		<items>text/html</items>
