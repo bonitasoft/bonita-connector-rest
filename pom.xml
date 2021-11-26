@@ -46,17 +46,31 @@
 
         <!--Post Connector -->
         <post.def.id>rest-post</post.def.id>
-        <post.def.version>1.3.1</post.def.version>
+        <post.def.version>1.3.0</post.def.version>
         <post.impl.id>${post.def.id}-impl</post.impl.id>
         <post.impl.version>${project.version}</post.impl.version>
         <post.main-class>org.bonitasoft.connectors.rest.PostConnectorImpl</post.main-class>
 
+        <!--File Post Connector -->
+        <file-post.def.id>rest-file-post</file-post.def.id>
+        <file-post.def.version>1.0.0</file-post.def.version>
+        <file-post.impl.id>${file-post.def.id}-impl</file-post.impl.id>
+        <file-post.impl.version>${project.version}</file-post.impl.version>
+        <file-post.main-class>org.bonitasoft.connectors.rest.PostConnectorImpl</file-post.main-class>
+
         <!--Put Connector -->
         <put.def.id>rest-put</put.def.id>
-        <put.def.version>1.3.1</put.def.version>
+        <put.def.version>1.3.0</put.def.version>
         <put.impl.id>${put.def.id}-impl</put.impl.id>
         <put.impl.version>${project.version}</put.impl.version>
         <put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</put.main-class>
+        
+         <!--File Put Connector -->
+        <file-put.def.id>rest-file-put</file-put.def.id>
+        <file-put.def.version>1.0.0</file-put.def.version>
+        <file-put.impl.id>${file-put.def.id}-impl</file-put.impl.id>
+        <file-put.impl.version>${project.version}</file-put.impl.version>
+        <file-put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</file-put.main-class>
 
         <!--Delete Connector -->
         <delete.def.id>rest-delete</delete.def.id>

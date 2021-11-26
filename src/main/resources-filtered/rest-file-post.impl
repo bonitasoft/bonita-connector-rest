@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<implementation:connectorImplementation xmlns:implementation="http://www.bonitasoft.org/ns/connector/implementation/6.0">
+  <implementationId>${file-post.impl.id}</implementationId>
+  <implementationVersion>${file-post.impl.version}</implementationVersion>
+  <definitionId>${file-post.def.id}</definitionId>
+  <definitionVersion>${file-post.def.version}</definitionVersion>
+  <implementationClassname>${file-post.main-class}</implementationClassname>
+  <hasSources>false</hasSources>
+  <description>The implementation of the REST FILE POST Connector.</description>
+
+<!-- retrieved from the pom.xml at build time -->
+${connector-dependencies}
+
+</implementation:connectorImplementation>
