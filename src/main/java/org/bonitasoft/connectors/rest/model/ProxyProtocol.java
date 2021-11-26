@@ -1,11 +1,9 @@
 package org.bonitasoft.connectors.rest.model;
 
-/**
- * The Proxy protocols applicable for REST.
- */
+/** The Proxy protocols applicable for REST. */
 public enum ProxyProtocol {
-    /**
-     * The items;
-     */
-    SOCKS, HTTP, HTTPS;
+  /** The items; */
+  SOCKS,
+  HTTP,
+  HTTPS;
 }

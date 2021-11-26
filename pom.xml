@@ -46,14 +46,14 @@
 
 		<!--Post Connector -->
 		<post.def.id>rest-post</post.def.id>
-		<post.def.version>1.3.0</post.def.version>
+		<post.def.version>1.3.1</post.def.version>
 		<post.impl.id>${post.def.id}-impl</post.impl.id>
 		<post.impl.version>${project.version}</post.impl.version>
 		<post.main-class>org.bonitasoft.connectors.rest.PostConnectorImpl</post.main-class>
 
 		<!--Put Connector -->
 		<put.def.id>rest-put</put.def.id>
-		<put.def.version>1.3.0</put.def.version>
+		<put.def.version>1.3.1</put.def.version>
 		<put.impl.id>${put.def.id}-impl</put.impl.id>
 		<put.impl.version>${project.version}</put.impl.version>
 		<put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</put.main-class>
