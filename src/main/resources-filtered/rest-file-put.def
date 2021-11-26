@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
-  <id>${post.def.id}</id>
-  <version>${post.def.version}</version>
+  <id>${file-put.def.id}</id>
+  <version>${file-put.def.version}</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   
@@ -11,7 +11,7 @@
   <input name="charset" type="java.lang.String" mandatory="true" defaultValue="UTF-8"/>
   <input name="urlCookies" type="java.util.List" mandatory="false"/>
   <input name="urlHeaders" type="java.util.List"/>
-  <input name="body" type="java.lang.String" mandatory="false"/>
+  <input name="documentBody" type="java.lang.String" mandatory="false"/>
   <input name="do_not_follow_redirect" type="java.lang.Boolean" mandatory="false"/>
   <input name="ignore_body" type="java.lang.Boolean" mandatory="false"/>
   <input name="TLS" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
@@ -50,13 +50,12 @@
 		<items>application/json</items>
 		<items>application/octet-stream</items>
 		<items>application/xml</items>
-		<items>application/x-www-form-urlencoded</items>
 		<items>text/html</items>
 		<items>text/plain</items>
 		<items>text/xml</items>
     </widget>
     <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
-    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
+    <widget xsi:type="definition:Text" id="documentBodyWidget" inputName="documentBody" showDocuments="true" />
   </page>
   <page id="Advanced">
    <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">

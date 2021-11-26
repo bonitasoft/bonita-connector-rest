@@ -10,9 +10,6 @@
  */
 package org.bonitasoft.connectors.rest;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -30,7 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
+
 import javax.net.ssl.HostnameVerifier;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -82,10 +81,15 @@ import org.bonitasoft.connectors.rest.model.SSL;
 import org.bonitasoft.connectors.rest.model.SSLVerifier;
 import org.bonitasoft.connectors.rest.model.Store;
 import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
+import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.bpm.document.Document;
 import org.bonitasoft.engine.bpm.document.DocumentNotFoundException;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** This main class of the REST Connector implementation */
 public class RESTConnector extends AbstractRESTConnectorImpl {
@@ -133,6 +137,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             }
             if (!isStringInputValid(getCharset())) {
                 messages.add(CHARSET_INPUT_PARAMETER);
+            }
+            String body = getBody();
+            String documentBody = getDocumentBody();
+            if (body != null && !body.trim().isEmpty() && documentBody != null && !documentBody.trim().isEmpty()) {
+                messages.add("Either body input or documentBody input should be set. Found both.");
             }
         }
 
@@ -228,14 +237,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private Request buildRequest() throws MalformedURLException, ConnectorException {
         final Request request = new Request();
         request.setUrl(new URL(getUrl()));
-        LOGGER.fine("URL set to: " + request.getUrl().toString());
+        LOGGER.fine(() -> "URL set to: " + request.getUrl().toString());
         request.setRestMethod(HTTPMethod.getRESTHTTPMethodFromValue(getMethod()));
+        LOGGER.fine(() -> "Method set to: " + request.getRestMethod().toString());
         if (request.getRestMethod() == HTTPMethod.POST || request.getRestMethod() == HTTPMethod.PUT) {
-            request.setContentType(ContentType.create(getContentType(), Charset.forName(getCharset())));
+            ContentType contentType = ContentType.create(getContentType(), Charset.forName(getCharset()));
+            request.setContentType(contentType);
+            LOGGER.fine(() -> "Content-Type set to: " + contentType.toString());
         }
-        LOGGER.fine("Method set to: " + request.getRestMethod().toString());
+
         setBody(request);
-        LOGGER.fine("Body set to: " + request.getBody().toString());
+
         request.setRedirect(!getDoNotFollowRedirect());
         LOGGER.fine("Follow redirect set to: " + request.isRedirect());
         request.setIgnore(getIgnoreBody());
@@ -245,20 +257,18 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             String name = urlheaderRow.get(0).toString();
             String value = urlheaderRow.get(1).toString();
             request.addHeader(name, value);
-            LOGGER.fine(
-                    "Add header: "
-                            + urlheaderRow.get(0).toString()
-                            + " set as "
-                            + urlheaderRow.get(1).toString());
+            LOGGER.fine(() -> "Add header: "
+                    + urlheaderRow.get(0).toString()
+                    + " set as "
+                    + urlheaderRow.get(1).toString());
         }
         for (final Object urlCookie : getUrlCookies()) {
             final List<?> urlCookieRow = (List<?>) urlCookie;
             request.addCookie(urlCookieRow.get(0).toString(), urlCookieRow.get(1).toString());
-            LOGGER.fine(
-                    "Add cookie: "
-                            + urlCookieRow.get(0).toString()
-                            + " set as "
-                            + urlCookieRow.get(1).toString());
+            LOGGER.fine(() -> "Add cookie: "
+                    + urlCookieRow.get(0).toString()
+                    + " set as "
+                    + urlCookieRow.get(1).toString());
         }
 
         request.setSsl(buildSSL());
@@ -280,18 +290,20 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     private void setBody(Request request) throws ConnectorException {
-        if (getBody() != null) {
-            Serializable body = getBody();
-            if (body instanceof Document) {
-                Document doc = (Document) body;
-                try {
-                    request.setBody(
-                            getAPIAccessor().getProcessAPI().getDocumentContent(doc.getContentStorageId()));
-                } catch (DocumentNotFoundException e) {
-                    throw new ConnectorException("Document not found", e);
-                }
-            } else {
-                request.setBody(body);
+        String body = getBody();
+        String documentBody = getDocumentBody();
+        if (body != null && !body.trim().isEmpty()) {
+            request.setBody(body);
+            LOGGER.fine(() -> "Body set to: " + request.getBody().toString());
+        } else if (documentBody != null && !documentBody.trim().isEmpty()) {
+            try {
+                ProcessAPI processAPI = getAPIAccessor().getProcessAPI();
+                Document doc = processAPI
+                        .getLastDocument(getExecutionContext().getProcessInstanceId(), documentBody);
+                request.setBody(processAPI.getDocumentContent(doc.getContentStorageId()));
+                LOGGER.fine(() -> String.format("Body set with %s document content", documentBody));
+            } catch (DocumentNotFoundException e) {
+                throw new ConnectorException(String.format("Document '%s' not found", documentBody), e);
             }
         } else {
             request.setBody("");
@@ -744,7 +756,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 authPrefs.add(castAuthorization.isBasic() ? AuthSchemes.BASIC : AuthSchemes.DIGEST);
                 requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
                 final String username = castAuthorization.getUsername();
-                final String password = new String(castAuthorization.getPassword());
+                final String password = castAuthorization.getPassword();
                 String host = urlHost;
                 if (isStringInputValid(castAuthorization.getHost())) {
                     host = castAuthorization.getHost();
@@ -830,11 +842,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
     private void logException(final Exception e) {
-        final StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append(e.toString());
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(e.toString());
         for (final StackTraceElement stackTraceElement : e.getStackTrace()) {
-            stringBuffer.append("\n" + stackTraceElement);
+            stringBuilder.append("\n" + stackTraceElement);
         }
-        LOGGER.fine("executeBusinessLogic error: " + stringBuffer.toString());
+        LOGGER.fine(() -> "executeBusinessLogic error: " + stringBuilder.toString());
     }
 }

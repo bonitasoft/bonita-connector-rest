@@ -26,12 +26,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER;
 import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER;
 import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER;
+import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.DOCUMENT_BODY_INPUT_PARAMETER;
 import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER;
 import static org.hamcrest.core.Is.isA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.UnsupportedEncodingException;
 import java.net.UnknownHostException;
@@ -50,6 +53,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
+import org.bonitasoft.engine.bpm.document.Document;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 import org.bonitasoft.engine.exception.BonitaException;
@@ -58,6 +62,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -1065,8 +1070,13 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
-    public void shouldPostWithByteArrayBody() throws BonitaException {
+    public void shouldPostWithDocumentBody() throws BonitaException {
         byte[] content = "content".getBytes();
+        
+        Document aDocument = mock(Document.class);
+        when(aDocument.getContentStorageId()).thenReturn("1");
+        when(processAPI.getLastDocument(Mockito.anyLong(), Mockito.eq("myDocument"))).thenReturn(aDocument);
+        when(processAPI.getDocumentContent(aDocument.getContentStorageId())).thenReturn(content);
         
         stubFor(post(urlEqualTo("/"))
                 .withRequestBody(WireMock.binaryEqualTo(content))
@@ -1074,7 +1084,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         Map<String, Object> parameters = buildBodyParametersSet(EMPTY);
         parameters.put(METHOD_INPUT_PARAMETER, POST);
-        parameters.put(BODY_INPUT_PARAMETER, content);
+        parameters.put(BODY_INPUT_PARAMETER, null);
+        parameters.put(DOCUMENT_BODY_INPUT_PARAMETER, "myDocument");
 
         Map<String, Object> outputs = executeConnector(parameters);
 
@@ -1082,8 +1093,13 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
-    public void shouldPutWithByteArrayBody() throws BonitaException {
+    public void shouldPutWithDocumentBody() throws BonitaException {
         byte[] content = "content".getBytes();
+        
+        Document aDocument = mock(Document.class);
+        when(aDocument.getContentStorageId()).thenReturn("1");
+        when(processAPI.getLastDocument(Mockito.anyLong(), Mockito.eq("myDocument"))).thenReturn(aDocument);
+        when(processAPI.getDocumentContent(aDocument.getContentStorageId())).thenReturn(content);
         
         stubFor(put(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(
@@ -1099,7 +1115,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         parameters.put(METHOD_INPUT_PARAMETER, PUT);
         parameters.put(CONTENTTYPE_INPUT_PARAMETER, "application/octet-stream");
         parameters.put(CHARSET_INPUT_PARAMETER, "UTF-8");
-        parameters.put(BODY_INPUT_PARAMETER, content);
+        parameters.put(DOCUMENT_BODY_INPUT_PARAMETER, "myDocument");
+        parameters.put(BODY_INPUT_PARAMETER, null);
 
         Map<String, Object> outputs = executeConnector(parameters);
 

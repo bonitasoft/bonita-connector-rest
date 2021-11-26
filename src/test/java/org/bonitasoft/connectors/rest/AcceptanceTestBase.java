@@ -35,7 +35,7 @@ public class AcceptanceTestBase {
   private APIAccessor apiAccessor;
 
   /** The process API BonitaSoft mock */
-  private ProcessAPI processAPI;
+  protected ProcessAPI processAPI;
 
   /** The WireMock server (mock of the REST services) */
   protected static WireMockServer wireMockServer;
