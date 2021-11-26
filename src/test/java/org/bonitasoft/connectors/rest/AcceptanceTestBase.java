@@ -10,10 +10,9 @@
  */
 package org.bonitasoft.connectors.rest;
 
-import com.github.tomakehurst.wiremock.Log4jConfiguration;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.common.Log4jNotifier;
+import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.bonitasoft.engine.api.APIAccessor;
 import org.bonitasoft.engine.api.ProcessAPI;
@@ -49,7 +48,7 @@ public class AcceptanceTestBase {
   public static void setupServer() {
     wireMockServer =
         new WireMockServer(
-            WireMockConfiguration.wireMockConfig().port(0).notifier(new Log4jNotifier()));
+            WireMockConfiguration.wireMockConfig().port(0).notifier(new Slf4jNotifier(false)));
     wireMockServer.start();
   }
 
@@ -71,7 +70,6 @@ public class AcceptanceTestBase {
     processAPI = Mockito.mock(ProcessAPI.class);
     Mockito.when(apiAccessor.getProcessAPI()).thenReturn(processAPI);
     WireMock.configureFor(LOCALHOST, wireMockServer.port());
-    Log4jConfiguration.configureLogging(true);
     WireMock.reset();
   }
 
