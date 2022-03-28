@@ -10,12 +10,44 @@
  */
 package org.bonitasoft.connectors.rest;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.google.common.collect.Maps;
+import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
+import org.bonitasoft.connectors.rest.model.AuthorizationType;
+import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
+import org.bonitasoft.engine.bpm.document.Document;
+import org.bonitasoft.engine.connector.ConnectorException;
+import org.bonitasoft.engine.connector.ConnectorValidationException;
+import org.bonitasoft.engine.exception.BonitaException;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+
+import java.io.UnsupportedEncodingException;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -35,38 +67,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import java.io.UnsupportedEncodingException;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.http.HttpStatus;
-import org.apache.http.entity.ContentType;
-import org.bonitasoft.connectors.rest.model.AuthorizationType;
-import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
-import org.bonitasoft.engine.bpm.document.Document;
-import org.bonitasoft.engine.connector.ConnectorException;
-import org.bonitasoft.engine.connector.ConnectorValidationException;
-import org.bonitasoft.engine.exception.BonitaException;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
-
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.common.collect.Maps;
 
 /** The class for the UTs of the REST Connector */
 public class RESTConnectorTest extends AcceptanceTestBase {
@@ -88,6 +88,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String POST = "POST";
     private static final String PUT = "PUT";
     private static final String DELETE = "DELETE";
+    private static final String HEAD = "HEAD";
     private static final String METHOD_ERROR = "FAKE_METHOD";
 
     // CONTENT_TYPES
@@ -545,6 +546,19 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(delete(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(executeConnector(buildMethodParametersSet(DELETE)));
+    }
+
+    /**
+     * Test the HEAD method
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void headMethod() throws BonitaException {
+        stubFor(head(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(HEAD)));
     }
 
     /**
@@ -1072,12 +1086,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void shouldPostWithDocumentBody() throws BonitaException {
         byte[] content = "content".getBytes();
-        
+
         Document aDocument = mock(Document.class);
         when(aDocument.getContentStorageId()).thenReturn("1");
         when(processAPI.getLastDocument(Mockito.anyLong(), Mockito.eq("myDocument"))).thenReturn(aDocument);
         when(processAPI.getDocumentContent(aDocument.getContentStorageId())).thenReturn(content);
-        
+
         stubFor(post(urlEqualTo("/"))
                 .withRequestBody(WireMock.binaryEqualTo(content))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
@@ -1095,12 +1109,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     @Test
     public void shouldPutWithDocumentBody() throws BonitaException {
         byte[] content = "content".getBytes();
-        
+
         Document aDocument = mock(Document.class);
         when(aDocument.getContentStorageId()).thenReturn("1");
         when(processAPI.getLastDocument(Mockito.anyLong(), Mockito.eq("myDocument"))).thenReturn(aDocument);
         when(processAPI.getDocumentContent(aDocument.getContentStorageId())).thenReturn(content);
-        
+
         stubFor(put(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(
                         ContentType.APPLICATION_OCTET_STREAM.getMimeType()

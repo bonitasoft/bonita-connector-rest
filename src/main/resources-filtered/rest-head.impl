@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<implementation:connectorImplementation xmlns:implementation="http://www.bonitasoft.org/ns/connector/implementation/6.0">
+  <implementationId>${head.impl.id}</implementationId>
+  <implementationVersion>${head.impl.version}</implementationVersion>
+  <definitionId>${head.def.id}</definitionId>
+  <definitionVersion>${head.def.version}</definitionVersion>
+  <implementationClassname>${head.main-class}</implementationClassname>
+  <hasSources>false</hasSources>
+  <description>The implementation of the REST Head Connector.</description>
+
+<!-- retrieved from the pom.xml at build time -->
+${connector-dependencies}
+
+</implementation:connectorImplementation>
