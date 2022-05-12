@@ -10,26 +10,9 @@
  */
 package org.bonitasoft.connectors.rest;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.HttpCookie;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.security.KeyStore;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
-
-import javax.net.ssl.HostnameVerifier;
-
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -87,9 +70,24 @@ import org.bonitasoft.engine.bpm.document.DocumentNotFoundException;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.net.ssl.HostnameVerifier;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.HttpCookie;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /** This main class of the REST Connector implementation */
 public class RESTConnector extends AbstractRESTConnectorImpl {
@@ -829,6 +827,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 return RequestBuilder.put();
             case DELETE:
                 return RequestBuilder.delete();
+            case HEAD:
+                return RequestBuilder.head();
             default:
                 throw new IllegalStateException(
                         "Impossible to get the RequestBuilder from the \"" + method.name() + "\" name.");

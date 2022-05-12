@@ -37,6 +37,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.build.timestamp.format>yyyy.MM.dd-hh.mm</maven.build.timestamp.format>
 
+        <!--Head Connector -->
+        <head.def.id>rest-head</head.def.id>
+        <head.def.version>1.0.0</head.def.version>
+        <head.impl.id>${head.def.id}-impl</head.impl.id>
+        <head.impl.version>${project.version}</head.impl.version>
+        <head.main-class>org.bonitasoft.connectors.rest.HeadConnectorImpl</head.main-class>
+
         <!--Get Connector -->
         <get.def.id>rest-get</get.def.id>
         <get.def.version>1.2.0</get.def.version>
@@ -64,7 +71,7 @@
         <put.impl.id>${put.def.id}-impl</put.impl.id>
         <put.impl.version>${project.version}</put.impl.version>
         <put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</put.main-class>
-        
+
          <!--File Put Connector -->
         <file-put.def.id>rest-file-put</file-put.def.id>
         <file-put.def.version>1.0.0</file-put.def.version>
@@ -354,7 +361,7 @@
     </build>
 
     <profiles>
-        <!-- Deployment profile (required so these plugins are only used 
+        <!-- Deployment profile (required so these plugins are only used
             when deploying) -->
         <profile>
             <id>deploy</id>
@@ -373,7 +380,7 @@
                                     <goal>sign</goal>
                                 </goals>
                                 <configuration>
-                                    <!-- Prevent `gpg` from using pinentry 
+                                    <!-- Prevent `gpg` from using pinentry
                                         programs -->
                                     <gpgArguments>
                                         <arg>--pinentry-mode</arg>
