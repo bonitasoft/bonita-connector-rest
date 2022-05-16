@@ -10,37 +10,6 @@
  */
 package org.bonitasoft.connectors.rest;
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.common.collect.Maps;
-import org.apache.http.HttpStatus;
-import org.apache.http.entity.ContentType;
-import org.bonitasoft.connectors.rest.model.AuthorizationType;
-import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
-import org.bonitasoft.engine.bpm.document.Document;
-import org.bonitasoft.engine.connector.ConnectorException;
-import org.bonitasoft.engine.connector.ConnectorValidationException;
-import org.bonitasoft.engine.exception.BonitaException;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
-
-import java.io.UnsupportedEncodingException;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
@@ -62,11 +31,49 @@ import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.DOCUMENT_
 import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER;
 import static org.hamcrest.core.Is.isA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.entity.ContentType;
+import org.bonitasoft.connectors.rest.model.AuthorizationType;
+import org.bonitasoft.connectors.rest.model.ProxyProtocol;
+import org.bonitasoft.connectors.rest.model.SSLVerifier;
+import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
+import org.bonitasoft.engine.bpm.document.Document;
+import org.bonitasoft.engine.connector.ConnectorException;
+import org.bonitasoft.engine.connector.ConnectorValidationException;
+import org.bonitasoft.engine.exception.BonitaException;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.google.common.collect.Maps;
 
 /** The class for the UTs of the REST Connector */
 public class RESTConnectorTest extends AcceptanceTestBase {
@@ -200,7 +207,298 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void resetSystemProperies() throws Exception {
         System.setProperty(RESTConnector.DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY, "");
     }
+    
+    @Test
+    public void testUrlParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.URL_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateUrl());
+    }
+    
+    @Test
+    public void testMethodParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.METHOD_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateMethod());
+    }
+    
+    @Test
+    public void testContentTypeParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.CONTENTTYPE_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateContentType());
+    }
+    
+    @Test
+    public void testUrlCookiesParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.URLCOOKIES_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateUrlCookies());
+    }
+    
+    @Test
+    public void testUrlHeadersParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.URLHEADERS_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateUrlHeaders());
+    }
+    
+    @Test
+    public void testBodyParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.BODY_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateBody());
+    }
+    
+    @Test
+    public void testIgnoreBodyParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.IGNORE_BODY_INPUT_PARAMETER, "true");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateIgnoreBody());
+    }
+    
+    @Test
+    public void testTLSParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.TLS_INPUT_PARAMETER, "true");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateTLS());
+    }
+    
+    @Test
+    public void testTrustCertificateStrategyParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateTrustCertificateStrategyInput());
+    }
+    
+    @Test
+    public void testTrustStoreFileParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.TRUST_STORE_FILE_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateTrustStoreFile());
+    }
+    
+    @Test
+    public void testTrustStorePasswordParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.TRUST_STORE_PASSWORD_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateTrustStorePassword());
+    }
+    
+    @Test
+    public void testKeyStoreFileParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.KEY_STORE_FILE_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateKeyStoreFile());
+    }
+    
+    @Test
+    public void testKeyStorePasswordParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.KEY_STORE_PASSWORD_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateKeyStorePassword());
+    }
+    
+    @Test
+    public void testFollowRedirectParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, "true");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateDoNotFollowRedirect());
+    }
 
+    @Test
+    public void testHostNameVerfierParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.HOSTNAME_VERIFIER_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateHostnameVerifierInput());
+    }
+    
+    @Test
+    public void testAuthHostParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.AUTH_HOST_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAuthHost());
+    }
+    
+    @Test
+    public void testAuthUsernameParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.AUTH_USERNAME_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAuthUsername());
+    }
+    
+    @Test
+    public void testAuthPasswordParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.AUTH_PASSWORD_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAuthPassword());
+    }
+    
+    @Test
+    public void testAuthPortParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.AUTH_PORT_INPUT_PARAMETER, "1");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAuthPort());
+    }
+    
+    @Test
+    public void testAuthPreemptiveParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.AUTH_PREEMPTIVE_INPUT_PARAMETER, "1");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAuthPreemptive());
+    }
+    
+    @Test
+    public void testAuthRealmParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.AUTH_REALM_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAuthRealm());
+    }
+    
+    @Test
+    public void testCharsetParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.CHARSET_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateCharset());
+    }
+    
+    @Test
+    public void testConnectionTimeoutParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.CONNECTION_TIMEOUT_MS_PARAMETER, "1");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateConnectionTimeoutMs());
+    }
+    
+    @Test
+    public void testSocketTimeoutParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.SOCKET_TIMEOUT_MS_PARAMETER, "1");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateSocketTimeoutMs());
+    }
+    
+    @Test
+    public void testProxyHostParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.PROXY_HOST_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateProxyHost());
+    }
+    
+    @Test
+    public void testProxyPortParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.PROXY_PORT_INPUT_PARAMETER, "1");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateProxyPort());
+    }
+    
+    @Test
+    public void testProxyUsernameParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.PROXY_USERNAME_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateProxyUsername());
+    }
+    
+    @Test
+    public void testProxyPasswordParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.PROXY_PASSWORD_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateProxyPassword());
+    }
+    
+    @Test
+    public void testProxyProtocolParameter() throws Exception {
+       var connector =  new RESTConnector();
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.PROXY_PROTOCOL_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateProxyProtocol());
+    }
+    
+    
     /**
      * Build a request parameters set based on the given arguments
      *
@@ -561,6 +859,73 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildMethodParametersSet(HEAD)));
     }
 
+    @Test
+    public void testProxyConfiguration() throws BonitaException, ClientProtocolException, IOException {
+        Map<String, Object> parameters = buildMethodParametersSet(HEAD);
+        parameters.put(RESTConnector.PROXY_HOST_INPUT_PARAMETER, "http://proxy.host");
+        parameters.put(RESTConnector.PROXY_PORT_INPUT_PARAMETER, 8888);
+        parameters.put(RESTConnector.PROXY_PROTOCOL_INPUT_PARAMETER, "http");
+        parameters.put(RESTConnector.PROXY_USERNAME_INPUT_PARAMETER, "hello");
+        parameters.put(RESTConnector.PROXY_PASSWORD_INPUT_PARAMETER, "world");
+        var connector = new RESTConnector();
+        connector.setInputParameters(parameters);
+
+        var proxy = connector.buildProxy();
+
+        assertEquals("http://proxy.host", proxy.getHost());
+        assertEquals((Integer) 8888, proxy.getPort());
+        assertEquals(ProxyProtocol.HTTP, proxy.getProtocol());
+        assertEquals("hello", proxy.getUsername());
+        assertEquals("world", proxy.getPassword());
+    }
+
+    @Test
+    public void testSslConfiguration() throws BonitaException, ClientProtocolException, IOException {
+        Map<String, Object> parameters = buildMethodParametersSet(HEAD);
+        parameters.put(RESTConnector.TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER,
+                TrustCertificateStrategy.TRUST_ALL.name());
+        parameters.put(RESTConnector.TRUST_STORE_FILE_INPUT_PARAMETER, "/store/path");
+        parameters.put(RESTConnector.TRUST_STORE_PASSWORD_INPUT_PARAMETER, "pass");
+        parameters.put(RESTConnector.HOSTNAME_VERIFIER_INPUT_PARAMETER, SSLVerifier.STRICT.name());
+        parameters.put(RESTConnector.KEY_STORE_FILE_INPUT_PARAMETER, "/key/path");
+        parameters.put(RESTConnector.KEY_STORE_PASSWORD_INPUT_PARAMETER, "word");
+        var connector = new RESTConnector();
+        connector.setInputParameters(parameters);
+
+        var ssl = connector.buildSSL();
+
+        assertNotNull(ssl.getKeyStore());
+        assertEquals("/key/path", ssl.getKeyStore().getFile().getAbsolutePath());
+        assertEquals("word", ssl.getKeyStore().getPassword());
+        assertEquals(SSLVerifier.STRICT, ssl.getSslVerifier());
+        assertEquals(TrustCertificateStrategy.TRUST_ALL, ssl.getTrustCertificateStrategy());
+        assertNotNull(ssl.getTrustStore());
+        assertEquals("/store/path", ssl.getTrustStore().getFile().getAbsolutePath());
+        assertEquals("pass", ssl.getTrustStore().getPassword());
+    }
+
+    @Test
+    public void testDigestAuthorizationConfiguration() throws BonitaException, ClientProtocolException, IOException {
+        Map<String, Object> parameters = buildMethodParametersSet(HEAD);
+        parameters.put(RESTConnector.AUTH_HOST_INPUT_PARAMETER, "http://auth.host");
+        parameters.put(RESTConnector.AUTH_USERNAME_INPUT_PARAMETER, "john");
+        parameters.put(RESTConnector.AUTH_PASSWORD_INPUT_PARAMETER, "pass");
+        parameters.put(RESTConnector.AUTH_PORT_INPUT_PARAMETER, 443);
+        parameters.put(RESTConnector.AUTH_REALM_INPUT_PARAMETER, "realm");
+        var connector = new RESTConnector();
+        connector.setInputParameters(parameters);
+
+        var digetAuthorization = connector.buildDigestAuthorization();
+
+        assertEquals("http://auth.host", digetAuthorization.getHost());
+        assertEquals("john", digetAuthorization.getUsername());
+        assertEquals("pass", digetAuthorization.getPassword());
+        assertEquals((Integer) 443, digetAuthorization.getPort());
+        assertEquals("realm", digetAuthorization.getRealm());
+        assertTrue(digetAuthorization.isPreemptive());
+        assertFalse(digetAuthorization.isBasic());
+    }
+
     /**
      * Test the FAKE method
      *
@@ -614,7 +979,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs
                 .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsMap);
-        assertEquals(bodyAsMap.get("name"), "Romain");
+        assertEquals("Romain", bodyAsMap.get("name"));
     }
 
     /**
@@ -639,7 +1004,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs
                 .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsMap);
-        assertEquals(bodyAsMap.size(), 0);
+        assertEquals(0, bodyAsMap.size());
     }
 
     /**
@@ -664,7 +1029,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsObject);
         final String bodyAsString = (String) bodyAsObject;
-        assertEquals(bodyAsString, "this is a string");
+        assertEquals("this is a string", bodyAsString);
     }
 
     /**
@@ -689,7 +1054,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsObject);
         final Number bodyAsNumber = (Number) bodyAsObject;
-        assertEquals(bodyAsNumber, 123.45);
+        assertEquals(123.45, bodyAsNumber);
     }
 
     /**
@@ -714,7 +1079,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsObject);
         final Boolean bodyAsBoolean = (Boolean) bodyAsObject;
-        assertEquals(bodyAsBoolean, true);
+        assertTrue(bodyAsBoolean);
     }
 
     /**
@@ -782,7 +1147,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(outputs);
         final Object bodyAsMap = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsMap);
-        assertEquals(((Map<String, Object>) ((List) bodyAsMap).get(0)).get("name"), "Romain");
+        assertEquals("Romain", ((Map<String, Object>) ((List) bodyAsMap).get(0)).get("name"));
     }
 
     @Test
@@ -801,8 +1166,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final List<String> bodyAsList = (List<String>) outputs
                 .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsList);
-        assertEquals(bodyAsList.get(0), "abc");
-        assertEquals(bodyAsList.get(1), "def");
+        assertEquals("abc", bodyAsList.get(0));
+        assertEquals("def", bodyAsList.get(1));
     }
 
     @Test
@@ -1050,6 +1415,13 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildHeaderParametersSet(ONE_HEADERS)));
     }
 
+    @Test
+    public void emptyHeader() throws BonitaException {
+        stubFor(get(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildHeaderParametersSet(null)));
+    }
+
     /**
      * Test two values header
      *
@@ -1118,10 +1490,10 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(put(urlEqualTo("/"))
                 .withHeader(WM_CONTENT_TYPE, equalTo(
                         ContentType.APPLICATION_OCTET_STREAM.getMimeType()
-                        + "; "
-                        + WM_CHARSET
-                        + "="
-                        + UTF8))
+                                + "; "
+                                + WM_CHARSET
+                                + "="
+                                + UTF8))
                 .withRequestBody(WireMock.binaryEqualTo(content))
                 .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
@@ -1262,8 +1634,19 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         parameters.put(RESTConnector.URLCOOKIES_INPUT_PARAMETER, cookies);
         restConnector.setInputParameters(parameters);
 
-        final List urlCookies = restConnector.getUrlCookies();
-        assertTrue(urlCookies.size() == 1);
+        final List<List<?>> urlCookies = restConnector.getUrlCookies();
+        assertEquals(1, urlCookies.size());
+    }
+
+    @Test
+    public void should_handle_null_cookie_list() throws Exception {
+        final RESTConnector restConnector = new RESTConnector();
+        final Map<String, Object> parameters = Maps.newHashMap();
+        parameters.put(RESTConnector.URLCOOKIES_INPUT_PARAMETER, null);
+        restConnector.setInputParameters(parameters);
+
+        final List<List<?>> urlCookies = restConnector.getUrlCookies();
+        assertEquals(0, urlCookies.size());
     }
 
     @Test
@@ -1274,7 +1657,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         Object bodyAsObject = outputs.get("bodyAsObject");
         assertTrue(bodyAsObject instanceof Map);
-        assertTrue(((Map) bodyAsObject).isEmpty());
+        assertTrue(((Map<?, ?>) bodyAsObject).isEmpty());
 
         Object bodyAsString = outputs.get("bodyAsString");
         assertTrue(bodyAsString instanceof String);
@@ -1326,7 +1709,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
     @Test
     public void should_support_url_encoded_content_type() throws Exception {
-        LinkedHashMap requestBody = new LinkedHashMap();
+        LinkedHashMap<String, String> requestBody = new LinkedHashMap<>();
         requestBody.put("name", "value1");
         requestBody.put("token", "value2");
         stubFor(
