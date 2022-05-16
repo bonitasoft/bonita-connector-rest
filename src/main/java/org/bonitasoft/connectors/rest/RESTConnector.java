@@ -10,9 +10,30 @@
  */
 package org.bonitasoft.connectors.rest;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.HttpCookie;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
+
+import javax.net.ssl.HostnameVerifier;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -32,7 +53,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.conn.ssl.BrowserCompatHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -70,24 +90,9 @@ import org.bonitasoft.engine.bpm.document.DocumentNotFoundException;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
-import javax.net.ssl.HostnameVerifier;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.HttpCookie;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.security.KeyStore;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /** This main class of the REST Connector implementation */
 public class RESTConnector extends AbstractRESTConnectorImpl {
@@ -322,7 +327,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @return The Digest Auth according to the input values
      */
-    private BasicDigestAuthorization buildDigestAuthorization() {
+    BasicDigestAuthorization buildDigestAuthorization() {
         final BasicDigestAuthorization authorization = new BasicDigestAuthorization(false);
         authorization.setUsername(getAuthUsername());
         authorization.setPassword(getAuthPassword());
@@ -343,7 +348,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @return The Basic Auth according to the input values
      */
-    private BasicDigestAuthorization buildBasicAuthorization() {
+    BasicDigestAuthorization buildBasicAuthorization() {
         final BasicDigestAuthorization authorization = new BasicDigestAuthorization(true);
         authorization.setUsername(getAuthUsername());
         authorization.setPassword(getAuthPassword());
@@ -365,7 +370,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @return The SSL Req according to the input values
      */
-    private SSL buildSSL() {
+    SSL buildSSL() {
         final SSL ssl = new SSL();
         ssl.setSslVerifier(getHostnameVerifier());
         ssl.setTrustCertificateStrategy(getTrustCertificateStrategy());
@@ -393,7 +398,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @return The Proxy Req according to the input values
      */
-    private Proxy buildProxy() {
+    Proxy buildProxy() {
         final Proxy proxy = new Proxy();
         proxy.setProtocol(ProxyProtocol.valueOf(getProxyProtocol().toUpperCase()));
         proxy.setHost(getProxyHost());
@@ -489,6 +494,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         return result;
     }
 
+    HttpClientBuilder newHttpClientBuilder() {
+        return HttpClientBuilder.create();
+    }
+    
     /**
      * Execute a given request
      *
@@ -508,7 +517,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             requestConfigurationBuilder.setConnectTimeout(getConnectionTimeoutMs());
             requestConfigurationBuilder.setSocketTimeout(getSocketTimeoutMs());
 
-            final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+            final HttpClientBuilder httpClientBuilder = newHttpClientBuilder();
             httpClientBuilder.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
             setSSL(request.getSsl(), httpClientBuilder);
             setProxy(request.getProxy(), httpClientBuilder, requestConfigurationBuilder);
@@ -526,7 +535,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final String urlStr = url.toString();
             requestBuilder.setUri(urlStr);
             setHeaders(requestBuilder, request.getHeaders());
-            if (!HTTPMethod.GET.equals(HTTPMethod.valueOf(requestBuilder.getMethod()))) {
+            var method = HTTPMethod.valueOf(requestBuilder.getMethod());
+            if (HTTPMethod.GET != method && HTTPMethod.HEAD != method) {
                 final Serializable body = request.getBody();
                 if (body != null) {
                     ContentType contentType = ContentType.create(getContentType(), Charset.forName(getCharset()));
@@ -591,9 +601,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param ssl The request SSL options
      * @param httpClientBuilder The request builder
-     * @throws Exception
+     * @throws KeyStoreException 
+     * @throws NoSuchAlgorithmException 
+     * @throws IOException 
+     * @throws CertificateException 
+     * @throws UnrecoverableKeyException 
+     * @throws KeyManagementException 
      */
-    private void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws Exception {
+    private void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
         if (ssl != null) {
             final SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
             TrustCertificateStrategy trustCertificateStrategy = ssl.getTrustCertificateStrategy();
@@ -625,7 +640,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             }
 
             sslContextBuilder.setSecureRandom(null);
-            sslContextBuilder.useProtocol(ssl.isUseTLS() ? "TLS" : "SSL");
+            sslContextBuilder.setProtocol(ssl.isUseTLS() ? "TLS" : "SSL");
 
             final SSLVerifier verifier = ssl.getSslVerifier();
             HostnameVerifier hostnameVerifier = SSLConnectionSocketFactory.getDefaultHostnameVerifier();
@@ -634,8 +649,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     hostnameVerifier = NoopHostnameVerifier.INSTANCE;
                     break;
                 case BROWSER:
-                    hostnameVerifier = BrowserCompatHostnameVerifier.INSTANCE;
-                    break;
                 case STRICT:
                 default:
                     break;
@@ -710,7 +723,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             cookieStore.addCookie(c);
         }
         httpClientBuilder.setDefaultCookieStore(cookieStore);
-        requestConfigurationBuilder.setCookieSpec(CookieSpecs.BEST_MATCH);
+        requestConfigurationBuilder.setCookieSpec(CookieSpecs.DEFAULT);
     }
 
     /**

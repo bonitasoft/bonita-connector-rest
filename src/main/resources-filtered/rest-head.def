@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
-  <id>${file-head.def.id}</id>
-  <version>${file-head.def.version}</version>
+  <id>${head.def.id}</id>
+  <version>${head.def.version}</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
 
   <!-- inputs -->
   <input name="url" type="java.lang.String" mandatory="true"/>
-  <input name="contentType" type="java.lang.String" mandatory="true" defaultValue="application/json"/>
-  <input name="charset" type="java.lang.String" mandatory="true" defaultValue="UTF-8"/>
   <input name="urlCookies" type="java.util.List" mandatory="false"/>
   <input name="urlHeaders" type="java.util.List"/>
-  <input name="documentBody" type="java.lang.String" mandatory="false"/>
   <input name="do_not_follow_redirect" type="java.lang.Boolean" mandatory="false"/>
   <input name="ignore_body" type="java.lang.Boolean" mandatory="false"/>
   <input name="TLS" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
@@ -37,28 +34,17 @@
   <input name="trust_strategy" type="java.lang.String" mandatory="false" defaultValue="DEFAULT"/>
 
   <!-- outputs -->
-  <output name="bodyAsString" type="java.lang.String"/>
-  <output name="bodyAsObject" type="java.lang.Object"/>
+  
   <output name="headers" type="java.util.Map"/>
   <output name="status_code" type="java.lang.Integer"/>
   <output name="status_message" type="java.lang.String"/>
 
-  <!-- pages -->
+   <!-- pages -->
   <page id="RESTConnectorWizardPage">
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
-    <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
-		<items>application/json</items>
-		<items>application/octet-stream</items>
-		<items>application/xml</items>
-		<items>text/html</items>
-		<items>text/plain</items>
-		<items>text/xml</items>
-    </widget>
-    <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
-    <widget xsi:type="definition:Text" id="documentBodyWidget" inputName="documentBody" showDocuments="true" />
   </page>
   <page id="Advanced">
-   <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
+     <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
       <colsCaption>Key</colsCaption>
       <colsCaption>Value</colsCaption>
     </widget>
@@ -86,10 +72,10 @@
       <widget xsi:type="definition:Checkbox" id="auth_preemptive_widget" inputName="auth_preemptive"/>
     </widget>
   </page>
-  <page id="SSLPage">
+   <page id="SSLPage">
     <widget xsi:type="definition:Group" id="ssl" optional="false">
       <widget xsi:type="definition:Checkbox" id="TLS_widget" inputName="TLS"/>
-  	  <widget xsi:type="definition:Text" id="trust_certificate_strategy_widget" inputName="trust_strategy"/>
+      <widget xsi:type="definition:Text" id="trust_certificate_strategy_widget" inputName="trust_strategy"/>
       <widget xsi:type="definition:Text" id="hostname_verifier_widget" inputName="hostname_verifier" />
     </widget>
     <widget xsi:type="definition:Group" id="trust_store" optional="false">

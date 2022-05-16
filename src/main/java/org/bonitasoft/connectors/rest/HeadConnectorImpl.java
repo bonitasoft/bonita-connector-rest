@@ -18,4 +18,14 @@ public class HeadConnectorImpl extends RESTConnector {
     protected String getMethod() {
         return HTTPMethod.HEAD.name();
     }
+    
+    @Override
+    protected void setBody(Object body) {
+        // No body returned for HEAD requests
+    }
+    
+    @Override
+    protected void setBody(String body) {
+        // No body returned for HEAD requests
+    }
 }
