@@ -91,7 +91,7 @@
         <commons-codec.version>1.6</commons-codec.version>
 
         <!-- Bonita -->
-        <bonita.engine.version>7.13.0</bonita.engine.version>
+        <bonita.engine.version>7.14.0</bonita.engine.version>
 
         <!-- Test -->
         <mockito.version>1.10.19</mockito.version>
