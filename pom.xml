@@ -88,7 +88,7 @@
 
         <!-- Connector dependencies -->
         <commons-logging.version>1.1.3</commons-logging.version>
-        <commons-codec.version>1.6</commons-codec.version>
+        <commons-codec.version>1.15</commons-codec.version>
 
         <!-- Bonita -->
         <bonita.engine.version>7.13.0</bonita.engine.version>
