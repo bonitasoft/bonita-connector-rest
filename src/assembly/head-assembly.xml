@@ -2,7 +2,7 @@
         xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>file-head-impl</id>
+    <id>head-impl</id>
     <formats>
         <format>zip</format>
     </formats>
@@ -12,7 +12,7 @@
             <outputDirectory/>
             <directory>target/classes</directory>
             <includes>
-                <include>rest-file-head.impl</include>
+                <include>rest-head.impl</include>
                 <include>classpath</include>
             </includes>
         </fileSet>
