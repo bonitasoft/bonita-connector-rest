@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -895,12 +896,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         var ssl = connector.buildSSL();
 
         assertNotNull(ssl.getKeyStore());
-        assertEquals("/key/path", ssl.getKeyStore().getFile().getAbsolutePath());
+        assertEquals(Paths.get("/key/path"), ssl.getKeyStore().getFile().toPath());
         assertEquals("word", ssl.getKeyStore().getPassword());
         assertEquals(SSLVerifier.STRICT, ssl.getSslVerifier());
         assertEquals(TrustCertificateStrategy.TRUST_ALL, ssl.getTrustCertificateStrategy());
         assertNotNull(ssl.getTrustStore());
-        assertEquals("/store/path", ssl.getTrustStore().getFile().getAbsolutePath());
+        assertEquals(Paths.get("/store/path"), ssl.getTrustStore().getFile().toPath());
         assertEquals("pass", ssl.getTrustStore().getPassword());
     }
 
