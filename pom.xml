@@ -102,6 +102,7 @@
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
         <testcontainers.version>1.17.3</testcontainers.version>
         <bonita-java-client.version>0.0.9</bonita-java-client.version>
+        <awaitility.version>4.2.0</awaitility.version>
 
         <!-- Maven plugins -->
         <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
@@ -219,6 +220,12 @@
             <groupId>org.bonitasoft.web</groupId>
             <artifactId>bonita-java-client</artifactId>
             <version>${bonita-java-client.version}</version>
+            <scope>test</scope>
+        </dependency>
+         <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -394,7 +401,10 @@
                         <configuration>
                             <systemProperties>
                                 <bonita.version>${bonita.engine.version}</bonita.version>
-                            </systemProperties>
+						     </systemProperties>
+							<additionalClasspathElements>
+								<additionalClasspathElement>${project.build.directory}/${project.artifactId}-${project.version}.jar</additionalClasspathElement>
+							</additionalClasspathElements>
                         </configuration>
                     </execution>
                  </executions>
