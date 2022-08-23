@@ -402,9 +402,6 @@
                             <systemProperties>
                                 <bonita.version>${bonita.engine.version}</bonita.version>
 						     </systemProperties>
-							<additionalClasspathElements>
-								<additionalClasspathElement>${project.build.directory}/${project.artifactId}-${project.version}.jar</additionalClasspathElement>
-							</additionalClasspathElements>
                         </configuration>
                     </execution>
                  </executions>
