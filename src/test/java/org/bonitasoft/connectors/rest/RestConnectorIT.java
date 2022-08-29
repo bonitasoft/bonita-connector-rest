@@ -1,6 +1,8 @@
 package org.bonitasoft.connectors.rest;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -24,13 +26,16 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+
 public class RestConnectorIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestConnectorIT.class);
 
     @Rule
     public GenericContainer bonita = new GenericContainer(
-            DockerImageName.parse("bonita:" + System.getProperty("bonita.version")))
+            DockerImageName.parse("bonita:7.14.0")) // 7.14.0 only because no archiveinstance support with 7.13.0 (can't test the output)
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/bonita"))
                     .withLogConsumer(new Slf4jLogConsumer(LOGGER));
@@ -69,12 +74,22 @@ public class RestConnectorIT {
 
         // Wait until the process launched is completed (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
-
         assertTrue(client.system().isCommunity());
+
+        // Getting the result of the rest call.
+        String resultRestGetResult = (String) ConnectorTestToolkit.getProcessVariableValue(client, processResponse.getCaseId(), "resultRestGet");
+        assertNotNull(resultRestGetResult);
+
+        ObjectMapper mapper = new ObjectMapper();
+        var map = mapper.readValue(resultRestGetResult, Map.class);
+        assertEquals(map.get("userId"), 1);
+        assertEquals(map.get("id"), 1);
+        assertEquals(map.get("title"), "delectus aut autem");
+        assertEquals(map.get("completed"), false);
 
         client.logout();
     }
-    
+
     @Test
     public void testRestHeadConnectorIntegration() throws Exception {
         // Id connector and version to be tested.
@@ -131,7 +146,7 @@ public class RestConnectorIT {
 
         client.logout();
     }
-    
+
     @Test
     public void testRestPutConnectorIntegration() throws Exception {
         // Id connector and version to be tested.

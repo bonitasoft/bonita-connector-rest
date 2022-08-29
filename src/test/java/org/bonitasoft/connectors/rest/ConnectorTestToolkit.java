@@ -26,16 +26,28 @@ import org.bonitasoft.engine.expression.ExpressionBuilder;
 import org.bonitasoft.engine.expression.InvalidExpressionException;
 import org.bonitasoft.engine.operation.OperationBuilder;
 import org.bonitasoft.web.client.BonitaClient;
+import org.bonitasoft.web.client.api.ArchivedProcessInstanceVariableApi;
+import org.bonitasoft.web.client.api.ProcessInstanceVariableApi;
 import org.bonitasoft.web.client.model.ProcessInstantiationResponse;
 import org.bonitasoft.web.client.services.policies.ProcessImportPolicy;
 
 /**
  * Helper for testing connector in a docker image of Bonita studio.
- * 
- * @author Firstname Lastname
  */
 public class ConnectorTestToolkit {
 
+    /**
+     * Build a connector and then install it into a dummy process with input and output process variables.
+     * Those variables will help to verify the input and output specified in the implementation of the connector to be tested.
+     * 
+     * @param connectorId The identifier of the connector specified in the pom.xml and the definition file.
+     * @param versionId The version of the connector to be tested.
+     * @param inputs A map of variables with a content specified to be tested.
+     * @param outputs A map of results variables.
+     * @param locationJar The Jar containing the class and dependencies used by the connector.
+     * @return A {@link BusinessArchive}
+     * @throws Exception
+     */
     public static BusinessArchive buildConnectorToTest(String connectorId, String versionId, Map<String, String> inputs,
             Map<String, String> outputs, String locationJar) throws Exception {
 
@@ -103,7 +115,7 @@ public class ConnectorTestToolkit {
                 try {
                     processBuilder.addData(name, String.class.getTypeName(), null); //TODO can only work with the string type output
                     connectorBuilder.addOutput(new OperationBuilder().createSetDataOperation(name,
-                            new ExpressionBuilder().createConstantStringExpression(outputName)));
+                            new ExpressionBuilder().createDataExpression(outputName, String.class.getTypeName())));
                 } catch (InvalidExpressionException e) {
                     e.printStackTrace();
                 }
@@ -113,6 +125,14 @@ public class ConnectorTestToolkit {
         return processBuilder.done();
     }
 
+    /**
+     * Import the {@link BusinessArchive} and launch the dummy process containing the connector to be tested.
+     * 
+     * @param barArchive The file containing the {@link BusinessArchive}
+     * @param client A {@link BonitaClient}
+     * @return The process started.
+     * @throws IOException
+     */
     public static ProcessInstantiationResponse importAndLaunchProcess(BusinessArchive barArchive, BonitaClient client)
             throws IOException {
         var process = barArchive.getProcessDefinition();
@@ -125,7 +145,7 @@ public class ConnectorTestToolkit {
         client.login("install", "install");
         client.processes().importProcess(processFile, ProcessImportPolicy.REPLACE_DUPLICATES);
         var processId = client.processes().getProcess(process.getName(), process.getVersion()).getId();
-        client.processes().getProcessProblem(0, 99, processId);
+        //client.processes().getProcessProblem(0, 99, processId);
         return client.processes().startProcess(processId, Map.of());
 
     }
@@ -136,6 +156,26 @@ public class ConnectorTestToolkit {
             return jarFile.stream()
                     .filter(entryPredicate)
                     .collect(Collectors.toList());
+        }
+    }
+
+    /**
+     * Getting the content value of a specific variable process.
+     * 
+     * @param client A {@link BonitaClient}
+     * @param caseId A process instance id.
+     * @param variableProcessName The name of the variable process, it must have been already declared in the output map of the connector before building the
+     *        connector to test.
+     * @return The content of the variable. Can be null.
+     */
+    public static Object getProcessVariableValue(BonitaClient client, String caseId, String variableProcessName) {
+        try {
+            return client.get(ArchivedProcessInstanceVariableApi.class)
+                    .getArchivedVariableByProcessInstance(caseId, variableProcessName).getValue();
+        } catch (Exception ex) {
+            //If errors, we try the non archived process (in case of testing with version 7.13.0
+            return client.get(ProcessInstanceVariableApi.class).getVariableByProcessInstanceId(caseId,
+                    variableProcessName).getValue(); // FIXME Doesnt seems to work also in 7.13.0...
         }
     }
 }
