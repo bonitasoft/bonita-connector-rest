@@ -18,4 +18,14 @@ public class DeleteConnectorImpl extends RESTConnector {
   protected String getMethod() {
     return HTTPMethod.DELETE.name();
   }
+  
+  @Override
+  protected void setBody(Object body) {
+      // No body returned for DELETE requests
+  }
+  
+  @Override
+  protected void setBody(String body) {
+      // No body returned for DELETE requests
+  }
 }

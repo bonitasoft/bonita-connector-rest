@@ -175,6 +175,91 @@ public class RestConnectorIT {
 
         client.logout();
     }
+    
+    @Test
+    public void testRestFilePutConnectorIntegration() throws Exception {
+        // Id connector and version to be tested.
+        var connectorId = "rest-file-put";
+        var versionId = "1.0.0";
+
+        // Inputs
+        Map<String, String> inputsConnector = new HashMap<>();
+        inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
+        inputsConnector.put("contentType", "application/json");
+        inputsConnector.put("charset", "UTF-8");
+
+        // Outputs
+
+        // Building process with connector 
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+
+        // Importing and launching the process contained in the business archive
+        var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
+
+        // Wait until the process launched is completed (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+
+        assertTrue(client.system().isCommunity());
+
+        client.logout();
+    }
+    
+    @Test
+    public void testRestFilePostConnectorIntegration() throws Exception {
+        // Id connector and version to be tested.
+        var connectorId = "rest-file-post";
+        var versionId = "1.0.0";
+
+        // Inputs
+        Map<String, String> inputsConnector = new HashMap<>();
+        inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
+        inputsConnector.put("contentType", "application/json");
+        inputsConnector.put("charset", "UTF-8");
+
+        // Outputs
+
+        // Building process with connector 
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+
+        // Importing and launching the process contained in the business archive
+        var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
+
+        // Wait until the process launched is completed (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+
+        assertTrue(client.system().isCommunity());
+
+        client.logout();
+    }
+    
+    @Test
+    public void testRestDeleteConnectorIntegration() throws Exception {
+        // Id connector and version to be tested.
+        var connectorId = "rest-delete";
+        var versionId = "1.2.0";
+
+        // Inputs
+        Map<String, String> inputsConnector = new HashMap<>();
+        inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
+
+        // Outputs
+
+        // Building process with connector 
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+
+        // Importing and launching the process contained in the business archive
+        var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
+
+        // Wait until the process launched is completed (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+
+        assertTrue(client.system().isCommunity());
+
+        client.logout();
+    }
 
     private Callable<String> pollInstanceState(BonitaClient client, String id) {
         return () -> {
