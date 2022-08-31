@@ -26,7 +26,6 @@ import org.bonitasoft.engine.expression.ExpressionBuilder;
 import org.bonitasoft.engine.expression.InvalidExpressionException;
 import org.bonitasoft.engine.operation.OperationBuilder;
 import org.bonitasoft.web.client.BonitaClient;
-import org.bonitasoft.web.client.api.ArchivedProcessInstanceVariableApi;
 import org.bonitasoft.web.client.api.ProcessInstanceVariableApi;
 import org.bonitasoft.web.client.model.ProcessInstantiationResponse;
 import org.bonitasoft.web.client.services.policies.ProcessImportPolicy;
@@ -122,6 +121,9 @@ public class ConnectorTestToolkit {
             });
         }
 
+        // Add a human task to avoid the process to be already completed as soon as it's launched. 
+        processBuilder.addManualTask("waiting task", "system");
+
         return processBuilder.done();
     }
 
@@ -145,7 +147,7 @@ public class ConnectorTestToolkit {
         client.login("install", "install");
         client.processes().importProcess(processFile, ProcessImportPolicy.REPLACE_DUPLICATES);
         var processId = client.processes().getProcess(process.getName(), process.getVersion()).getId();
-        //client.processes().getProcessProblem(0, 99, processId);
+        
         return client.processes().startProcess(processId, Map.of());
 
     }
@@ -169,13 +171,9 @@ public class ConnectorTestToolkit {
      * @return The content of the variable. Can be null.
      */
     public static Object getProcessVariableValue(BonitaClient client, String caseId, String variableProcessName) {
-        try {
-            return client.get(ArchivedProcessInstanceVariableApi.class)
-                    .getArchivedVariableByProcessInstance(caseId, variableProcessName).getValue();
-        } catch (Exception ex) {
-            //If errors, we try the non archived process (in case of testing with version 7.13.0
-            return client.get(ProcessInstanceVariableApi.class).getVariableByProcessInstanceId(caseId,
-                    variableProcessName).getValue(); // FIXME Doesnt seems to work also in 7.13.0...
-        }
+
+        return client.get(ProcessInstanceVariableApi.class).getVariableByProcessInstanceId(caseId,
+                variableProcessName).getValue();
+
     }
 }

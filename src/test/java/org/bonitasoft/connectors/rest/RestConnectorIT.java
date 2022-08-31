@@ -35,7 +35,7 @@ public class RestConnectorIT {
 
     @Rule
     public GenericContainer bonita = new GenericContainer(
-            DockerImageName.parse("bonita:7.14.0")) // 7.14.0 only because no archiveinstance support with 7.13.0 (can't test the output)
+            DockerImageName.parse("bonita:" + System.getProperty("bonita.version")))
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/bonita"))
                     .withLogConsumer(new Slf4jLogConsumer(LOGGER));
@@ -72,8 +72,8 @@ public class RestConnectorIT {
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
-        // Wait until the process launched is completed (and not failed)
-        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
         assertTrue(client.system().isCommunity());
 
         // Getting the result of the rest call.
@@ -110,8 +110,8 @@ public class RestConnectorIT {
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
-        // Wait until the process launched is completed (and not failed)
-        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
 
         assertTrue(client.system().isCommunity());
 
@@ -139,8 +139,8 @@ public class RestConnectorIT {
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
-        // Wait until the process launched is completed (and not failed)
-        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
 
         assertTrue(client.system().isCommunity());
 
@@ -168,8 +168,8 @@ public class RestConnectorIT {
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
-        // Wait until the process launched is completed (and not failed)
-        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
 
         assertTrue(client.system().isCommunity());
 
@@ -197,8 +197,8 @@ public class RestConnectorIT {
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
-        // Wait until the process launched is completed (and not failed)
-        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
 
         assertTrue(client.system().isCommunity());
 
@@ -226,8 +226,8 @@ public class RestConnectorIT {
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
-        // Wait until the process launched is completed (and not failed)
-        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
 
         assertTrue(client.system().isCommunity());
 
@@ -253,8 +253,8 @@ public class RestConnectorIT {
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
-        // Wait until the process launched is completed (and not failed)
-        await().until(pollInstanceState(client, processResponse.getCaseId()), "completed"::equals);
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
 
         assertTrue(client.system().isCommunity());
 
