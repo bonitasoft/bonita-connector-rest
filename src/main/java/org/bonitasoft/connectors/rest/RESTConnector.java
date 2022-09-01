@@ -536,7 +536,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             requestBuilder.setUri(urlStr);
             setHeaders(requestBuilder, request.getHeaders());
             var method = HTTPMethod.valueOf(requestBuilder.getMethod());
-            if (HTTPMethod.GET != method && HTTPMethod.HEAD != method) {
+            if (HTTPMethod.GET != method && HTTPMethod.HEAD != method && HTTPMethod.DELETE != method) {
                 final Serializable body = request.getBody();
                 if (body != null) {
                     ContentType contentType = ContentType.create(getContentType(), Charset.forName(getCharset()));
