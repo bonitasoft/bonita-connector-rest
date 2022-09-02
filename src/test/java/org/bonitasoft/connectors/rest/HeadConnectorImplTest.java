@@ -15,6 +15,7 @@
 package org.bonitasoft.connectors.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import org.bonitasoft.connectors.rest.model.HTTPMethod;
 import org.junit.Test;
@@ -24,6 +25,7 @@ public class HeadConnectorImplTest {
     @Test
     public void testHeadMethod() throws Exception {
         assertEquals(HTTPMethod.HEAD.name(), new HeadConnectorImpl().getMethod());
+        assertFalse(new HeadConnectorImpl().hasBody());
     }
     
 }
