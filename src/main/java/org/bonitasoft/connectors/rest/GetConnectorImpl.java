@@ -18,4 +18,9 @@ public class GetConnectorImpl extends RESTConnector {
   protected String getMethod() {
     return HTTPMethod.GET.name();
   }
+  
+  @Override
+  public boolean hasBody() {
+      return false;
+  }
 }

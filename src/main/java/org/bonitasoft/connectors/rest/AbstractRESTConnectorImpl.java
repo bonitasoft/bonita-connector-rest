@@ -528,4 +528,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
                     String.format("%s type is invalid", HOSTNAME_VERIFIER_INPUT_PARAMETER));
         }
     }
+    
+    public abstract boolean hasBody();
 }

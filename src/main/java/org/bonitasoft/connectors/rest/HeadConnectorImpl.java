@@ -28,4 +28,9 @@ public class HeadConnectorImpl extends RESTConnector {
     protected void setBody(String body) {
         // No body returned for HEAD requests
     }
+    
+    @Override
+    public boolean hasBody() {
+        return false;
+    }    
 }
