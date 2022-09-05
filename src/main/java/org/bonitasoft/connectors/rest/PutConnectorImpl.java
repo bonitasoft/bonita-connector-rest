@@ -14,8 +14,14 @@ import org.bonitasoft.connectors.rest.model.HTTPMethod;
 
 public class PutConnectorImpl extends RESTConnector {
 
-  @Override
-  protected String getMethod() {
-    return HTTPMethod.PUT.name();
-  }
+    private static final boolean HAS_BODY = true;
+
+    public PutConnectorImpl() {
+        super(HAS_BODY);
+    }
+
+    @Override
+    protected String getMethod() {
+        return HTTPMethod.PUT.name();
+    }
 }

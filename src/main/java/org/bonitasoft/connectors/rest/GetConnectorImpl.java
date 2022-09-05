@@ -14,13 +14,15 @@ import org.bonitasoft.connectors.rest.model.HTTPMethod;
 
 public class GetConnectorImpl extends RESTConnector {
 
-  @Override
-  protected String getMethod() {
-    return HTTPMethod.GET.name();
-  }
-  
-  @Override
-  public boolean hasBody() {
-      return false;
-  }
+    private static final boolean NO_BODY = false;
+
+    public GetConnectorImpl() {
+        super(NO_BODY);
+    }
+
+    @Override
+    protected String getMethod() {
+        return HTTPMethod.GET.name();
+    }
+
 }

@@ -14,23 +14,15 @@ import org.bonitasoft.connectors.rest.model.HTTPMethod;
 
 public class HeadConnectorImpl extends RESTConnector {
 
+    private static final boolean NO_BODY = false;
+
+    public HeadConnectorImpl() {
+        super(NO_BODY);
+    }
+
     @Override
     protected String getMethod() {
         return HTTPMethod.HEAD.name();
     }
     
-    @Override
-    protected void setBody(Object body) {
-        // No body returned for HEAD requests
-    }
-    
-    @Override
-    protected void setBody(String body) {
-        // No body returned for HEAD requests
-    }
-    
-    @Override
-    public boolean hasBody() {
-        return false;
-    }    
 }

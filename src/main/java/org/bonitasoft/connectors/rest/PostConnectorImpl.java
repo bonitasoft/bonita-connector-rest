@@ -14,8 +14,14 @@ import org.bonitasoft.connectors.rest.model.HTTPMethod;
 
 public class PostConnectorImpl extends RESTConnector {
 
-  @Override
-  protected String getMethod() {
-    return HTTPMethod.POST.name();
-  }
+    private static final boolean HAS_BODY = true;
+
+    public PostConnectorImpl() {
+        super(HAS_BODY);
+    }
+
+    @Override
+    protected String getMethod() {
+        return HTTPMethod.POST.name();
+    }
 }

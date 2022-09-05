@@ -112,6 +112,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     static final String DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY = "org.bonitasoft.connectors.rest.response.fallbackToJVMCharset";
 
+    /**
+     * Whether a the given HTTP method has a body payload
+     */
+    private final boolean hasBody;
+    
+    protected RESTConnector(boolean hasBody) {
+        this.hasBody = hasBody;
+    }
+
     @Override
     public void validateInputParameters() throws ConnectorValidationException {
         super.validateInputParameters();
@@ -864,6 +873,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     
     @Override
     public boolean hasBody() {
-        return true;
+        return hasBody;
     }
 }
