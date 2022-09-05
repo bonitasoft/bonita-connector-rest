@@ -14,18 +14,15 @@ import org.bonitasoft.connectors.rest.model.HTTPMethod;
 
 public class DeleteConnectorImpl extends RESTConnector {
 
-  @Override
-  protected String getMethod() {
-    return HTTPMethod.DELETE.name();
-  }
-  
-  @Override
-  protected void setBody(Object body) {
-      // No body returned for DELETE requests
-  }
-  
-  @Override
-  protected void setBody(String body) {
-      // No body returned for DELETE requests
-  }
+    private static final boolean NO_BODY = false;
+
+    public DeleteConnectorImpl() {
+        super(NO_BODY);
+    }
+
+    @Override
+    protected String getMethod() {
+        return HTTPMethod.DELETE.name();
+    }
+
 }
