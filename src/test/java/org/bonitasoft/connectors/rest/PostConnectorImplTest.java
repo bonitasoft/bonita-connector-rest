@@ -15,6 +15,7 @@
 package org.bonitasoft.connectors.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.bonitasoft.connectors.rest.model.HTTPMethod;
 import org.junit.Test;
@@ -24,6 +25,7 @@ public class PostConnectorImplTest {
     @Test
     public void testPostMethod() throws Exception {
         assertEquals(HTTPMethod.POST.name(), new PostConnectorImpl().getMethod());
+        assertTrue(new PostConnectorImpl().hasBody());
     }
     
 }

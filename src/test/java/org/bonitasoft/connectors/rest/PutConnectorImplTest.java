@@ -15,6 +15,7 @@
 package org.bonitasoft.connectors.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.bonitasoft.connectors.rest.model.HTTPMethod;
 import org.junit.Test;
@@ -24,6 +25,7 @@ public class PutConnectorImplTest {
     @Test
     public void testPutMethod() throws Exception {
         assertEquals(HTTPMethod.PUT.name(), new PutConnectorImpl().getMethod());
+        assertTrue(new PutConnectorImpl().hasBody());
     }
     
 }

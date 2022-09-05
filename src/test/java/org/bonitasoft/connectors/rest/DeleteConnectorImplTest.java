@@ -24,6 +24,7 @@ public class DeleteConnectorImplTest {
     @Test
     public void testDeleteMethod() throws Exception {
         assertEquals(HTTPMethod.DELETE.name(), new DeleteConnectorImpl().getMethod());
+        assertFalse(new DeleteConnectorImpl().hasBody());
     }
 
 }

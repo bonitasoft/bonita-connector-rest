@@ -141,7 +141,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final SSLVerifier getHostnameVerifier() {
-        return SSLVerifier.getSSLVerifierFromValue((String)getInputParameter(HOSTNAME_VERIFIER_INPUT_PARAMETER));
+        return SSLVerifier.getSSLVerifierFromValue((String) getInputParameter(HOSTNAME_VERIFIER_INPUT_PARAMETER));
     }
 
     protected final String getTrustStoreFile() {
@@ -444,10 +444,12 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     void validateBody() throws ConnectorValidationException {
-        try {
-            getBody();
-        } catch (final ClassCastException cce) {
-            throw new ConnectorValidationException("body type is invalid");
+        if (hasBody()) {
+            try {
+                getBody();
+            } catch (final ClassCastException cce) {
+                throw new ConnectorValidationException("body type is invalid");
+            }
         }
     }
 
@@ -528,4 +530,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
                     String.format("%s type is invalid", HOSTNAME_VERIFIER_INPUT_PARAMETER));
         }
     }
+
+    public abstract boolean hasBody();
 }
