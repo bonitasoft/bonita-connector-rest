@@ -20,16 +20,6 @@ public class DeleteConnectorImpl extends RESTConnector {
   }
   
   @Override
-  protected void setBody(Object body) {
-      // No body returned for DELETE requests
-  }
-  
-  @Override
-  protected void setBody(String body) {
-      // No body returned for DELETE requests
-  }
-  
-  @Override
   public boolean hasBody() {
       return false;
   }
