@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import org.bonitasoft.web.client.BonitaClient;
@@ -33,13 +34,35 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class RestConnectorIT {
 
+    private static final String REST_HEAD_DEF_VERSION = "1.0.0";
+    private static final String REST_HEAD_DEF_ID = "rest-head";
+    
+    private static final String REST_GET_DEF_VERSION = "1.2.0";
+    private static final String REST_GET_DEF_ID = "rest-get";
+    
+    private static final String REST_POST_DEF_VERSION = "1.3.0";
+    private static final String REST_POST_DEF_ID = "rest-post";
+    
+    private static final String REST_FILE_POST_DEF_VERSION = "1.0.0";
+    private static final String REST_FILE_POST_DEF_ID = "rest-file-post";
+    
+    private static final String REST_PUT_DEF_VERSION = "1.3.0";
+    private static final String REST_PUT_DEF_ID = "rest-put";
+    
+    private static final String REST_FILE_PUT_DEF_VERSION = "1.0.0";
+    private static final String REST_FILE_PUT_DEF_ID = "rest-file-put";
+    
+    private static final String REST_DELETE_DEF_VERSION = "1.2.0";
+    private static final String REST_DELETE_DEF_ID = "rest-delete";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RestConnectorIT.class);
 
     private static final String ARTIFACT_ID = "bonita-connector-rest";
+    private static final String BONITA_VERSION = Objects.requireNonNull(System.getProperty("bonita.version"), "'bonita.version' system property not defined !");
 
     @ClassRule
     public static GenericContainer<?> BONITA_CONTAINER = new GenericContainer<>(
-            DockerImageName.parse("bonita:" + System.getProperty("bonita.version")))
+            DockerImageName.parse(String.format("bonita:%s", BONITA_VERSION)))
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/bonita"))
                     .withLogConsumer(new Slf4jLogConsumer(LOGGER));
@@ -74,10 +97,6 @@ public class RestConnectorIT {
 
     @Test
     public void testRestGetConnectorIntegration() throws Exception {
-        // Id connector and version to be tested.
-        var connectorId = "rest-get";
-        var versionId = "1.2.0";
-
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/todos/1");
@@ -87,7 +106,7 @@ public class RestConnectorIT {
         outputsConnector.put("resultRestGet", "bodyAsString");
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_GET_DEF_ID, REST_GET_DEF_VERSION, inputsConnector,
                 outputsConnector, ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -111,10 +130,6 @@ public class RestConnectorIT {
 
     @Test
     public void testRestHeadConnectorIntegration() throws Exception {
-        // Id connector and version to be tested.
-        var connectorId = "rest-head";
-        var versionId = "1.0.0";
-
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
@@ -123,7 +138,7 @@ public class RestConnectorIT {
         //TODO Adding output with the map type.
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_HEAD_DEF_ID, REST_HEAD_DEF_VERSION, inputsConnector, null,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -135,10 +150,6 @@ public class RestConnectorIT {
 
     @Test
     public void testRestPostConnectorIntegration() throws Exception {
-        // Id connector and version to be tested.
-        var connectorId = "rest-post";
-        var versionId = "1.3.0";
-
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
@@ -148,7 +159,7 @@ public class RestConnectorIT {
         // Outputs
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_POST_DEF_ID, REST_POST_DEF_VERSION, inputsConnector, null,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -160,10 +171,6 @@ public class RestConnectorIT {
 
     @Test
     public void testRestPutConnectorIntegration() throws Exception {
-        // Id connector and version to be tested.
-        var connectorId = "rest-put";
-        var versionId = "1.3.0";
-
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
@@ -173,7 +180,7 @@ public class RestConnectorIT {
         // Outputs
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_PUT_DEF_ID, REST_PUT_DEF_VERSION, inputsConnector, null,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -185,10 +192,6 @@ public class RestConnectorIT {
 
     @Test
     public void testRestFilePutConnectorIntegration() throws Exception {
-        // Id connector and version to be tested.
-        var connectorId = "rest-file-put";
-        var versionId = "1.0.0";
-
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
@@ -198,7 +201,7 @@ public class RestConnectorIT {
         // Outputs
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_FILE_PUT_DEF_ID, REST_FILE_PUT_DEF_VERSION, inputsConnector, null,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -210,10 +213,6 @@ public class RestConnectorIT {
 
     @Test
     public void testRestFilePostConnectorIntegration() throws Exception {
-        // Id connector and version to be tested.
-        var connectorId = "rest-file-post";
-        var versionId = "1.0.0";
-
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
@@ -223,7 +222,7 @@ public class RestConnectorIT {
         // Outputs
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_FILE_POST_DEF_ID, REST_FILE_POST_DEF_VERSION, inputsConnector, null,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -235,10 +234,6 @@ public class RestConnectorIT {
 
     @Test
     public void testRestDeleteConnectorIntegration() throws Exception {
-        // Id connector and version to be tested.
-        var connectorId = "rest-delete";
-        var versionId = "1.2.0";
-
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
@@ -246,7 +241,7 @@ public class RestConnectorIT {
         // Outputs
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_DELETE_DEF_ID, REST_DELETE_DEF_VERSION, inputsConnector, null,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
