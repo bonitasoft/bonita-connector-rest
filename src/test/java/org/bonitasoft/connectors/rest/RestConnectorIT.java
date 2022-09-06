@@ -1,5 +1,7 @@
 package org.bonitasoft.connectors.rest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
+import org.bonitasoft.connectors.rest.ConnectorTestToolkit.Output;
 import org.bonitasoft.web.client.BonitaClient;
 import org.bonitasoft.web.client.api.ArchivedProcessInstanceApi;
 import org.bonitasoft.web.client.api.ProcessInstanceApi;
@@ -102,8 +105,8 @@ public class RestConnectorIT {
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/todos/1");
 
         // Outputs
-        Map<String, String> outputsConnector = new HashMap<>();
-        outputsConnector.put("resultRestGet", "bodyAsString");
+        Map<String, Output> outputsConnector = new HashMap<>();
+        outputsConnector.put("resultRestGet", Output.create("bodyAsString", String.class.getName()));
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_GET_DEF_ID, REST_GET_DEF_VERSION, inputsConnector,
@@ -135,10 +138,11 @@ public class RestConnectorIT {
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
 
         // Outputs
-        //TODO Adding output with the map type.
+        var connectorOuput = Map.ofEntries(entry("headerResult", Output.create("headers", Map.class.getName())),
+                entry("statusResult", Output.create("status_code", Integer.class.getName())));
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_HEAD_DEF_ID, REST_HEAD_DEF_VERSION, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_HEAD_DEF_ID, REST_HEAD_DEF_VERSION, inputsConnector, connectorOuput,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -146,20 +150,32 @@ public class RestConnectorIT {
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
+        
+        // Getting the results of the rest call.
+        String status = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "statusResult");
+        assertThat(Integer.parseInt(status)).isEqualTo(200);
+        
+        String headers = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "headerResult");
+        assertNotNull(headers);
+        assertThat(headers).containsIgnoringCase("Content-Type=application/json");
     }
 
     @Test
     public void testRestPostConnectorIntegration() throws Exception {
         // Inputs
         Map<String, String> inputsConnector = new HashMap<>();
-        inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
+        inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/");
         inputsConnector.put("contentType", "application/json");
         inputsConnector.put("charset", "UTF-8");
 
         // Outputs
-
+        var connectorOuput = Map.ofEntries(entry("response", Output.create("bodyAsString", String.class.getName())),
+                entry("statusResult", Output.create("status_code", Integer.class.getName())));
+        
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_POST_DEF_ID, REST_POST_DEF_VERSION, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_POST_DEF_ID, REST_POST_DEF_VERSION, inputsConnector, connectorOuput,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -167,6 +183,15 @@ public class RestConnectorIT {
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
+        
+        String status = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "statusResult");
+        assertThat(Integer.parseInt(status)).isEqualTo(201);
+        String response = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "response");
+        ObjectMapper mapper = new ObjectMapper();
+        var map = mapper.readValue(response, Map.class);
+        assertThat(map).containsExactly(entry("id", 101));
     }
 
     @Test
@@ -176,11 +201,14 @@ public class RestConnectorIT {
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
         inputsConnector.put("contentType", "application/json");
         inputsConnector.put("charset", "UTF-8");
+        inputsConnector.put("body", "{ \"title\" : \"updated\"}");
 
         // Outputs
+        var connectorOuput = Map.ofEntries(entry("statusResult", Output.create("status_code", Integer.class.getName())),
+                entry("response", Output.create("bodyAsString", String.class.getName())));
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_PUT_DEF_ID, REST_PUT_DEF_VERSION, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_PUT_DEF_ID, REST_PUT_DEF_VERSION, inputsConnector, connectorOuput,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -188,6 +216,13 @@ public class RestConnectorIT {
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
+        
+        String status = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "statusResult");
+        assertThat(Integer.parseInt(status)).isEqualTo(200);
+        var response = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "response");
+        assertThat(response).contains("updated");
     }
 
     @Test
@@ -239,9 +274,11 @@ public class RestConnectorIT {
         inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
 
         // Outputs
+        var connectorOuput = Map.ofEntries(entry("statusResult", Output.create("status_code", Integer.class.getName())));
+
 
         // Building process with connector 
-        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_DELETE_DEF_ID, REST_DELETE_DEF_VERSION, inputsConnector, null,
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_DELETE_DEF_ID, REST_DELETE_DEF_VERSION, inputsConnector, connectorOuput,
                 ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
@@ -249,6 +286,10 @@ public class RestConnectorIT {
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
+        
+        String status = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "statusResult");
+        assertThat(Integer.parseInt(status)).isEqualTo(200);
     }
 
     private Callable<String> pollInstanceState(BonitaClient client, String id) {

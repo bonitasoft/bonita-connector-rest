@@ -50,14 +50,13 @@ public class ConnectorTestToolkit {
      * @throws Exception
      */
     public static BusinessArchive buildConnectorToTest(String connectorId, String versionId, Map<String, String> inputs,
-            Map<String, String> outputs, String locationJar) throws Exception {
+            Map<String, Output> outputs, String locationJar) throws Exception {
 
         // Building process with connector to setup
         var process = buildConnectorInProcess(connectorId, versionId, inputs, outputs);
 
         // Building business archive with the process and connector
         return buildBusinessArchive(process, connectorId, locationJar);
-
     }
 
     private static BusinessArchive buildBusinessArchive(DesignProcessDefinition process, String connectorId,
@@ -72,10 +71,12 @@ public class ConnectorTestToolkit {
 
                     @Override
                     public boolean accept(File dir, String name) {
-                        return Pattern.matches(artifactId + "-.*.jar", name) && !name.endsWith("-sources.jar")
+                        return Pattern.matches(artifactId + "-.*.jar", name)
+                                && !name.endsWith("-sources.jar")
                                 && !name.endsWith("-javadoc.jar");
                     }
                 });
+
         assertThat(foundFiles).hasSize(1);
         var connectorJar = foundFiles[0];
         assertThat(connectorJar).exists();
@@ -104,10 +105,10 @@ public class ConnectorTestToolkit {
     }
 
     private static DesignProcessDefinition buildConnectorInProcess(String connectorId, String versionId,
-            Map<String, String> inputs, Map<String, String> outputs) throws Exception {
+            Map<String, String> inputs, Map<String, Output> outputs) throws Exception {
         var processBuilder = new ProcessDefinitionBuilder();
         var expBuilder = new ExpressionBuilder();
-        processBuilder.createNewInstance("myProcess", "1.0");
+        processBuilder.createNewInstance("PROCESS_UNDER_TEST", "1.0");
         processBuilder.addActor("system");
         var connectorBuilder = processBuilder.addConnector("connector-under-test", connectorId, versionId,
                 ConnectorEvent.ON_ENTER);
@@ -116,24 +117,24 @@ public class ConnectorTestToolkit {
                 connectorBuilder.addInput(name, expBuilder.createConstantStringExpression(
                         content));
             } catch (InvalidExpressionException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         });
 
         if (outputs != null) {
-            outputs.forEach((name, outputName) -> {
+            outputs.forEach((name, output) -> {
                 try {
-                    processBuilder.addData(name, String.class.getTypeName(), null); //TODO can only work with the string type output
+                    processBuilder.addData(name, output.getType(), null);
                     connectorBuilder.addOutput(new OperationBuilder().createSetDataOperation(name,
-                            new ExpressionBuilder().createDataExpression(outputName, String.class.getTypeName())));
+                            new ExpressionBuilder().createDataExpression(output.getName(), output.getType())));
                 } catch (InvalidExpressionException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             });
         }
 
-        // Add a human task to avoid the process to be already completed as soon as it's launched. 
-        processBuilder.addManualTask("waiting task", "system");
+        // Add a user task to avoid the process to be already completed as soon as it's launched. 
+        processBuilder.addUserTask("waiting task", "system");
 
         return processBuilder.done();
     }
@@ -161,7 +162,7 @@ public class ConnectorTestToolkit {
                 processFile.delete();
             }
         }
-        
+
         var processId = client.processes().getProcess(process.getName(), process.getVersion()).getId();
         return client.processes().startProcess(processId, Map.of());
 
@@ -185,10 +186,33 @@ public class ConnectorTestToolkit {
      *        connector to test.
      * @return The content of the variable. Can be null.
      */
-    public static Object getProcessVariableValue(BonitaClient client, String caseId, String variableProcessName) {
+    public static String getProcessVariableValue(BonitaClient client, String caseId, String variableProcessName) {
+        return client.get(ProcessInstanceVariableApi.class).getVariableByProcessInstanceId(caseId, variableProcessName)
+                .getValue();
 
-        return client.get(ProcessInstanceVariableApi.class).getVariableByProcessInstanceId(caseId,
-                variableProcessName).getValue();
+    }
+
+    static class Output {
+
+        private final String name;
+        private final String type;
+
+        public static Output create(String name, String type) {
+            return new Output(name, type);
+        }
+
+        private Output(String name, String type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getType() {
+            return type;
+        }
 
     }
 }
