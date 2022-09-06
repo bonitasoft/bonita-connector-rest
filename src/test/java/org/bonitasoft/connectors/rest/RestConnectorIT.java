@@ -2,22 +2,25 @@ package org.bonitasoft.connectors.rest;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
 import org.bonitasoft.web.client.BonitaClient;
 import org.bonitasoft.web.client.api.ArchivedProcessInstanceApi;
 import org.bonitasoft.web.client.api.ProcessInstanceApi;
 import org.bonitasoft.web.client.exception.NotFoundException;
 import org.bonitasoft.web.client.model.ArchivedProcessInstance;
 import org.bonitasoft.web.client.services.policies.OrganizationImportPolicy;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,26 +31,44 @@ import org.testcontainers.utility.DockerImageName;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 public class RestConnectorIT {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestConnectorIT.class);
 
-    @Rule
-    public GenericContainer bonita = new GenericContainer(
+    private static final String ARTIFACT_ID = "bonita-connector-rest";
+
+    @ClassRule
+    public static GenericContainer<?> BONITA_CONTAINER = new GenericContainer<>(
             DockerImageName.parse("bonita:" + System.getProperty("bonita.version")))
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/bonita"))
                     .withLogConsumer(new Slf4jLogConsumer(LOGGER));
-    private BonitaClient client;
 
-    @Before
-    public void setup() {
-        client = BonitaClient
-                .builder(String.format("http://%s:%s/bonita", bonita.getHost(), bonita.getFirstMappedPort())).build();
+    @BeforeClass
+    public static void installOrganization() {
+        var client = BonitaClient
+                .builder(String.format("http://%s:%s/bonita", BONITA_CONTAINER.getHost(),
+                        BONITA_CONTAINER.getFirstMappedPort()))
+                .build();
         client.login("install", "install");
         client.users().importOrganization(new File(RestConnectorIT.class.getResource("/ACME.xml").getFile()),
                 OrganizationImportPolicy.IGNORE_DUPLICATES);
+        client.logout();
+    }
+
+    private BonitaClient client;
+
+    @Before
+    public void login() {
+        client = BonitaClient
+                .builder(String.format("http://%s:%s/bonita", BONITA_CONTAINER.getHost(),
+                        BONITA_CONTAINER.getFirstMappedPort()))
+                .build();
+        client.login("install", "install");
+    }
+
+    @After
+    public void logout() {
         client.logout();
     }
 
@@ -67,27 +88,25 @@ public class RestConnectorIT {
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector,
-                outputsConnector, "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+                outputsConnector, ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
-        assertTrue(client.system().isCommunity());
 
         // Getting the result of the rest call.
-        String resultRestGetResult = (String) ConnectorTestToolkit.getProcessVariableValue(client, processResponse.getCaseId(), "resultRestGet");
+        String resultRestGetResult = (String) ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "resultRestGet");
         assertNotNull(resultRestGetResult);
 
         ObjectMapper mapper = new ObjectMapper();
         var map = mapper.readValue(resultRestGetResult, Map.class);
-        assertEquals(map.get("userId"), 1);
-        assertEquals(map.get("id"), 1);
-        assertEquals(map.get("title"), "delectus aut autem");
-        assertEquals(map.get("completed"), false);
-
-        client.logout();
+        assertEquals(1, map.get("userId"));
+        assertEquals(1, map.get("id"));
+        assertEquals("delectus aut autem", map.get("title"));
+        assertFalse((boolean) map.get("completed"));
     }
 
     @Test
@@ -105,17 +124,13 @@ public class RestConnectorIT {
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
-                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+                ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
-
-        assertTrue(client.system().isCommunity());
-
-        client.logout();
     }
 
     @Test
@@ -134,17 +149,13 @@ public class RestConnectorIT {
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
-                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+                ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
-
-        assertTrue(client.system().isCommunity());
-
-        client.logout();
     }
 
     @Test
@@ -163,19 +174,15 @@ public class RestConnectorIT {
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
-                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+                ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
-
-        assertTrue(client.system().isCommunity());
-
-        client.logout();
     }
-    
+
     @Test
     public void testRestFilePutConnectorIntegration() throws Exception {
         // Id connector and version to be tested.
@@ -192,19 +199,15 @@ public class RestConnectorIT {
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
-                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+                ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
-
-        assertTrue(client.system().isCommunity());
-
-        client.logout();
     }
-    
+
     @Test
     public void testRestFilePostConnectorIntegration() throws Exception {
         // Id connector and version to be tested.
@@ -221,19 +224,15 @@ public class RestConnectorIT {
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
-                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+                ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
-
-        assertTrue(client.system().isCommunity());
-
-        client.logout();
     }
-    
+
     @Test
     public void testRestDeleteConnectorIntegration() throws Exception {
         // Id connector and version to be tested.
@@ -248,17 +247,13 @@ public class RestConnectorIT {
 
         // Building process with connector 
         var barFile = ConnectorTestToolkit.buildConnectorToTest(connectorId, versionId, inputsConnector, null,
-                "bonita-connector-rest-1.3.0-SNAPSHOT.jar");
+                ARTIFACT_ID);
 
         // Importing and launching the process contained in the business archive
         var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
 
         // Wait until the process launched is started (and not failed)
         await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
-
-        assertTrue(client.system().isCommunity());
-
-        client.logout();
     }
 
     private Callable<String> pollInstanceState(BonitaClient client, String id) {

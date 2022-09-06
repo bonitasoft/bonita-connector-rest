@@ -3,6 +3,7 @@ package org.bonitasoft.connectors.rest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bonitasoft.engine.bpm.bar.BarResource;
@@ -59,14 +61,23 @@ public class ConnectorTestToolkit {
     }
 
     private static BusinessArchive buildBusinessArchive(DesignProcessDefinition process, String connectorId,
-            String locationJar) throws Exception {
+            String artifactId) throws Exception {
         var barBuilder = new BusinessArchiveBuilder();
         barBuilder.createNewBusinessArchive();
         barBuilder.setProcessDefinition(process);
-        var connectorJar = new File("").getAbsoluteFile().toPath()
+        var foundFiles = new File("").getAbsoluteFile().toPath()
                 .resolve("target")
-                .resolve(locationJar)
-                .toFile();
+                .toFile()
+                .listFiles(new FilenameFilter() {
+
+                    @Override
+                    public boolean accept(File dir, String name) {
+                        return Pattern.matches(artifactId + "-.*.jar", name) && !name.endsWith("-sources.jar")
+                                && !name.endsWith("-javadoc.jar");
+                    }
+                });
+        assertThat(foundFiles).hasSize(1);
+        var connectorJar = foundFiles[0];
         assertThat(connectorJar).exists();
         List<JarEntry> jarEntries = findJarEntries(connectorJar,
                 entry -> entry.getName().equals(connectorId + ".impl"));
@@ -138,16 +149,20 @@ public class ConnectorTestToolkit {
     public static ProcessInstantiationResponse importAndLaunchProcess(BusinessArchive barArchive, BonitaClient client)
             throws IOException {
         var process = barArchive.getProcessDefinition();
-        var processFile = new File("process.bar");
-        if (processFile.exists()) {
+        File processFile = null;
+        try {
+            processFile = Files.createTempFile("process", ".bar").toFile();
             processFile.delete();
+            BusinessArchiveFactory.writeBusinessArchiveToFile(barArchive, processFile);
+            client.login("install", "install");
+            client.processes().importProcess(processFile, ProcessImportPolicy.REPLACE_DUPLICATES);
+        } finally {
+            if (processFile != null) {
+                processFile.delete();
+            }
         }
-
-        BusinessArchiveFactory.writeBusinessArchiveToFile(barArchive, processFile);
-        client.login("install", "install");
-        client.processes().importProcess(processFile, ProcessImportPolicy.REPLACE_DUPLICATES);
-        var processId = client.processes().getProcess(process.getName(), process.getVersion()).getId();
         
+        var processId = client.processes().getProcess(process.getName(), process.getVersion()).getId();
         return client.processes().startProcess(processId, Map.of());
 
     }
