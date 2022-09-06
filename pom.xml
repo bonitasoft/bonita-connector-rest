@@ -394,15 +394,31 @@
                  <artifactId>maven-failsafe-plugin</artifactId>
                  <executions>
                    <execution>
+                        <id>integration-tests-7.13</id>
                         <goals>
                             <goal>integration-test</goal>
-                            <goal>verify</goal>
                         </goals>
                         <configuration>
                             <systemProperties>
-                                <bonita.version>${bonita.engine.version}</bonita.version>
+                                <bonita.version>7.13.0</bonita.version>
 						     </systemProperties>
                         </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-tests-7.14</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <systemProperties>
+                                <bonita.version>7.14.0</bonita.version>
+                             </systemProperties>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>verify</goal>
+                        </goals>
                     </execution>
                  </executions>
             </plugin>
