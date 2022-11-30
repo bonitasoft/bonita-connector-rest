@@ -100,7 +100,7 @@
         <junit.version>4.13.2</junit.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
-        <testcontainers.version>1.17.5</testcontainers.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
         <bonita-java-client.version>0.0.10</bonita-java-client.version>
         <awaitility.version>4.2.0</awaitility.version>
 
