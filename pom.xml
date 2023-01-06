@@ -96,7 +96,7 @@
         <!-- Test -->
         <mockito.version>1.10.19</mockito.version>
         <wiremock.version>2.35.0</wiremock.version>
-        <assertj.version>3.23.1</assertj.version>
+        <assertj.version>3.24.0</assertj.version>
         <junit.version>4.13.2</junit.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
