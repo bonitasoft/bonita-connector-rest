@@ -58,9 +58,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
-import org.apache.http.impl.auth.AuthSchemeBase;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.auth.DigestScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -116,7 +114,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Whether a the given HTTP method has a body payload
      */
     private final boolean hasBody;
-    
+
     protected RESTConnector(boolean hasBody) {
         this.hasBody = hasBody;
     }
@@ -348,7 +346,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         if (isStringInputValid(getAuthRealm())) {
             authorization.setRealm(getAuthRealm());
         }
-        authorization.setPreemptive(getAuthPreemptive());
         return authorization;
     }
 
@@ -369,8 +366,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         if (isStringInputValid(getAuthRealm())) {
             authorization.setRealm(getAuthRealm());
         }
-        authorization.setPreemptive(getAuthPreemptive());
-
         return authorization;
     }
 
@@ -506,7 +501,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     HttpClientBuilder newHttpClientBuilder() {
         return HttpClientBuilder.create();
     }
-    
+
     /**
      * Execute a given request
      *
@@ -540,9 +535,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             if (url.getPort() == -1) {
                 urlPort = url.getDefaultPort();
             }
-            final String urlProtocol = url.getProtocol();
-            final String urlStr = url.toString();
-            requestBuilder.setUri(urlStr);
+            requestBuilder.setUri(url.toString());
             setHeaders(requestBuilder, request.getHeaders());
             if (hasBody()) {
                 final Serializable body = request.getBody();
@@ -559,7 +552,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     request.getProxy(),
                     urlHost,
                     urlPort,
-                    urlProtocol,
                     httpClientBuilder);
 
             requestBuilder.setConfig(requestConfigurationBuilder.build());
@@ -609,14 +601,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param ssl The request SSL options
      * @param httpClientBuilder The request builder
-     * @throws KeyStoreException 
-     * @throws NoSuchAlgorithmException 
-     * @throws IOException 
-     * @throws CertificateException 
-     * @throws UnrecoverableKeyException 
-     * @throws KeyManagementException 
+     * @throws KeyStoreException
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
+     * @throws CertificateException
+     * @throws UnrecoverableKeyException
+     * @throws KeyManagementException
      */
-    private void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
+    private void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws NoSuchAlgorithmException,
+            KeyStoreException, CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
         if (ssl != null) {
             final SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
             TrustCertificateStrategy trustCertificateStrategy = ssl.getTrustCertificateStrategy();
@@ -764,7 +757,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final Proxy proxy,
             final String urlHost,
             final int urlPort,
-            final String urlProtocol,
             final HttpClientBuilder httpClientBuilder) {
         HttpContext httpContext = HttpClientContext.create();
         if (authorization != null) {
@@ -791,23 +783,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     realm = castAuthorization.getRealm();
                 }
 
+                
                 final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
                 credentialsProvider.setCredentials(
                         new AuthScope(host, port, realm), new UsernamePasswordCredentials(username, password));
                 setProxyCrendentials(proxy, credentialsProvider);
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 
-                if (castAuthorization.isPreemptive() || proxy != null) {
+                if (proxy != null) {
                     final AuthCache authenticationCache = new BasicAuthCache();
-                    if (castAuthorization.isPreemptive()) {
-                        final AuthSchemeBase authorizationScheme = castAuthorization.isBasic() ? new BasicScheme()
-                                : new DigestScheme();
-                        authenticationCache.put(new HttpHost(host, port, urlProtocol), authorizationScheme);
-                    }
-                    if (proxy != null) {
-                        final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
-                        authenticationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
-                    }
+                    final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
+                    authenticationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
                     final HttpClientContext localContext = HttpClientContext.create();
                     localContext.setAuthCache(authenticationCache);
                     httpContext = localContext;
@@ -870,7 +856,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         }
         LOGGER.fine(() -> "executeBusinessLogic error: " + stringBuilder.toString());
     }
-    
+
     @Override
     public boolean hasBody() {
         return hasBody;

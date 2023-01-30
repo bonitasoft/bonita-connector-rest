@@ -21,9 +21,6 @@ public class BasicDigestAuthorization implements Authorization {
   /** The realm value. */
   private String realm = null;
 
-  /** Is this authorization preemptive. */
-  private boolean isPreemptive = true;
-
   /**
    * Constructor setting if the authorization is a Basic typed one. Default Constructor.
    *
@@ -121,24 +118,6 @@ public class BasicDigestAuthorization implements Authorization {
    */
   public void setRealm(final String realm) {
     this.realm = realm;
-  }
-
-  /**
-   * Preemptive value getter.
-   *
-   * @return The preemptive value.
-   */
-  public boolean isPreemptive() {
-    return isPreemptive;
-  }
-
-  /**
-   * Preemptive value setter.
-   *
-   * @param isPreemptive The new preemptive value.
-   */
-  public void setPreemptive(final boolean isPreemptive) {
-    this.isPreemptive = isPreemptive;
   }
 
   /**

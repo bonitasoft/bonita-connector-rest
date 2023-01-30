@@ -190,6 +190,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return (String) getInputParameter(AUTH_REALM_INPUT_PARAMETER);
     }
 
+    /**
+     * @deprecated preemptive authentication is now always disabled
+     */
+    @Deprecated(since = "1.3.1", forRemoval = true)
     protected final Boolean getAuthPreemptive() {
         final Boolean preemptive = (Boolean) getInputParameter(AUTH_PREEMPTIVE_INPUT_PARAMETER);
         return preemptive != null ? preemptive : Boolean.TRUE;
@@ -273,7 +277,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         validateAuthHost();
         validateAuthPort();
         validateAuthRealm();
-        validateAuthPreemptive();
         validateProxyProtocol();
         validateProxyHost();
         validateProxyPort();
@@ -336,14 +339,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             getProxyProtocol();
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException("proxy_protocol type is invalid");
-        }
-    }
-
-    void validateAuthPreemptive() throws ConnectorValidationException {
-        try {
-            getAuthPreemptive();
-        } catch (final ClassCastException cce) {
-            throw new ConnectorValidationException("auth_basic_preemptive type is invalid");
         }
     }
 

@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AUTH;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.entity.ContentType;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
@@ -71,6 +72,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -79,6 +81,11 @@ import com.google.common.collect.Maps;
 /** The class for the UTs of the REST Connector */
 public class RESTConnectorTest extends AcceptanceTestBase {
 
+    static {
+        SLF4JBridgeHandler.install();
+    }
+
+    
     private static final int NB_OUTPUTS = 5;
 
     // WireMock
@@ -399,15 +406,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
        assertThrows(ConnectorValidationException.class , () -> connector.validateAuthPort());
     }
     
-    @Test
-    public void testAuthPreemptiveParameter() throws Exception {
-       var connector =  new RESTConnector(false);
-       Map<String, Object> input = new HashMap<>();
-       input.put(RESTConnector.AUTH_PREEMPTIVE_INPUT_PARAMETER, "1");
-       connector.setInputParameters(input);
-       
-       assertThrows(ConnectorValidationException.class , () -> connector.validateAuthPreemptive());
-    }
     
     @Test
     public void testAuthRealmParameter() throws Exception {
@@ -747,12 +745,12 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param preemptive Preemptive
      * @return The set of parameters
      */
-    private Map<String, Object> buildBasicAuthorizationParametersSet(
+    private Map<String, Object> buildAuthorizationParametersSet(
+            AuthorizationType type,
             final String username,
             final String password,
             final String host,
-            final String realm,
-            final Boolean preemptive) {
+            final String realm) {
         final Map<String, Object> parametersSet = buildParametersSet(
                 null,
                 null,
@@ -768,12 +766,11 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 STRICT);
 
         parametersSet.put(
-                AbstractRESTConnectorImpl.AUTH_TYPE_PARAMETER, AuthorizationType.BASIC.name());
+                AbstractRESTConnectorImpl.AUTH_TYPE_PARAMETER, type.name());
         parametersSet.put(AbstractRESTConnectorImpl.AUTH_USERNAME_INPUT_PARAMETER, username);
         parametersSet.put(AbstractRESTConnectorImpl.AUTH_PASSWORD_INPUT_PARAMETER, password);
         parametersSet.put(AbstractRESTConnectorImpl.AUTH_HOST_INPUT_PARAMETER, host);
         parametersSet.put(AbstractRESTConnectorImpl.AUTH_REALM_INPUT_PARAMETER, realm);
-        parametersSet.put(AbstractRESTConnectorImpl.AUTH_PREEMPTIVE_INPUT_PARAMETER, preemptive);
 
         return parametersSet;
     }
@@ -923,7 +920,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertEquals("pass", digetAuthorization.getPassword());
         assertEquals((Integer) 443, digetAuthorization.getPort());
         assertEquals("realm", digetAuthorization.getRealm());
-        assertTrue(digetAuthorization.isPreemptive());
         assertFalse(digetAuthorization.isBasic());
     }
 
@@ -1536,11 +1532,39 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void basicAuthWithUsernameAndPassword() throws BonitaException {
         stubFor(
                 get(urlEqualTo("/"))
-                        .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
+                        .willReturn(aResponse()
+                                .withHeader(AUTH.WWW_AUTH, "Basic")
+                                .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+        
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withBasicAuth(USERNAME, PASSWORD)
                         .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
         checkResultIsPresent(
                 executeConnector(
-                        buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, EMPTY, Boolean.TRUE)));
+                        buildAuthorizationParametersSet(AuthorizationType.BASIC, USERNAME, PASSWORD, EMPTY, EMPTY)));
+    }
+    
+    @Test
+    public void digestAuthWithUsernameAndPassword() throws BonitaException {
+        // 401 with digest challenge
+        stubFor(
+                get(urlEqualTo("/"))
+                        .willReturn(aResponse()
+                                .withHeader(AUTH.WWW_AUTH, "Digest realm=\"*\",qop=\"auth,auth-int\",nonce=\"dcd98b7102dd2f0e8b11d0f600bfb0c093\"")
+                                .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+        
+        // http client resolving the challenge
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", containing("Digest username=\"username\"")
+                                .and(containing("realm=\"*\""))
+                                .and(containing("algorithm=MD5")))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+        
+        checkResultIsPresent(
+                executeConnector(
+                        buildAuthorizationParametersSet(AuthorizationType.DIGEST, USERNAME, PASSWORD, EMPTY, EMPTY)));
     }
 
     /**
@@ -1553,12 +1577,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void basicAuthWithUsernamePasswordAndLocalhost() throws BonitaException {
         stubFor(
                 get(urlEqualTo("/"))
-                        .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
+                        .willReturn(aResponse()
+                                .withHeader(AUTH.WWW_AUTH, "Basic")
+                                .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withBasicAuth(USERNAME, PASSWORD)
                         .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(
                 executeConnector(
-                        buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, HOST, EMPTY, Boolean.TRUE)));
+                        buildAuthorizationParametersSet(AuthorizationType.BASIC, USERNAME, PASSWORD, HOST, EMPTY)));
     }
 
     /**
@@ -1571,12 +1600,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     public void basicAuthWithUsernamePasswordAndRealm() throws BonitaException {
         stubFor(
                 get(urlEqualTo("/"))
-                        .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
+                        .willReturn(aResponse()
+                                .withHeader(AUTH.WWW_AUTH, "Basic realm=realm")
+                                .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withBasicAuth(USERNAME, PASSWORD)
                         .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(
                 executeConnector(
-                        buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, REALM, Boolean.TRUE)));
+                        buildAuthorizationParametersSet(AuthorizationType.BASIC, USERNAME, PASSWORD, EMPTY, REALM)));
     }
 
     /**
