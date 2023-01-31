@@ -183,7 +183,8 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Integer getAuthPort() {
-        return (Integer) getInputParameter(AUTH_PORT_INPUT_PARAMETER);
+        Integer port = (Integer) getInputParameter(AUTH_PORT_INPUT_PARAMETER);
+        return port == null ? -1 : port;
     }
 
     protected final String getAuthRealm() {
