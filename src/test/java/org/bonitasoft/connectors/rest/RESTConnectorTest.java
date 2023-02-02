@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.auth.AUTH;
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.exception.BonitaException;
@@ -902,9 +903,16 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void basicAuthWithUsernameAndPassword() throws BonitaException {
-        stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
-                .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+        stubFor(
+                get(urlEqualTo("/"))
+                        .willReturn(aResponse()
+                                .withHeader(AUTH.WWW_AUTH, "Basic")
+                                .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+        
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
         checkResultIsPresent(
                 executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, EMPTY, Boolean.TRUE)));
     }
@@ -917,9 +925,16 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void basicAuthWithUsernamePasswordAndLocalhost() throws BonitaException {
-        stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
-                .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+        stubFor(
+                get(urlEqualTo("/"))
+                        .willReturn(aResponse()
+                                .withHeader(AUTH.WWW_AUTH, "Basic")
+                                .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+        
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(
                 executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, HOST, EMPTY, Boolean.TRUE)));
@@ -933,10 +948,17 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     @Test
     public void basicAuthWithUsernamePasswordAndRealm() throws BonitaException {
-        stubFor(get(urlEqualTo("/"))
-                .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
-                .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
-
+        stubFor(
+                get(urlEqualTo("/"))
+                        .willReturn(aResponse()
+                                .withHeader(AUTH.WWW_AUTH, "Basic")
+                                .withStatus(HttpStatus.SC_UNAUTHORIZED)));
+        
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader(WM_AUTHORIZATION, containing(BASIC_RULE))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+        
         checkResultIsPresent(
                 executeConnector(buildBasicAuthorizationParametersSet(USERNAME, PASSWORD, EMPTY, REALM, Boolean.TRUE)));
     }
