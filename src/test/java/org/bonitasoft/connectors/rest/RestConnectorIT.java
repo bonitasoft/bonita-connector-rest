@@ -296,9 +296,9 @@ public class RestConnectorIT {
         return () -> {
             try {
                 var instance = client.get(ProcessInstanceApi.class).getProcessInstanceById(id, (String) null);
-                return instance.getState().toLowerCase();
+                return instance.getState().name().toLowerCase();
             } catch (NotFoundException e) {
-                return getCompletedProcess(id).getState().toLowerCase();
+                return getCompletedProcess(id).getState().name().toLowerCase();
             }
         };
     }
