@@ -91,7 +91,7 @@
 		<commons-codec.version>1.15</commons-codec.version>
 
 		<!-- Bonita -->
-		<bonita.engine.version>7.13.0</bonita.engine.version>
+		<bonita.engine.version>7.14.0</bonita.engine.version>
 
 		<!-- Test -->
 		<mockito.version>1.10.19</mockito.version>
@@ -113,11 +113,11 @@
 		<maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
 		<groovy-maven-plugin.version>2.1.1</groovy-maven-plugin.version>
 		<groovy.version>3.0.19</groovy.version>
-		<maven-surefire-plugin.version>3.0.0-M9</maven-surefire-plugin.version>
+		<maven-surefire-plugin.version>3.2.2</maven-surefire-plugin.version>
 		<maven-failsafe-plugin.version>3.1.2</maven-failsafe-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
-		<maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
-		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>3.6.2</maven-javadoc-plugin.version>
+		<maven-source-plugin.version>3.3.0</maven-source-plugin.version>
 
 		<!-- Sonar -->
 		<sonar.projectKey>bonitasoft_bonita-connector-rest</sonar.projectKey>
