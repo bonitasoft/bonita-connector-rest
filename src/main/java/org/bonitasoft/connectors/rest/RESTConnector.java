@@ -571,12 +571,20 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
             LOGGER.fine("Response recieved.");
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
+            final String reasonPhrase = httpResponse.getStatusLine().getReasonPhrase();
+
             if (!statusSuccessful(statusCode)) {
                 LOGGER.warning(
                         () -> String.format(
                                 "%s response status is not successful: %s - %s",
-                                request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
+                                request, statusCode, reasonPhrase));
+                                
+                if(Boolean.TRUE.equals(getThrowOnErrorStatus())){
+                    throw new ConnectorException(
+                        String.format("%s response status is not successful: %s - %s", request, statusCode, reasonPhrase));
+                }
             }
+
             setOutputs(httpResponse, request);
         } finally {
             try {

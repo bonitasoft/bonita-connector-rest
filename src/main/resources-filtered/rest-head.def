@@ -32,6 +32,7 @@
   <input name="socket_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
   <input name="connection_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
   <input name="trust_strategy" type="java.lang.String" mandatory="false" defaultValue="DEFAULT"/>
+  <input name="throwOnErrorStatus" type="java.lang.Boolean" mandatory="false"/>
 
   <!-- outputs -->
   
@@ -42,6 +43,7 @@
    <!-- pages -->
   <page id="RESTConnectorWizardPage">
     <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
+    <widget xsi:type="definition:Checkbox" id="throwOnErrorStatusWidget" inputName="throwOnErrorStatus"/>
   </page>
   <page id="Advanced">
      <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
