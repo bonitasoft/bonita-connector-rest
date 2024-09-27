@@ -35,6 +35,7 @@
   <input name="socket_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
   <input name="connection_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
   <input name="trust_strategy" type="java.lang.String" mandatory="false" defaultValue="DEFAULT"/>
+  <input name="throwOnErrorStatus" type="java.lang.Boolean" mandatory="false"/>
   
   <!-- outputs -->
   <output name="bodyAsString" type="java.lang.String"/>
@@ -54,6 +55,7 @@
 		<items>text/plain</items>
 		<items>text/xml</items>
     </widget>
+    <widget xsi:type="definition:Checkbox" id="throwOnErrorStatusWidget" inputName="throwOnErrorStatus"/>
     <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
     <widget xsi:type="definition:Text" id="documentBodyWidget" inputName="documentBody" showDocuments="true" />
   </page>

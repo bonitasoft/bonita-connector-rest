@@ -28,6 +28,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String METHOD_INPUT_PARAMETER = "method";
     protected static final String CONTENTTYPE_INPUT_PARAMETER = "contentType";
     protected static final String CHARSET_INPUT_PARAMETER = "charset";
+    protected static final String THROW_ON_ERROR_INPUT_PARAMETER = "throwOnErrorStatus";
     protected static final String URLCOOKIES_INPUT_PARAMETER = "urlCookies";
     protected static final String URLHEADERS_INPUT_PARAMETER = "urlHeaders";
     protected static final String DOCUMENT_BODY_INPUT_PARAMETER = "documentBody";
@@ -78,6 +79,11 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
     protected final String getCharset() {
         return (java.lang.String) getInputParameter(CHARSET_INPUT_PARAMETER);
+    }
+
+    protected final Boolean getThrowOnErrorStatus() {
+        final Boolean throwOnError = (Boolean) getInputParameter(THROW_ON_ERROR_INPUT_PARAMETER);
+        return throwOnError != null ? throwOnError : Boolean.FALSE;
     }
 
     @SuppressWarnings("unchecked")
@@ -475,6 +481,14 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             getCharset();
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException("charset type is invalid");
+        }
+    }
+
+    void validateThrowOnError() throws ConnectorValidationException {
+        try {
+            getThrowOnErrorStatus();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException("throwOnErrorStatus type is invalid");
         }
     }
 

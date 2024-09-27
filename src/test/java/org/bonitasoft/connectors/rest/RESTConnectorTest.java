@@ -500,6 +500,16 @@ public class RESTConnectorTest extends AcceptanceTestBase {
        
        assertThrows(ConnectorValidationException.class , () -> connector.validateProxyProtocol());
     }
+
+    @Test
+    public void testThrowOnErrorStatusParameter() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.THROW_ON_ERROR_INPUT_PARAMETER, "true");
+       connector.setInputParameters(input);
+       
+       assertThrows(ConnectorValidationException.class , () -> connector.validateThrowOnError());
+    }
     
     
     /**
@@ -1773,6 +1783,37 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
         parameters.put(BODY_INPUT_PARAMETER, "name=value1&token=value2");
         checkResultIsPresent(executeConnector(parameters));
+    }
+
+    @Test
+    public void should_raise_exception_on_status_error() throws BonitaException {
+        stubFor(
+                post(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR)
+                                        .withBody("{\"message\":\"Internal server error\"}")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        Map<String, Object> parameters = buildContentTypeParametersSet(JSON);
+        parameters.put(RESTConnector.THROW_ON_ERROR_INPUT_PARAMETER, true);
+        assertThrows(ConnectorException.class, () -> executeConnector(parameters));
+    }
+
+    @Test
+    public void should_not_raise_exception_on_status_error() throws BonitaException {
+        stubFor(
+                post(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR)
+                                        .withBody("{\"message\":\"Internal server error\"}")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        Map<String, Object> parameters = buildContentTypeParametersSet(JSON);
+        checkResult(executeConnector(parameters), HttpStatus.SC_INTERNAL_SERVER_ERROR);
     }
 
     /**
