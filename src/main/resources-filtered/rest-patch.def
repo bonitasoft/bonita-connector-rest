@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
+  <id>${patch.def.id}</id>
+  <version>${patch.def.version}</version>
+  <icon>rest.png</icon>
+  <category icon="rest.png" id="REST"/>
+  
+  <!-- inputs -->
+  <input name="url" type="java.lang.String" mandatory="true"/>
+  <input name="contentType" type="java.lang.String" mandatory="true" defaultValue="application/json"/>
+  <input name="charset" type="java.lang.String" mandatory="true" defaultValue="UTF-8"/>
+  <input name="urlCookies" type="java.util.List" mandatory="false"/>
+  <input name="urlHeaders" type="java.util.List"/>
+  <input name="body" type="java.lang.String" mandatory="false"/>
+  <input name="do_not_follow_redirect" type="java.lang.Boolean" mandatory="false"/>
+  <input name="ignore_body" type="java.lang.Boolean" mandatory="false"/>
+  <input name="TLS" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
+  <input name="hostname_verifier" type="java.lang.String" mandatory="false"/>
+  <input name="trust_store_file" type="java.lang.String" mandatory="false"/>
+  <input name="trust_store_password" type="java.lang.String" mandatory="false"/>
+  <input name="key_store_file" type="java.lang.String" mandatory="false"/>
+  <input name="key_store_password" type="java.lang.String" mandatory="false"/>
+  <input name="auth_type" type="java.lang.String" defaultValue="NONE"/>
+  <input name="auth_username" type="java.lang.String"/>
+  <input name="auth_password" type="java.lang.String"/>
+  <input name="auth_host" type="java.lang.String"/>
+  <input name="auth_port" type="java.lang.Integer"/>
+  <input name="auth_realm" type="java.lang.String"/>
+  <input name="auth_preemptive" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
+  <input name="proxy_protocol" type="java.lang.String"/>
+  <input name="proxy_host" type="java.lang.String"/>
+  <input name="proxy_port" type="java.lang.Integer"/>
+  <input name="proxy_username" type="java.lang.String"/>
+  <input name="proxy_password" type="java.lang.String"/>
+  <input name="socket_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
+  <input name="connection_timeout_ms" type="java.lang.Integer" defaultValue="60000"/>
+  <input name="trust_strategy" type="java.lang.String" mandatory="false" defaultValue="DEFAULT"/>
+  
+  <!-- outputs -->
+  <output name="bodyAsString" type="java.lang.String"/>
+  <output name="bodyAsObject" type="java.lang.Object"/>
+  <output name="headers" type="java.util.Map"/>
+  <output name="status_code" type="java.lang.Integer"/>
+  <output name="status_message" type="java.lang.String"/>
+  
+  <!-- pages -->
+  <page id="RESTConnectorWizardPage">
+    <widget xsi:type="definition:Text" id="urlWidget" inputName="url"/>
+    <widget xsi:type="definition:Select" id="contentTypeWidget" inputName="contentType">
+		<items>application/json</items>
+		<items>application/octet-stream</items>
+		<items>application/xml</items>
+		<items>application/x-www-form-urlencoded</items>
+		<items>text/html</items>
+		<items>text/plain</items>
+		<items>text/xml</items>
+    </widget>
+    <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
+    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
+  </page>
+  <page id="Advanced">
+   <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
+      <colsCaption>Key</colsCaption>
+      <colsCaption>Value</colsCaption>
+    </widget>
+    <widget xsi:type="definition:Array" id="urlCookiesWidget" inputName="urlCookies" cols="2" fixedCols="true">
+      <colsCaption>Key</colsCaption>
+      <colsCaption>Value</colsCaption>
+    </widget>
+    <widget xsi:type="definition:Checkbox" id="do_not_follow_redirect_widget" inputName="do_not_follow_redirect"/>
+    <widget xsi:type="definition:Checkbox" id="ignore_body_widget" inputName="ignore_body"/>
+	<widget xsi:type="definition:Text" id="socket_timeout_ms_widget" inputName="socket_timeout_ms"/>
+	<widget xsi:type="definition:Text" id="connection_timeout_ms_widget" inputName="connection_timeout_ms"/>
+  </page>
+  <page id="authenticationPage">
+    <widget xsi:type="definition:RadioGroup" id="auth_type_radio" inputName="auth_type">
+      <choices>NONE</choices>
+      <choices>BASIC</choices>
+      <choices>DIGEST</choices>
+    </widget>
+    <widget xsi:type="definition:Group" id="auth_group" optional="false">
+      <widget xsi:type="definition:Text" id="auth_username_widget" inputName="auth_username"/>
+      <widget xsi:type="definition:Password" id="auth_password_widget" inputName="auth_password"/>
+      <widget xsi:type="definition:Text" id="auth_host_widget" inputName="auth_host"/>
+      <widget xsi:type="definition:Text" id="auth_port_widget" inputName="auth_port"/>
+      <widget xsi:type="definition:Text" id="auth_realm_widget" inputName="auth_realm"/>
+      <widget xsi:type="definition:Checkbox" id="auth_preemptive_widget" inputName="auth_preemptive"/>
+    </widget>
+  </page>
+  <page id="SSLPage">
+    <widget xsi:type="definition:Group" id="ssl" optional="false">
+      <widget xsi:type="definition:Checkbox" id="TLS_widget" inputName="TLS"/>
+  	  <widget xsi:type="definition:Text" id="trust_certificate_strategy_widget" inputName="trust_strategy"/>
+      <widget xsi:type="definition:Text" id="hostname_verifier_widget" inputName="hostname_verifier" />
+    </widget>
+    <widget xsi:type="definition:Group" id="trust_store" optional="false">
+      <widget xsi:type="definition:Text" id="trust_store_file_widget" inputName="trust_store_file"/>
+      <widget xsi:type="definition:Password" id="trust_store_password_widget" inputName="trust_store_password"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="key_store" optional="false">
+      <widget xsi:type="definition:Text" id="key_store_file_widget" inputName="key_store_file"/>
+      <widget xsi:type="definition:Password" id="key_store_password_widget" inputName="key_store_password"/>
+    </widget>
+  </page>
+  <page id="proxyPage">
+	<widget xsi:type="definition:Select" id="proxy_protocol_widget" inputName="proxy_protocol">
+	  <items>HTTP</items>
+	  <items>HTTPS</items>
+	  <items>SOCKS</items>
+	 </widget>
+	<widget xsi:type="definition:Text" id="proxy_host_widget" inputName="proxy_host"/>
+	<widget xsi:type="definition:Text" id="proxy_port_widget" inputName="proxy_port"/>
+	<widget xsi:type="definition:Text" id="proxy_username_widget" inputName="proxy_username"/>
+	<widget xsi:type="definition:Password" id="proxy_password_widget" inputName="proxy_password"/>
+  </page>
+</definition:ConnectorDefinition>

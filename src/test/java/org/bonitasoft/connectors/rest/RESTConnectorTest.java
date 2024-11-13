@@ -18,6 +18,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.patch;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
@@ -102,6 +103,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String PUT = "PUT";
     private static final String DELETE = "DELETE";
     private static final String HEAD = "HEAD";
+    private static final String PATCH = "PATCH";
     private static final String METHOD_ERROR = "FAKE_METHOD";
 
     // CONTENT_TYPES
@@ -157,7 +159,8 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     /** Used to assert Exceptions */
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
+    
+    
     /** Initialize the tested values */
     @BeforeClass
     public static final void initValues() {
@@ -584,6 +587,28 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 TrustCertificateStrategy.DEFAULT,
                 STRICT);
     }
+    
+    /**
+     * Build a request parameters set in order to test a specific URL for PATCH method
+     *
+     * @param url URL
+     * @return The set of parameters
+     */
+    private Map<String, Object> buildURLParametersSetForPatch(final String url) {
+        return buildParametersSet(
+                url,
+                null,
+                PATCH,                         
+                PLAIN_TEXT,
+                UTF8,
+                ONE_COOKIES,
+                ONE_HEADERS,
+                EMPTY,
+                Boolean.FALSE,
+                Boolean.FALSE,
+                TrustCertificateStrategy.DEFAULT,
+                STRICT);
+    }
 
     /**
      * Build a request parameters set in order to test a specific port
@@ -596,6 +621,28 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 null,
                 port,
                 POST,
+                PLAIN_TEXT,
+                UTF8,
+                ONE_COOKIES,
+                ONE_HEADERS,
+                EMPTY,
+                Boolean.FALSE,
+                Boolean.FALSE,
+                TrustCertificateStrategy.DEFAULT,
+                STRICT);
+    }
+    
+    /**
+     * Build a request parameters set in order to test a specific port for PATCH method
+     *
+     * @param port Port
+     * @return The set of parameters
+     */
+    private Map<String, Object> buildPortParametersSetForPatch(final String port) {
+        return buildParametersSet(
+                null,
+                port,
+                PATCH,                         
                 PLAIN_TEXT,
                 UTF8,
                 ONE_COOKIES,
@@ -652,6 +699,28 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Build a request parameters set in order to test a specific Content Type for PATCH method
+     *
+     * @param contentType Content Type
+     * @return The set of parameters
+     */
+    private Map<String, Object> buildContentTypeParametersSetForPatch(final String contentType) {
+        return buildParametersSet(
+                null,
+                null,
+                PATCH,                         
+                contentType,
+                UTF8,
+                ONE_COOKIES,
+                ONE_HEADERS,
+                EMPTY,
+                Boolean.FALSE,
+                Boolean.FALSE,
+                TrustCertificateStrategy.DEFAULT,
+                STRICT);
+    }
+    
+    /**
      * Build a request parameters set in order to test a specific Charset
      *
      * @param charset Charset
@@ -672,7 +741,29 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 TrustCertificateStrategy.DEFAULT,
                 STRICT);
     }
-
+    
+    /**
+     * Build a request parameters set in order to test a specific Charset for PATCH method
+     *
+     * @param charset Charset
+     * @return The set of parameters
+     */
+    private Map<String, Object> buildCharsetParametersSetForPatch(final String charset) {
+        return buildParametersSet(
+                null,
+                null,
+                PATCH,                         
+                PLAIN_TEXT,
+                charset,
+                ONE_COOKIES,
+                ONE_HEADERS,
+                EMPTY,
+                Boolean.FALSE,
+                Boolean.FALSE,
+                TrustCertificateStrategy.DEFAULT,
+                STRICT);
+    }
+   
     /**
      * Build a request parameters set in order to test a specific Cookies
      *
@@ -728,6 +819,28 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 null,
                 null,
                 POST,
+                PLAIN_TEXT,
+                UTF8,
+                ONE_COOKIES,
+                ONE_HEADERS,
+                body,
+                Boolean.FALSE,
+                Boolean.FALSE,
+                TrustCertificateStrategy.DEFAULT,
+                STRICT);
+    }
+    
+    /**
+     * Build a request parameters set in order to test a specific body content for PATCH requets
+     *
+     * @param body Body content
+     * @return The set of parameters
+     */
+    private Map<String, Object> buildBodyParametersSetForPatch(final String body) {
+        return buildParametersSet(
+                null,
+                null,
+                PATCH,
                 PLAIN_TEXT,
                 UTF8,
                 ONE_COOKIES,
@@ -862,8 +975,21 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         checkResultIsPresent(executeConnector(buildMethodParametersSet(HEAD)));
     }
-
+    
+    /**
+     * Test the PATCH method
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
     @Test
+    public void patchMethod() throws BonitaException {
+        stubFor(patch(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(PATCH)));
+    }
+
+	@Test
     public void testProxyConfiguration() throws BonitaException, ClientProtocolException, IOException {
         Map<String, Object> parameters = buildMethodParametersSet(HEAD);
         parameters.put(RESTConnector.PROXY_HOST_INPUT_PARAMETER, "http://proxy.host");
@@ -960,6 +1086,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         checkResultIsPresent(executeConnector(buildContentTypeParametersSet(PLAIN_TEXT)));
     }
+    
+    /**
+     * Test the plain text content type for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void plainTextContentTypeForPatch() throws BonitaException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildContentTypeParametersSetForPatch(PLAIN_TEXT)));
+    }
 
     /**
      * Test the json content type
@@ -987,6 +1129,31 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Test the json content type for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void should_retrieve_response_as_a_Map_jsonContentType_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("{ \"name\":\"Romain\" }")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs
+                .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals("Romain", bodyAsMap.get("name"));
+    }
+    
+    /**
      * Test the json content type with wrong content
      *
      * @throws BonitaException exception
@@ -1011,6 +1178,31 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertEquals(0, bodyAsMap.size());
     }
 
+    /**
+     * Test the json content type with wrong content for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void should_not_raise_exception_on_json_parsing_error_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("{ this is not valid json ! }")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
+        checkResultIsPresent(outputs);
+        final Map<String, Object> bodyAsMap = (Map<String, Object>) outputs
+                .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals(0, bodyAsMap.size());
+    }
+    
     /**
      * Test the json simple string value
      *
@@ -1037,6 +1229,31 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Test the json simple string value for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_string_value_should_return_string_object_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("\"this is a string\"")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final String bodyAsString = (String) bodyAsObject;
+        assertEquals("this is a string", bodyAsString);
+    }
+    
+    /**
      * Test the json simple numeric value
      *
      * @throws BonitaException exception
@@ -1062,6 +1279,31 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Test the json simple numeric value for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_numeric_value_should_return_number_object_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("123.45")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final Number bodyAsNumber = (Number) bodyAsObject;
+        assertEquals(123.45, bodyAsNumber);
+    }
+    
+    /**
      * Test the json simple boolean value
      *
      * @throws BonitaException exception
@@ -1079,6 +1321,31 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                                         .withHeader(WM_CONTENT_TYPE, JSON)));
 
         final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final Boolean bodyAsBoolean = (Boolean) bodyAsObject;
+        assertTrue(bodyAsBoolean);
+    }
+    
+    /**
+     * Test the json simple boolean value for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_boolean_value_should_return_boolean_object_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("true")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
         checkResultIsPresent(outputs);
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsObject);
@@ -1114,6 +1381,33 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Test the json simple date value for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_date_value_should_return_iso8601_date_string_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("\"2012-04-23T18:25:43+02:00\"")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsObject);
+        final Instant bodyAsInstant = OffsetDateTime.parse((String) bodyAsObject).toInstant();
+        assertEquals(
+                bodyAsInstant,
+                OffsetDateTime.of(2012, 4, 23, 18, 25, 43, 0, ZoneOffset.ofHours(2)).toInstant());
+    }
+    
+    /**
      * Test the json simple null value
      *
      * @throws BonitaException exception
@@ -1135,6 +1429,29 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNull(bodyAsObject);
     }
+    
+    /**
+     * Test the json simple null value for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void json_simple_null_value_should_return_null_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("null")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsObject = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNull(bodyAsObject);
+    }
 
     @Test
     public void should_retrieve_response_as_a_List_of_Map__jsonContentType() throws BonitaException {
@@ -1148,6 +1465,24 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                                         .withHeader(WM_CONTENT_TYPE, JSON)));
 
         final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSet(JSON));
+        checkResultIsPresent(outputs);
+        final Object bodyAsMap = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsMap);
+        assertEquals("Romain", ((Map<String, Object>) ((List) bodyAsMap).get(0)).get("name"));
+    }
+    
+    @Test
+    public void should_retrieve_response_as_a_List_of_Map__jsonContentType_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("[{ \"name\":\"Romain\" }]")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
         checkResultIsPresent(outputs);
         final Object bodyAsMap = outputs.get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
         assertNotNull(bodyAsMap);
@@ -1173,6 +1508,26 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertEquals("abc", bodyAsList.get(0));
         assertEquals("def", bodyAsList.get(1));
     }
+    
+    @Test
+    public void should_retrieve_response_as_a_List_of_string_for_patch() throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("[\"abc\", \"def\"]")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        final Map<String, Object> outputs = executeConnector(buildContentTypeParametersSetForPatch(JSON));
+        checkResultIsPresent(outputs);
+        final List<String> bodyAsList = (List<String>) outputs
+                .get(AbstractRESTConnectorImpl.BODY_AS_OBJECT_OUTPUT_PARAMETER);
+        assertNotNull(bodyAsList);
+        assertEquals("abc", bodyAsList.get(0));
+        assertEquals("def", bodyAsList.get(1));
+    }
 
     @Test
     public void should_close_connection_when_delay_is_more_than_socket_timeout()
@@ -1189,6 +1544,25 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         thrown.expect(ConnectorException.class);
         Map<String, Object> parameters = buildContentTypeParametersSet(JSON);
+        parameters.put("socket_timeout_ms", 50);
+        executeConnector(parameters);
+    }
+    
+    @Test
+    public void should_close_connection_when_delay_is_more_than_socket_timeout_for_patch()
+            throws BonitaException {
+        stubFor(
+        		patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withFixedDelay(1000)
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        thrown.expect(ConnectorException.class);
+        Map<String, Object> parameters = buildContentTypeParametersSetForPatch(JSON);
         parameters.put("socket_timeout_ms", 50);
         executeConnector(parameters);
     }
@@ -1217,6 +1591,23 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Test the fake content type for PATCH request
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void fakeContentTypeForPatch() throws BonitaException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(
+                                WM_CONTENT_TYPE, equalTo(CONTENT_TYPE_ERROR + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildContentTypeParametersSetForPatch(CONTENT_TYPE_ERROR)));
+    }
+    
+    /**
      * Test the UTF8 charset
      *
      * @throws BonitaException exception
@@ -1230,6 +1621,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                         .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(executeConnector(buildCharsetParametersSet(UTF8)));
+    }
+    
+    /**
+     * Test the UTF8 charset
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void utf8CharsetForPatch() throws BonitaException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildCharsetParametersSetForPatch(UTF8)));
     }
 
     /**
@@ -1247,6 +1654,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         checkResultIsPresent(executeConnector(buildCharsetParametersSet(ISO_8859_1)));
     }
+    
+    /**
+     * Test the ISO-8859-1 charset
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void iso88591CharsetRequestForPatch() throws BonitaException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildCharsetParametersSetForPatch(ISO_8859_1)));
+    }
 
     @Test
     public void iso88591CharsetResponse() throws BonitaException, UnsupportedEncodingException {
@@ -1262,6 +1685,25 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                                         .withStatus(HttpStatus.SC_OK)));
 
         Map<String, Object> output = executeConnector(buildCharsetParametersSet(ISO_8859_1));
+        assertEquals(
+                "le text reçu a été encodé en ISO-8859-1",
+                output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
+    }
+    
+    @Test
+    public void iso88591CharsetResponseForPatch() throws BonitaException, UnsupportedEncodingException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
+                        .willReturn(
+                                aResponse()
+                                        .withHeader(WM_CONTENT_TYPE, PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1)
+                                        .withBody(
+                                                new String("le text reçu a été encodé en ISO-8859-1")
+                                                        .getBytes(ISO_8859_1))
+                                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSetForPatch(ISO_8859_1));
         assertEquals(
                 "le text reçu a été encodé en ISO-8859-1",
                 output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
@@ -1285,6 +1727,23 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
+    public void useISO88591CharsetWhenNoContentTypeForPatch()
+            throws BonitaException, UnsupportedEncodingException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
+                        .willReturn(
+                                aResponse()
+                                        .withBody(new String("le text reçu n'a pas de header").getBytes(ISO_8859_1))
+                                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSetForPatch(ISO_8859_1));
+        assertEquals(
+                "le text reçu n'a pas de header",
+                output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
+    }
+    
+    @Test
     public void useDefaultCharsetWhenNoContentTypeAndFallbackPropertyIsSet()
             throws BonitaException, UnsupportedEncodingException {
         System.setProperty(RESTConnector.DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY, "true");
@@ -1305,6 +1764,26 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
+    public void useDefaultCharsetWhenNoContentTypeAndFallbackPropertyIsSetForPatch()
+            throws BonitaException, UnsupportedEncodingException {
+        System.setProperty(RESTConnector.DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY, "true");
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + ISO_8859_1))
+                        .willReturn(
+                                aResponse()
+                                        .withBody(
+                                                new String("le text reçu a été encodé avec le charset par default")
+                                                        .getBytes(Charset.defaultCharset()))
+                                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSetForPatch(ISO_8859_1));
+        assertEquals(
+                "le text reçu a été encodé avec le charset par default",
+                output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
+    }
+    
+    @Test
     public void utf8CharsetResponse() throws BonitaException, UnsupportedEncodingException {
         stubFor(
                 post(urlEqualTo("/"))
@@ -1321,6 +1800,23 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
     }
 
+    @Test
+    public void utf8CharsetResponseForPatch() throws BonitaException, UnsupportedEncodingException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withHeader(WM_CONTENT_TYPE, PLAIN_TEXT + "; " + WM_CHARSET + "=" + UTF8)
+                                        .withBody(new String("le text reçu a été encodé en UTF8").getBytes(UTF8))
+                                        .withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> output = executeConnector(buildCharsetParametersSetForPatch(UTF8));
+        assertEquals(
+                "le text reçu a été encodé en UTF8",
+                output.get(RESTConnector.BODY_AS_STRING_OUTPUT_PARAMETER));
+    }
+    
     /**
      * Test the US ASCII charset
      *
@@ -1335,6 +1831,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                         .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(executeConnector(buildCharsetParametersSet(US_ASCII)));
+    }
+    
+    /**
+     * Test the US ASCII charset for PATCH requets
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void usASCIICharsetForPatch() throws BonitaException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(PLAIN_TEXT + "; " + WM_CHARSET + "=" + US_ASCII))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildCharsetParametersSetForPatch(US_ASCII)));
     }
 
     /**
@@ -1351,6 +1863,20 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildCharsetParametersSet(CHARSET_ERROR)));
     }
 
+    /**
+     * Test the FAKE charset for PATCH requets
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void fakeCharsetForPatch() throws BonitaException {
+        thrown.expect(BonitaException.class);
+        thrown.expectMessage("java.nio.charset.UnsupportedCharsetException: FAKE-CHARSET");
+
+        checkResultIsPresent(executeConnector(buildCharsetParametersSetForPatch(CHARSET_ERROR)));
+    }
+    
     /**
      * Test one value cookie
      *
@@ -1458,6 +1984,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         checkResultIsPresent(executeConnector(buildBodyParametersSet(EMPTY)));
     }
+    
+    /**
+     * Test empty body for PATCH requests
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void emptyBodyForPatch() throws BonitaException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withRequestBody(absent())
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildBodyParametersSetForPatch(EMPTY)));
+    }
 
     @Test
     public void shouldPostWithDocumentBody() throws BonitaException {
@@ -1474,6 +2016,29 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         Map<String, Object> parameters = buildBodyParametersSet(EMPTY);
         parameters.put(METHOD_INPUT_PARAMETER, POST);
+        parameters.put(BODY_INPUT_PARAMETER, null);
+        parameters.put(DOCUMENT_BODY_INPUT_PARAMETER, "myDocument");
+
+        Map<String, Object> outputs = executeConnector(parameters);
+
+        checkResultIsPresent(outputs);
+    }
+    
+    @Test
+    public void shouldPatchWithDocumentBody() throws BonitaException {
+        byte[] content = "content".getBytes();
+
+        Document aDocument = mock(Document.class);
+        when(aDocument.getContentStorageId()).thenReturn("1");
+        when(processAPI.getLastDocument(Mockito.anyLong(), Mockito.eq("myDocument"))).thenReturn(aDocument);
+        when(processAPI.getDocumentContent(aDocument.getContentStorageId())).thenReturn(content);
+
+        stubFor(patch(urlEqualTo("/"))
+                .withRequestBody(WireMock.binaryEqualTo(content))
+                .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildBodyParametersSetForPatch(EMPTY);
+        parameters.put(METHOD_INPUT_PARAMETER, PATCH);
         parameters.put(BODY_INPUT_PARAMETER, null);
         parameters.put(DOCUMENT_BODY_INPUT_PARAMETER, "myDocument");
 
@@ -1512,7 +2077,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         checkResultIsPresent(outputs);
     }
-
+    
     /**
      * Test not empty body
      *
@@ -1529,6 +2094,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildBodyParametersSet(FULL)));
     }
 
+    /**
+     * Test not empty body for PATCH requets
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void notEmptyBodyForPatch() throws BonitaException {
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withRequestBody(equalTo(FULL))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildBodyParametersSetForPatch(FULL)));
+    }
+    
     /**
      * Test the basic auth with username and password
      *
@@ -1647,6 +2228,21 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         executeConnector(buildURLParametersSet(FAKE_URL));
     }
+    
+    /**
+     * Test unreachable URL for PATCH method
+     *
+     * @throws InterruptedException exception
+     * @throws BonitaException
+     */
+    @Test
+    public void unreachableURLForPatch() throws BonitaException {
+        thrown.expect(BonitaException.class);
+        thrown.expectCause(isA(UnknownHostException.class));
+
+        executeConnector(buildURLParametersSetForPatch(FAKE_URL));
+    }
+
 
     /**
      * Test unreachable port
@@ -1662,6 +2258,22 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         thrown.expectMessage(fakePort);
 
         executeConnector(buildPortParametersSet(fakePort));
+    }
+    
+    /**
+     * Test unreachable port for PATCH request
+     *
+     * @throws InterruptedException exception
+     * @throws BonitaException
+     */
+    @Test
+    public void unreachablePortForPatch() throws BonitaException {
+        final String fakePort = "666";
+        thrown.expect(BonitaException.class);
+        thrown.expectMessage("org.apache.http.conn.HttpHostConnectException");
+        thrown.expectMessage(fakePort);
+
+        executeConnector(buildPortParametersSetForPatch(fakePort));
     }
 
     @Test
@@ -1724,9 +2336,26 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertThat(restConnector.getTrustCertificateStrategy())
                 .isEqualTo(TrustCertificateStrategy.DEFAULT);
     }
+    
+    @Test
+    public void should_set_a_default_trust_certificate_strategy_value_for_patch() throws Exception {
+        Map<String, Object> parameters = buildBodyParametersSetForPatch("");
+        RESTConnector restConnector = new RESTConnector(false);
+        parameters.put(RESTConnector.TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER, null);
+        restConnector.setInputParameters(parameters);
+        restConnector.validateInputParameters();
+        assertThat(restConnector.getTrustCertificateStrategy())
+                .isEqualTo(TrustCertificateStrategy.DEFAULT);
+
+        parameters.put(RESTConnector.TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER, " ");
+        restConnector.setInputParameters(parameters);
+        restConnector.validateInputParameters();
+        assertThat(restConnector.getTrustCertificateStrategy())
+                .isEqualTo(TrustCertificateStrategy.DEFAULT);
+    }
 
     @Test
-    public void should_return_trust_certificate_strategy_value() throws Exception {
+    public void should_return_trust_certificate_strategy_value_for_patch() throws Exception {
         Map<String, Object> parameters = buildBodyParametersSet("");
         RESTConnector restConnector = new RESTConnector(false);
         parameters.put(
@@ -1738,10 +2367,37 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 .isEqualTo(TrustCertificateStrategy.TRUST_ALL);
     }
 
+
+    @Test
+    public void should_return_trust_certificate_strategy_value() throws Exception {
+        Map<String, Object> parameters = buildBodyParametersSetForPatch("");
+        RESTConnector restConnector = new RESTConnector(false);
+        parameters.put(
+                RESTConnector.TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER,
+                TrustCertificateStrategy.TRUST_ALL.name());
+        restConnector.setInputParameters(parameters);
+        restConnector.validateInputParameters();
+        assertThat(restConnector.getTrustCertificateStrategy())
+                .isEqualTo(TrustCertificateStrategy.TRUST_ALL);
+    }
+    
     @Test
     public void should_throw_validation_exception_for_unknown_trust_certificate_strategy_input()
             throws Exception {
         Map<String, Object> parameters = buildBodyParametersSet("");
+        parameters.put(RESTConnector.TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER, "unknownStrategy");
+        RESTConnector restConnector = new RESTConnector(false);
+        restConnector.setInputParameters(parameters);
+        assertThatThrownBy(() -> restConnector.validateInputParameters())
+                .isInstanceOf(ConnectorValidationException.class)
+                .hasMessage(
+                        "'unknownStrategy' option is invalid for trust_strategy. Only one of [DEFAULT, TRUST_SELF_SIGNED, TRUST_ALL] is supported.");
+    }
+    
+    @Test
+    public void should_throw_validation_exception_for_unknown_trust_certificate_strategy_input_for_patch()
+            throws Exception {
+        Map<String, Object> parameters = buildBodyParametersSetForPatch("");
         parameters.put(RESTConnector.TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER, "unknownStrategy");
         RESTConnector restConnector = new RESTConnector(false);
         restConnector.setInputParameters(parameters);
@@ -1770,6 +2426,30 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                         .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         Map<String, Object> parameters = buildContentTypeParametersSet(
+                ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
+        parameters.put(BODY_INPUT_PARAMETER, "name=value1&token=value2");
+        checkResultIsPresent(executeConnector(parameters));
+    }
+    
+    @Test
+    public void should_support_url_encoded_content_type_for_patch() throws Exception {
+        LinkedHashMap<String, String> requestBody = new LinkedHashMap<>();
+        requestBody.put("name", "value1");
+        requestBody.put("token", "value2");
+        stubFor(
+                patch(urlEqualTo("/"))
+                        .withHeader(
+                                WM_CONTENT_TYPE,
+                                equalTo(
+                                        ContentType.APPLICATION_FORM_URLENCODED.getMimeType()
+                                                + "; "
+                                                + WM_CHARSET
+                                                + "="
+                                                + UTF8))
+                        .withRequestBody(containing(WireMockUtil.toFormUrlEncoded(requestBody)))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+		Map<String, Object> parameters = buildContentTypeParametersSetForPatch(
                 ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
         parameters.put(BODY_INPUT_PARAMETER, "name=value1&token=value2");
         checkResultIsPresent(executeConnector(parameters));

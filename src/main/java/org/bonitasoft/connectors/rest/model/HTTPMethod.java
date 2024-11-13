@@ -7,6 +7,7 @@ public enum HTTPMethod {
   POST,
   PUT,
   DELETE,
+  PATCH,
   HEAD;
 
   /**

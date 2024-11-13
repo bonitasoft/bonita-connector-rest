@@ -252,7 +252,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         LOGGER.fine(() -> "URL set to: " + request.getUrl().toString());
         request.setRestMethod(HTTPMethod.getRESTHTTPMethodFromValue(getMethod()));
         LOGGER.fine(() -> "Method set to: " + request.getRestMethod().toString());
-        if (request.getRestMethod() == HTTPMethod.POST || request.getRestMethod() == HTTPMethod.PUT) {
+        if (request.getRestMethod() == HTTPMethod.POST || request.getRestMethod() == HTTPMethod.PUT || request.getRestMethod() == HTTPMethod.PATCH) {
             ContentType contentType = ContentType.create(getContentType(), Charset.forName(getCharset()));
             request.setContentType(contentType);
             LOGGER.fine(() -> "Content-Type set to: " + contentType.toString());
@@ -850,6 +850,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 return RequestBuilder.delete();
             case HEAD:
                 return RequestBuilder.head();
+            case PATCH:
+                return RequestBuilder.patch();
             default:
                 throw new IllegalStateException(
                         "Impossible to get the RequestBuilder from the \"" + method.name() + "\" name.");

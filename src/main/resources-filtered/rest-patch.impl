@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<implementation:connectorImplementation xmlns:implementation="http://www.bonitasoft.org/ns/connector/implementation/6.0">
+  <implementationId>${patch.impl.id}</implementationId>
+  <implementationVersion>${patch.impl.version}</implementationVersion>
+  <definitionId>${patch.def.id}</definitionId>
+  <definitionVersion>${patch.def.version}</definitionVersion>
+  <implementationClassname>${patch.main-class}</implementationClassname>
+  <hasSources>false</hasSources>
+  <description>The implementation of the REST PATCH Connector.</description>
+
+<!-- retrieved from the pom.xml at build time -->
+${connector-dependencies}
+
+</implementation:connectorImplementation>

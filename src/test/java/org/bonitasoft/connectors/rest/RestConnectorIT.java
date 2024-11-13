@@ -57,6 +57,9 @@ public class RestConnectorIT {
     
     private static final String REST_DELETE_DEF_VERSION = "1.2.0";
     private static final String REST_DELETE_DEF_ID = "rest-delete";
+    
+    private static final String REST_PATCH_DEF_VERSION = "1.0.0";
+    private static final String REST_PATCH_DEF_ID = "rest-patch";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestConnectorIT.class);
 
@@ -192,6 +195,48 @@ public class RestConnectorIT {
         ObjectMapper mapper = new ObjectMapper();
         var map = mapper.readValue(response, Map.class);
         assertThat(map).containsExactly(entry("id", 101));
+    }
+    
+
+	@Test
+    public void testRestPatchConnectorIntegration() throws Exception {
+        // Inputs
+        Map<String, String> inputsConnector = new HashMap<>();
+        inputsConnector.put("url", "https://jsonplaceholder.typicode.com/posts/1");
+        inputsConnector.put("contentType", "application/json");
+        inputsConnector.put("charset", "UTF-8");
+        inputsConnector.put("body", "{ \"title\" : \"patched\"}");
+
+        // Outputs
+        var connectorOuput = Map.ofEntries(entry("response", Output.create("bodyAsString", String.class.getName())),
+                entry("statusResult", Output.create("status_code", Integer.class.getName())));
+        
+        // Building process with connector 
+        var barFile = ConnectorTestToolkit.buildConnectorToTest(REST_PATCH_DEF_ID, REST_PATCH_DEF_VERSION, inputsConnector, connectorOuput,
+                ARTIFACT_ID);
+
+        // Importing and launching the process contained in the business archive
+        var processResponse = ConnectorTestToolkit.importAndLaunchProcess(barFile, client);
+
+        // Wait until the process launched is started (and not failed)
+        await().until(pollInstanceState(client, processResponse.getCaseId()), "started"::equals);
+        
+        String status = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "statusResult");
+        assertThat(Integer.parseInt(status)).isEqualTo(200);
+        String response = ConnectorTestToolkit.getProcessVariableValue(client,
+                processResponse.getCaseId(), "response");
+        ObjectMapper mapper = new ObjectMapper();
+        var map = mapper.readValue(response, Map.class);        
+        assertThat(map)
+	        .containsKey("id")       
+	        .containsKey("title")    
+	        .containsKey("body")     
+	        .containsKey("userId")
+        	.containsEntry("id", 1)
+	        .containsEntry("title", "patched")
+	        .containsEntry("userId", 1);
+        
     }
 
     @Test
