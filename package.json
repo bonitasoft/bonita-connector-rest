@@ -1,4 +1,7 @@
 {
   "name": "bonita-connector-rest",
-  "coment": "This json file is required by the generate-changelog-action, do not remove it."
+  "coment": "This json file is required by the generate-changelog-action, do not remove it.",
+  "dependencies": {
+    "bonita-connector-rest": "file:"
+  }
 }
