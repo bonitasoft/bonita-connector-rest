@@ -10,35 +10,11 @@
  */
 package org.bonitasoft.connectors.rest;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.HttpCookie;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
-
-import javax.net.ssl.HostnameVerifier;
-
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolVersion;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.ChallengeState;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -61,38 +37,35 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.impl.auth.AuthSchemeBase;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.auth.DigestScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.impl.client.*;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.bonitasoft.connectors.rest.model.Authorization;
-import org.bonitasoft.connectors.rest.model.AuthorizationType;
-import org.bonitasoft.connectors.rest.model.BasicDigestAuthorization;
-import org.bonitasoft.connectors.rest.model.HTTPMethod;
-import org.bonitasoft.connectors.rest.model.Proxy;
-import org.bonitasoft.connectors.rest.model.ProxyProtocol;
-import org.bonitasoft.connectors.rest.model.Request;
-import org.bonitasoft.connectors.rest.model.SSL;
-import org.bonitasoft.connectors.rest.model.SSLVerifier;
-import org.bonitasoft.connectors.rest.model.Store;
-import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
+import org.bonitasoft.connectors.rest.model.*;
+import org.bonitasoft.connectors.rest.utils.HttpStatusFailureException;
 import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.bpm.document.Document;
 import org.bonitasoft.engine.bpm.document.DocumentNotFoundException;
+import org.bonitasoft.engine.commons.exceptions.SRetryableException;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.net.ssl.HostnameVerifier;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.io.UncheckedIOException;
+import java.net.HttpCookie;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /** This main class of the REST Connector implementation */
 public class RESTConnector extends AbstractRESTConnectorImpl {
@@ -103,8 +76,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     private static final int HTTP_PROTOCOL_VERSION_MAJOR = 1;
     private static final int HTTP_PROTOCOL_VERSION_MINOR = 1;
 
+    private static final List<String> SECRET_HEADER_NAMES = List.of("authorization", "token", "set-cookie");
+
     /** The class logger */
     private static final Logger LOGGER = Logger.getLogger(RESTConnector.class.getName());
+
     /**
      * Forces the character encoding of the HTTP response body to the default JVM Charset if no
      * Charset is defined in the response header. If this property is not set, the ISO-8859-1 Charset
@@ -116,7 +92,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Whether a the given HTTP method has a body payload
      */
     private final boolean hasBody;
-    
+
     protected RESTConnector(boolean hasBody) {
         this.hasBody = hasBody;
     }
@@ -143,7 +119,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         }
 
         if (Objects.equals(getMethod(), HTTPMethod.POST.name())
-                || Objects.equals(getMethod(), HTTPMethod.PUT.name())) {
+                || Objects.equals(getMethod(), HTTPMethod.PUT.name())
+                || Objects.equals(getMethod(), HTTPMethod.PATCH.name())) {
             if (!isStringInputValid(getContentType())) {
                 messages.add(CONTENTTYPE_INPUT_PARAMETER);
             }
@@ -234,6 +211,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         try {
             final Request request = buildRequest();
             execute(request);
+        } catch (final SRetryableException e) {
+            throw e;
         } catch (final Exception e) {
             logException(e);
             throw new ConnectorException(e);
@@ -252,7 +231,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         LOGGER.fine(() -> "URL set to: " + request.getUrl().toString());
         request.setRestMethod(HTTPMethod.getRESTHTTPMethodFromValue(getMethod()));
         LOGGER.fine(() -> "Method set to: " + request.getRestMethod().toString());
-        if (request.getRestMethod() == HTTPMethod.POST || request.getRestMethod() == HTTPMethod.PUT) {
+        if (request.getRestMethod() == HTTPMethod.POST || request.getRestMethod() == HTTPMethod.PUT || request.getRestMethod() == HTTPMethod.PATCH) {
             ContentType contentType = ContentType.create(getContentType(), Charset.forName(getCharset()));
             request.setContentType(contentType);
             LOGGER.fine(() -> "Content-Type set to: " + contentType.toString());
@@ -261,11 +240,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         setBody(request);
 
         request.setRedirect(!getDoNotFollowRedirect());
-        LOGGER.fine("Follow redirect set to: " + request.isRedirect());
+        LOGGER.fine(() -> "Follow redirect set to: " + request.isRedirect());
         request.setIgnore(getIgnoreBody());
-        LOGGER.fine("Ignore body set to: " + request.isIgnore());
-        for (final Object urlheader : getUrlHeaders()) {
-            final List<?> urlheaderRow = (List<?>) urlheader;
+        LOGGER.fine(() -> "Ignore body set to: " + request.isIgnore());
+        for (final List<?> urlheaderRow : getUrlHeaders()) {
             String name = urlheaderRow.get(0).toString();
             String value = urlheaderRow.get(1).toString();
             request.addHeader(name, value);
@@ -274,12 +252,20 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     + " set as "
                     + urlheaderRow.get(1).toString());
         }
-        for (final Object urlCookie : getUrlCookies()) {
-            final List<?> urlCookieRow = (List<?>) urlCookie;
+        if (getAddBonitaContextHeaders()) {
+            LOGGER.fine("Adding Bonita context headers.");
+            addBonitaContextHeader(request, getBonitaActivityInstanceIdHeader(), Long.toString(getExecutionContext().getActivityInstanceId()));
+            addBonitaContextHeader(request, getBonitaProcessInstanceIdHeader(), Long.toString(getExecutionContext().getProcessInstanceId()));
+            addBonitaContextHeader(request, getBonitaRootProcessInstanceIdHeader(), Long.toString(getExecutionContext().getRootProcessInstanceId()));
+            addBonitaContextHeader(request, getBonitaProcessDefinitionIdHeader(), Long.toString(getExecutionContext().getProcessDefinitionId()));
+            addBonitaContextHeader(request, getBonitaTaskAssigneeIdHeader(), Long.toString(getExecutionContext().getTaskAssigneeId()));
+            LOGGER.fine("Context headers added.");
+        }
+        for (final List<?> urlCookieRow : getUrlCookies()) {
             request.addCookie(urlCookieRow.get(0).toString(), urlCookieRow.get(1).toString());
             LOGGER.fine(() -> "Add cookie: "
                     + urlCookieRow.get(0).toString()
-                    + " set as "
+                    + " with content "
                     + urlCookieRow.get(1).toString());
         }
 
@@ -301,12 +287,20 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         return request;
     }
 
+    private void addBonitaContextHeader(Request request, String headerName, String headerValue) {
+        if (StringUtils.isNotBlank(headerName) && StringUtils.isNotBlank(headerValue)) {
+            LOGGER.fine(() -> "Adding header: " + headerName + " with value " + headerValue);
+            request.setHeader(headerName, headerValue);
+        }
+    }
+
     private void setBody(Request request) throws ConnectorException {
         String body = getBody();
         String documentBody = getDocumentBody();
-        if (body != null && !body.trim().isEmpty()) {
+        request.setHasBody(hasBody());
+        if (StringUtils.isNotBlank(body)) {
             request.setBody(body);
-            LOGGER.fine(() -> "Body set to: " + request.getBody().toString());
+            LOGGER.fine(() -> "Body set to: " + abbreviateBody(request.getBody().toString()));
         } else if (documentBody != null && !documentBody.trim().isEmpty()) {
             try {
                 ProcessAPI processAPI = getAPIAccessor().getProcessAPI();
@@ -412,11 +406,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         proxy.setProtocol(ProxyProtocol.valueOf(getProxyProtocol().toUpperCase()));
         proxy.setHost(getProxyHost());
         proxy.setPort(getProxyPort());
-
         if (isStringInputValid(getProxyUsername())) {
             proxy.setUsername(getProxyUsername());
         }
-
         if (isStringInputValid(getProxyPassword())) {
             proxy.setPassword(getProxyPassword());
         }
@@ -454,11 +446,16 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         }
     }
 
+    private String abbreviateBody(String body) {
+        return StringUtils.abbreviate(body, "...", getMaximumBodyContentPrintedLogs());
+    }
+
     private void parseResponse(final HttpEntity entity) throws IOException {
         boolean fallbackToDefaultCharset = Boolean
                 .parseBoolean(System.getProperty(DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY));
         String stringContent = EntityUtils.toString(entity, fallbackToDefaultCharset ? Charset.defaultCharset() : null);
         final String bodyResponse = stringContent != null ? stringContent.trim() : "";
+            LOGGER.fine(() -> "Response body: " + abbreviateBody(bodyResponse));
         setBody(bodyResponse);
         setBody(Collections.<String, Object> emptyMap());
         ContentType contentType = ContentType.get(entity);
@@ -491,12 +488,13 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         if (headers != null) {
             for (final Header header : headers) {
                 String name = header.getName();
-                if (!result.containsKey(name)) {
-                    result.put(name, header.getValue());
-                } else {
-                    String currentValue = result.get(name);
-                    if (header.getValue() != null && !header.getValue().isEmpty())
-                        result.put(name, currentValue + ";" + header.getValue());
+                if (!StringUtils.isEmpty(header.getValue())) {
+                    if (!result.containsKey(name)) {
+                        result.put(name, header.getValue());
+                    } else {
+                        String currentValue = result.get(name);
+                        result.put(name, currentValue + "," + header.getValue());
+                    }
                 }
             }
         }
@@ -506,14 +504,14 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     HttpClientBuilder newHttpClientBuilder() {
         return HttpClientBuilder.create();
     }
-    
+
     /**
      * Execute a given request
      *
      * @param request The request to execute
      * @throws Exception any exception that might occur
      */
-    public void execute(final Request request) throws Exception {
+    public void execute(final Request request, Consumer<HttpResponse> consumer, Consumer<HttpResponse> retryConsumer, Consumer<HttpResponse> failureConsumer) throws Exception {
         CloseableHttpClient httpClient = null;
 
         try {
@@ -544,12 +542,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final String urlStr = url.toString();
             requestBuilder.setUri(urlStr);
             setHeaders(requestBuilder, request.getHeaders());
-            if (hasBody()) {
+            if (request.hasBody()) {
                 final Serializable body = request.getBody();
                 if (body != null) {
-                    ContentType contentType = ContentType.create(getContentType(), Charset.forName(getCharset()));
                     requestBuilder.setEntity(
-                            new ByteArrayEntity(toByteArray(body, contentType.getCharset()), contentType));
+                            new ByteArrayEntity(toByteArray(body, request.getContentType().getCharset()), request.getContentType()));
                 }
             }
 
@@ -562,22 +559,32 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     urlProtocol,
                     httpClientBuilder);
 
+            LOGGER.info(() -> request.getRestMethod() + " " + url);
+
             requestBuilder.setConfig(requestConfigurationBuilder.build());
             httpClientBuilder.setDefaultRequestConfig(requestConfigurationBuilder.build());
 
             final HttpUriRequest httpRequest = requestBuilder.build();
+            logHeaders(httpRequest);
             httpClient = httpClientBuilder.build();
             LOGGER.fine("Request sent.");
             final CloseableHttpResponse httpResponse = httpClient.execute(httpRequest, httpContext);
-            LOGGER.fine("Response recieved.");
+            LOGGER.fine("Response received.");
             final int statusCode = httpResponse.getStatusLine().getStatusCode();
-            if (!statusSuccessful(statusCode)) {
-                LOGGER.warning(
-                        () -> String.format(
-                                "%s response status is not successful: %s - %s",
-                                request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
+            LOGGER.fine(
+                    () -> String.format(
+                            "%s response status is: %s - %s",
+                            request, statusCode, httpResponse.getStatusLine().getReasonPhrase()));
+            logHeaders(httpResponse);
+            if (retryConsumer != null && retryRequested(httpResponse)) {
+                LOGGER.fine("Retry requested.");
+                retryConsumer.accept(httpResponse);
+            } else if (failureConsumer != null && failureRequested(httpResponse)) {
+                LOGGER.fine("Failure requested.");
+                failureConsumer.accept(httpResponse);
+            } else {
+                consumer.accept(httpResponse);
             }
-            setOutputs(httpResponse, request);
         } finally {
             try {
                 if (httpClient != null) {
@@ -587,6 +594,80 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 logException(ex);
             }
         }
+    }
+
+    private void logHeaders(HttpUriRequest httpRequest) {
+        if (!LOGGER.isLoggable(Level.FINE)) {
+            return;
+        }
+        LOGGER.fine("Request headers:");
+        for (Header header : httpRequest.getAllHeaders()) {
+            logHeader(header);
+        }
+    }
+
+    private void logHeaders(CloseableHttpResponse httpResponse) {
+        if (!LOGGER.isLoggable(Level.FINE)) {
+            return;
+        }
+        LOGGER.fine("Response headers:");
+        for (Header header : httpResponse.getAllHeaders()) {
+            logHeader(header);
+        }
+    }
+
+    private void logHeader(Header header) {
+        if (!LOGGER.isLoggable(Level.FINE)) {
+            return;
+        }
+        var lowerCaseName = header.getName().toLowerCase();
+        var value = (SECRET_HEADER_NAMES.stream().anyMatch(lowerCaseName::contains)) ?
+                StringUtils.abbreviate(header.getValue(), header.getValue().length() / 2) :
+                header.getValue();
+        LOGGER.fine(header.getName() + ": " + value);
+    }
+
+    private boolean failureRequested(HttpResponse response) {
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (getFailExceptionHttpCodes().contains(Integer.toString(statusCode))) {
+            return false;
+        }
+        if (getFailOnHttp5xx() && statusCode >= 500 && statusCode <= 599) {
+            return true;
+        }
+        if (getFailOnHttp4xx() && statusCode >= 400 && statusCode <= 499) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean retryRequested(HttpResponse response) {
+        int statusCode = response.getStatusLine().getStatusCode();
+        if (getRetryAdditionalHttpCodes().contains(Integer.toString(statusCode))) {
+            return true;
+        }
+        if (getRetryOnHttp5xx() && statusCode >= 500 && statusCode <= 599) {
+            return true;
+        }
+        return false;
+    }
+
+    protected void execute(final Request request) throws Exception {
+        execute(request,
+                response -> {
+                    try {
+                        setOutputs(response, request);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                },
+                response -> {
+                    throw new SRetryableException(new HttpStatusFailureException(response.getStatusLine().getStatusCode()));
+                },
+                response -> {
+                    throw new HttpStatusFailureException(response.getStatusLine().getStatusCode());
+                }
+        );
     }
 
     private byte[] toByteArray(Serializable body, Charset charset) {
@@ -600,21 +681,17 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 "Body content type not supported. Expected String or byte[]");
     }
 
-    private boolean statusSuccessful(int statusCode) {
-        return statusCode >= 200 && statusCode < 400;
-    }
-
     /**
      * Set the request builder based on the request
      *
      * @param ssl The request SSL options
      * @param httpClientBuilder The request builder
-     * @throws KeyStoreException 
-     * @throws NoSuchAlgorithmException 
-     * @throws IOException 
-     * @throws CertificateException 
-     * @throws UnrecoverableKeyException 
-     * @throws KeyManagementException 
+     * @throws KeyStoreException
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
+     * @throws CertificateException
+     * @throws UnrecoverableKeyException
+     * @throws KeyManagementException
      */
     private void setSSL(final SSL ssl, final HttpClientBuilder httpClientBuilder) throws NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException, UnrecoverableKeyException, KeyManagementException {
         if (ssl != null) {
@@ -625,14 +702,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             } else if (trustCertificateStrategy == TrustCertificateStrategy.TRUST_ALL) {
                 sslContextBuilder.loadTrustMaterial(
                         null,
-                        new TrustStrategy() {
-
-                            @Override
-                            public boolean isTrusted(X509Certificate[] chain, String authType)
-                                    throws CertificateException {
-                                return Boolean.TRUE;
-                            }
-                        });
+                        (chain, authType) -> Boolean.TRUE);
             }
             if (ssl.getTrustStore() != null) {
                 final KeyStore keyStore = ssl.getTrustStore().generateKeyStore();
@@ -673,7 +743,6 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param proxy The request Proxy options
      * @param httpClientBuilder The request builder
-     * @throws Exception
      */
     private void setProxy(
             final Proxy proxy,
@@ -713,16 +782,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param requestConfigurationBuilder The request builder
      * @param httpClientBuilder The request builder
-     * @param list The cookies
+     * @param cookies The cookies
      * @param urlHost The URL host
      */
     private void setCookies(
             final Builder requestConfigurationBuilder,
             final HttpClientBuilder httpClientBuilder,
-            final List<HttpCookie> list,
+            final List<HttpCookie> cookies,
             final String urlHost) {
         final CookieStore cookieStore = new BasicCookieStore();
-        final List<HttpCookie> cookies = list;
         for (final HttpCookie cookie : cookies) {
             final BasicClientCookie c = new BasicClientCookie(cookie.getName(), cookie.getValue());
             c.setPath("/");
@@ -850,6 +918,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 return RequestBuilder.delete();
             case HEAD:
                 return RequestBuilder.head();
+            case PATCH:
+                return RequestBuilder.patch();
             default:
                 throw new IllegalStateException(
                         "Impossible to get the RequestBuilder from the \"" + method.name() + "\" name.");
@@ -860,17 +930,16 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * Log an exception in generic way
      *
      * @param e The exception raised
-     * @throws ConnectorException The connector exception for the BonitaSoft system to act from it
      */
     private void logException(final Exception e) {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(e.toString());
         for (final StackTraceElement stackTraceElement : e.getStackTrace()) {
-            stringBuilder.append("\n" + stackTraceElement);
+            stringBuilder.append("\n").append(stackTraceElement);
         }
         LOGGER.fine(() -> "executeBusinessLogic error: " + stringBuilder.toString());
     }
-    
+
     @Override
     public boolean hasBody() {
         return hasBody;

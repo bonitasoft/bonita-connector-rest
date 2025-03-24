@@ -10,15 +10,19 @@
  */
 package org.bonitasoft.connectors.rest;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.bonitasoft.connectors.rest.model.AuthorizationType;
+import org.bonitasoft.connectors.rest.model.ProxyProtocol;
 import org.bonitasoft.connectors.rest.model.SSLVerifier;
 import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
+import org.bonitasoft.connectors.rest.utils.ProxyUtils;
 import org.bonitasoft.engine.connector.AbstractConnector;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
@@ -30,10 +34,22 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String CHARSET_INPUT_PARAMETER = "charset";
     protected static final String URLCOOKIES_INPUT_PARAMETER = "urlCookies";
     protected static final String URLHEADERS_INPUT_PARAMETER = "urlHeaders";
+    protected static final String ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER = "add_bonita_context_headers";
+    protected static final String BONITA_ACTIVITY_INSTANCE_ID_HEADER_INPUT_PARAMETER = "bonita_activity_instance_id_header";
+    protected static final String BONITA_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER = "bonita_process_instance_id_header";
+    protected static final String BONITA_ROOT_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER = "bonita_root_process_instance_id_header";
+    protected static final String BONITA_PROCESS_DEFINITION_ID_HEADER_INPUT_PARAMETER = "bonita_process_definition_id_header";
+    protected static final String BONITA_TASK_ASSIGNEE_ID_HEADER_INPUT_PARAMETER = "bonita_task_assignee_id_header";
     protected static final String DOCUMENT_BODY_INPUT_PARAMETER = "documentBody";
     protected static final String BODY_INPUT_PARAMETER = "body";
     protected static final String DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER = "do_not_follow_redirect";
     protected static final String IGNORE_BODY_INPUT_PARAMETER = "ignore_body";
+    protected static final String FAIL_ON_HTTP_4XX_INPUT_PARAMETER = "fail_on_http_4xx";
+    protected static final String FAIL_ON_HTTP_5XX_INPUT_PARAMETER = "fail_on_http_5xx";
+    protected static final String FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER = "failure_exception_codes";
+    protected static final String RETRY_ON_HTTP_5XX_INPUT_PARAMETER = "retry_on_http_5xx";
+    protected static final String RETRY_ADDITIONAL_HTTP_CODES_INPUT_PARAMETER = "retry_additional_codes";
+    protected static final String MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER = "max_body_content_printed";
     protected static final String TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER = "trust_strategy";
     protected static final String TLS_INPUT_PARAMETER = "TLS";
     protected static final String HOSTNAME_VERIFIER_INPUT_PARAMETER = "hostname_verifier";
@@ -60,6 +76,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String STATUS_MESSAGE_OUTPUT_PARAMETER = "status_message";
     protected static final String SOCKET_TIMEOUT_MS_PARAMETER = "socket_timeout_ms";
     protected static final String CONNECTION_TIMEOUT_MS_PARAMETER = "connection_timeout_ms";
+    protected static final String AUTOMATIC_PROXY_RESOLUTION_PARAMETER = "automatic_proxy_resolution";
 
     protected static final int SOCKET_TIMEOUT_MS_DEFAULT_VALUE = 60_000;
     protected static final int CONNECTION_TIMEOUT_MS_DEFAULT_VALUE = 60_000;
@@ -119,6 +136,31 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return headers;
     }
 
+    protected final Boolean getAddBonitaContextHeaders() {
+        final Boolean addContextHeaders = (Boolean) getInputParameter(ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER);
+        return addContextHeaders != null ? addContextHeaders : Boolean.FALSE;
+    }
+
+    protected final String getBonitaActivityInstanceIdHeader() {
+        return (String) getInputParameter(BONITA_ACTIVITY_INSTANCE_ID_HEADER_INPUT_PARAMETER);
+    }
+
+    protected final String getBonitaProcessInstanceIdHeader() {
+        return (String) getInputParameter(BONITA_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER);
+    }
+
+    protected final String getBonitaRootProcessInstanceIdHeader() {
+        return (String) getInputParameter(BONITA_ROOT_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER);
+    }
+
+    protected final String getBonitaProcessDefinitionIdHeader() {
+        return (String) getInputParameter(BONITA_PROCESS_DEFINITION_ID_HEADER_INPUT_PARAMETER);
+    }
+
+    protected final String getBonitaTaskAssigneeIdHeader() {
+        return (String) getInputParameter(BONITA_TASK_ASSIGNEE_ID_HEADER_INPUT_PARAMETER);
+    }
+
     protected final String getDocumentBody() {
         return (String) getInputParameter(DOCUMENT_BODY_INPUT_PARAMETER);
     }
@@ -170,6 +212,46 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return ignoreBody != null ? ignoreBody : Boolean.FALSE;
     }
 
+    protected final Boolean getFailOnHttp5xx() {
+        final Boolean failOn5xx = (Boolean) getInputParameter(FAIL_ON_HTTP_5XX_INPUT_PARAMETER);
+        return failOn5xx != null ? failOn5xx : Boolean.FALSE;
+    }
+
+    protected final Boolean getFailOnHttp4xx() {
+        final Boolean failOn4xx = (Boolean) getInputParameter(FAIL_ON_HTTP_4XX_INPUT_PARAMETER);
+        return failOn4xx != null ? failOn4xx : Boolean.FALSE;
+    }
+
+    protected final List<String> getFailExceptionHttpCodes() {
+        List<List<?>> exceptionCodes = (List<List<?>>) getInputParameter(FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER);
+        if (exceptionCodes == null) {
+            return Collections.emptyList();
+        }
+        return exceptionCodes.stream()
+                .map(code -> (String) code.get(0))
+                .collect(Collectors.toList());
+    }
+
+    protected final Boolean getRetryOnHttp5xx() {
+        final Boolean retryOn5xx = (Boolean) getInputParameter(RETRY_ON_HTTP_5XX_INPUT_PARAMETER);
+        return retryOn5xx != null ? retryOn5xx : Boolean.FALSE;
+    }
+
+    protected final List<String> getRetryAdditionalHttpCodes() {
+        List<List<?>> additionalCodes = (List<List<?>>) getInputParameter(RETRY_ADDITIONAL_HTTP_CODES_INPUT_PARAMETER);
+        if (additionalCodes == null) {
+            return Collections.emptyList();
+        }
+        return additionalCodes.stream()
+                .map(code -> (String) code.get(0))
+                .collect(Collectors.toList());
+    }
+
+    protected final Integer getMaximumBodyContentPrintedLogs() {
+        Integer maxBodyContentPrintedLogs = (Integer) getInputParameter(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER);
+        return maxBodyContentPrintedLogs != null ? maxBodyContentPrintedLogs : 1000;
+    }
+
     protected final String getAuthUsername() {
         return (String) getInputParameter(AUTH_USERNAME_INPUT_PARAMETER);
     }
@@ -202,14 +284,24 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.lang.String getProxyProtocol() {
+        if (getAutomaticProxyResolution()) {
+            URI url = URI.create(getUrl());
+            return url.isAbsolute() ? url.getScheme() : ProxyProtocol.HTTP.toString().toLowerCase();
+        }
         return (String) getInputParameter(PROXY_PROTOCOL_INPUT_PARAMETER);
     }
 
     protected final String getProxyHost() {
+        if (getAutomaticProxyResolution()) {
+            return ProxyUtils.hostName(URI.create(getUrl())).orElse(null);
+        }
         return (String) getInputParameter(PROXY_HOST_INPUT_PARAMETER);
     }
 
     protected final Integer getProxyPort() {
+        if (getAutomaticProxyResolution()) {
+            return ProxyUtils.port(URI.create(getUrl())).orElse(null);
+        }
         return (Integer) getInputParameter(PROXY_PORT_INPUT_PARAMETER);
     }
 
@@ -229,6 +321,11 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected final Integer getConnectionTimeoutMs() {
         Integer connectionTimeoutMs = (Integer) getInputParameter(CONNECTION_TIMEOUT_MS_PARAMETER);
         return connectionTimeoutMs != null ? connectionTimeoutMs : CONNECTION_TIMEOUT_MS_DEFAULT_VALUE;
+    }
+
+    protected final Boolean getAutomaticProxyResolution() {
+        final Boolean automaticProxyResolution = (Boolean) getInputParameter(AUTOMATIC_PROXY_RESOLUTION_PARAMETER);
+        return automaticProxyResolution != null ? automaticProxyResolution : Boolean.FALSE;
     }
 
     protected void setBody(java.lang.String body) {
@@ -259,9 +356,17 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         validateCharset();
         validateUrlCookies();
         validateUrlHeaders();
+        validateAddBonitaContextHeaders();
+        validateBonitaContextHeaders();
         validateBody();
         validateIgnoreBody();
         validateDoNotFollowRedirect();
+        validateFailOnHttp5xx();
+        validateFailOnHttp4xx();
+        validateFailExceptionHttpCodes();
+        validateRetryOnHttp5xx();
+        validateRetryAdditionalHttpCodes();
+        validateMaximumBodyContentPrintedLogs();
         validateTLS();
         validateTrustCertificateStrategyInput();
         validateHostnameVerifierInput();
@@ -282,6 +387,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         validateProxyPassword();
         validateSocketTimeoutMs();
         validateConnectionTimeoutMs();
+        validateAutomaticProxyResolution();
     }
 
     void validateConnectionTimeoutMs() throws ConnectorValidationException {
@@ -462,6 +568,26 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         }
     }
 
+    void validateAddBonitaContextHeaders() throws ConnectorValidationException {
+        try {
+            getAddBonitaContextHeaders();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateBonitaContextHeaders() throws ConnectorValidationException {
+        try {
+            getBonitaActivityInstanceIdHeader();
+            getBonitaProcessInstanceIdHeader();
+            getBonitaRootProcessInstanceIdHeader();
+            getBonitaProcessDefinitionIdHeader();
+            getBonitaTaskAssigneeIdHeader();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException("one of bonita context headers type is invalid");
+        }
+    }
+
     void validateUrlCookies() throws ConnectorValidationException {
         try {
             getUrlCookies();
@@ -502,6 +628,68 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         }
     }
 
+    void validateFailOnHttp5xx() throws ConnectorValidationException {
+        try {
+            getFailOnHttp5xx();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(FAIL_ON_HTTP_5XX_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateFailOnHttp4xx() throws ConnectorValidationException {
+        try {
+            getFailOnHttp4xx();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(FAIL_ON_HTTP_4XX_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateFailExceptionHttpCodes() throws ConnectorValidationException {
+        try {
+            for (String code : getFailExceptionHttpCodes()) {
+                int statusCode = Integer.parseInt(code);
+                if (statusCode < 400 || statusCode > 599) {
+                    throw new ConnectorValidationException(FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER + " type is invalid");
+                }
+            }
+        } catch (final ConnectorValidationException e) {
+            throw e;
+        } catch (final NumberFormatException|ClassCastException e) {
+            throw new ConnectorValidationException(FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateRetryOnHttp5xx() throws ConnectorValidationException {
+        try {
+            getRetryOnHttp5xx();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(RETRY_ON_HTTP_5XX_INPUT_PARAMETER + "type is invalid");
+        }
+    }
+
+    void validateRetryAdditionalHttpCodes() throws ConnectorValidationException {
+        try {
+            for (String code : getRetryAdditionalHttpCodes()) {
+                int statusCode = Integer.parseInt(code);
+                if (statusCode < 400 || statusCode > 599) {
+                    throw new ConnectorValidationException(RETRY_ADDITIONAL_HTTP_CODES_INPUT_PARAMETER + " type is invalid");
+                }
+            }
+        } catch (final ConnectorValidationException e) {
+            throw e;
+        } catch (final NumberFormatException|ClassCastException e) {
+            throw new ConnectorValidationException(RETRY_ADDITIONAL_HTTP_CODES_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateMaximumBodyContentPrintedLogs() throws ConnectorValidationException {
+        try {
+            getMaximumBodyContentPrintedLogs();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER + " type is invalid");
+        }
+    }
+
     void validateTrustCertificateStrategyInput() throws ConnectorValidationException {
         String trustParam = null;
         try {
@@ -529,6 +717,14 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         } catch (ClassCastException cce) {
             throw new ConnectorValidationException(
                     String.format("%s type is invalid", HOSTNAME_VERIFIER_INPUT_PARAMETER));
+        }
+    }
+
+    void validateAutomaticProxyResolution() throws ConnectorValidationException {
+        try {
+            getAutomaticProxyResolution();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(AUTOMATIC_PROXY_RESOLUTION_PARAMETER + " type is invalid");
         }
     }
 

@@ -10,50 +10,10 @@
  */
 package org.bonitasoft.connectors.rest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.absent;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
-import static com.github.tomakehurst.wiremock.client.WireMock.delete;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.head;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.put;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.google.common.collect.Lists.newArrayList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.BODY_INPUT_PARAMETER;
-import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.CHARSET_INPUT_PARAMETER;
-import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.CONTENTTYPE_INPUT_PARAMETER;
-import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.DOCUMENT_BODY_INPUT_PARAMETER;
-import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.METHOD_INPUT_PARAMETER;
-import static org.hamcrest.core.Is.isA;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import com.google.common.collect.Maps;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
 import org.apache.http.client.ClientProtocolException;
@@ -62,7 +22,9 @@ import org.bonitasoft.connectors.rest.model.AuthorizationType;
 import org.bonitasoft.connectors.rest.model.ProxyProtocol;
 import org.bonitasoft.connectors.rest.model.SSLVerifier;
 import org.bonitasoft.connectors.rest.model.TrustCertificateStrategy;
+import org.bonitasoft.connectors.rest.utils.ProxyUtils;
 import org.bonitasoft.engine.bpm.document.Document;
+import org.bonitasoft.engine.commons.exceptions.SRetryableException;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 import org.bonitasoft.engine.exception.BonitaException;
@@ -74,9 +36,25 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.bonitasoft.connectors.rest.AbstractRESTConnectorImpl.*;
+import static org.hamcrest.core.Is.isA;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /** The class for the UTs of the REST Connector */
 public class RESTConnectorTest extends AcceptanceTestBase {
@@ -102,6 +80,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     private static final String PUT = "PUT";
     private static final String DELETE = "DELETE";
     private static final String HEAD = "HEAD";
+    private static final String PATCH = "PATCH";
     private static final String METHOD_ERROR = "FAKE_METHOD";
 
     // CONTENT_TYPES
@@ -260,7 +239,101 @@ public class RESTConnectorTest extends AcceptanceTestBase {
        
        assertThrows(ConnectorValidationException.class , () -> connector.validateUrlHeaders());
     }
-    
+
+    @Test
+    public void testAddBonitaContextHeaders() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAddBonitaContextHeaders());
+    }
+
+    @Test
+    public void testBonitaContextHeaders() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.BONITA_ACTIVITY_INSTANCE_ID_HEADER_INPUT_PARAMETER, null);
+       input.put(RESTConnector.BONITA_PROCESS_DEFINITION_ID_HEADER_INPUT_PARAMETER, null);
+       input.put(RESTConnector.BONITA_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, null);
+       input.put(RESTConnector.BONITA_ROOT_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, null);
+       input.put(RESTConnector.BONITA_TASK_ASSIGNEE_ID_HEADER_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateBonitaContextHeaders());
+    }
+
+    @Test
+    public void testFailOnHttp5xxParameter() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.FAIL_ON_HTTP_5XX_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateFailOnHttp5xx());
+    }
+
+    @Test
+    public void testFailOnHttp4xxParameter() throws Exception {
+         var connector =  new RESTConnector(false);
+         Map<String, Object> input = new HashMap<>();
+         input.put(RESTConnector.FAIL_ON_HTTP_4XX_INPUT_PARAMETER, 1);
+         connector.setInputParameters(input);
+
+         assertThrows(ConnectorValidationException.class , () -> connector.validateFailOnHttp4xx());
+    }
+
+    @Test
+    public void testFailExceptionOnHttpErrorParameter() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER, List.of(1));
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateFailExceptionHttpCodes());
+    }
+
+    @Test
+    public void testRetryOnHttp5xxParameter() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.RETRY_ON_HTTP_5XX_INPUT_PARAMETER, 1);
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateRetryOnHttp5xx());
+    }
+
+    @Test
+    public void testRetryAdditionalHttpCodesParameter() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.RETRY_ADDITIONAL_HTTP_CODES_INPUT_PARAMETER, List.of(1));
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateRetryAdditionalHttpCodes());
+    }
+
+    @Test
+    public void testMaximumBodyContentPrintedLogsParameter() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER, true);
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateMaximumBodyContentPrintedLogs());
+    }
+
+    @Test
+    public void testAutomaticProxyResolutionParameter() throws Exception {
+       var connector =  new RESTConnector(false);
+       Map<String, Object> input = new HashMap<>();
+       input.put(RESTConnector.AUTOMATIC_PROXY_RESOLUTION_PARAMETER, 1);
+       connector.setInputParameters(input);
+
+       assertThrows(ConnectorValidationException.class , () -> connector.validateAutomaticProxyResolution());
+    }
+
     @Test
     public void testBodyParameter() throws Exception {
        var connector =  new RESTConnector(true);
@@ -515,7 +588,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      * @param body Body content
      * @param redirect Is the redirection to be used
      * @param ignoreBody Does the response body is ignored
-     * @param trust Trust self certificate
+     * @param trustCertificateStrategy Trust self certificate
      * @param sslVerifier SSL Verifier
      * @return The set of parameters
      */
@@ -790,7 +863,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
      */
     private Map<String, Object> executeConnector(final Map<String, Object> parameters)
             throws BonitaException {
-        final RESTConnector rest = new RESTConnector(true);
+        final RESTConnector rest = new RESTConnector(Set.of("POST", "PUT", "PATCH").contains((String) parameters.get(METHOD_INPUT_PARAMETER)));
         rest.setExecutionContext(getEngineExecutionContext());
         rest.setAPIAccessor(getApiAccessor());
         rest.setInputParameters(parameters);
@@ -863,10 +936,23 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         checkResultIsPresent(executeConnector(buildMethodParametersSet(HEAD)));
     }
 
+    /**
+     * Test the PATCH method
+     *
+     * @throws BonitaException exception
+     * @throws InterruptedException exception
+     */
+    @Test
+    public void patchMethod() throws BonitaException {
+        stubFor(patch(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        checkResultIsPresent(executeConnector(buildMethodParametersSet(PATCH)));
+    }
+
     @Test
     public void testProxyConfiguration() throws BonitaException, ClientProtocolException, IOException {
         Map<String, Object> parameters = buildMethodParametersSet(HEAD);
-        parameters.put(RESTConnector.PROXY_HOST_INPUT_PARAMETER, "http://proxy.host");
+        parameters.put(RESTConnector.PROXY_HOST_INPUT_PARAMETER, "proxy.host");
         parameters.put(RESTConnector.PROXY_PORT_INPUT_PARAMETER, 8888);
         parameters.put(RESTConnector.PROXY_PROTOCOL_INPUT_PARAMETER, "http");
         parameters.put(RESTConnector.PROXY_USERNAME_INPUT_PARAMETER, "hello");
@@ -876,11 +962,28 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         var proxy = connector.buildProxy();
 
-        assertEquals("http://proxy.host", proxy.getHost());
+        assertEquals("proxy.host", proxy.getHost());
         assertEquals((Integer) 8888, proxy.getPort());
         assertEquals(ProxyProtocol.HTTP, proxy.getProtocol());
         assertEquals("hello", proxy.getUsername());
         assertEquals("world", proxy.getPassword());
+    }
+
+    @Test
+    public void testAutomaticProxyConfiguration() throws BonitaException, ClientProtocolException, IOException {
+        System.setProperty(ProxyUtils.HTTP_PROXY_HOST, "my-http-proxy");
+        System.setProperty(ProxyUtils.HTTP_PROXY_PORT, "8080");
+
+        Map<String, Object> parameters = buildURLParametersSet("http://www.host1.com");
+        parameters.put(RESTConnector.AUTOMATIC_PROXY_RESOLUTION_PARAMETER, true);
+        var connector = new RESTConnector(false);
+        connector.setInputParameters(parameters);
+
+        var proxy = connector.buildProxy();
+
+        assertEquals("my-http-proxy", proxy.getHost());
+        assertEquals((Integer) 8080, proxy.getPort());
+        assertEquals(ProxyProtocol.HTTP, proxy.getProtocol());
     }
 
     @Test
@@ -1441,6 +1544,157 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(executeConnector(buildHeaderParametersSet(TWO_HEADERS)));
+    }
+
+    @Test
+    public void should_not_add_bonitaContextHeaders() throws BonitaException {
+        when(getEngineExecutionContext().getActivityInstanceId()).thenReturn(3L);
+        when(getEngineExecutionContext().getProcessInstanceId()).thenReturn(2L);
+        when(getEngineExecutionContext().getRootProcessInstanceId()).thenReturn(1L);
+        when(getEngineExecutionContext().getProcessDefinitionId()).thenReturn(4L);
+        when(getEngineExecutionContext().getTaskAssigneeId()).thenReturn(5L);
+
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        mb.withHeader("X-Bonita-Activity-Instance-Id", absent());
+        mb.withHeader("X-Bonita-Process-Instance-Id", absent());
+        mb.withHeader("X-Bonita-Root-Process-Instance-Id", absent());
+        mb.withHeader("X-Bonita-Process-Definition-Id", absent());
+        mb.withHeader("X-Bonita-Task-Assignee", absent());
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER, false);
+        parameters.put(AbstractRESTConnectorImpl.BONITA_ACTIVITY_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Activity-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Process-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_ROOT_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Root-Process-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_PROCESS_DEFINITION_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Process-Definition-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_TASK_ASSIGNEE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Task-Assignee-Id");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    @Test
+    public void should_add_bonitaContextHeaders() throws BonitaException {
+        when(getEngineExecutionContext().getActivityInstanceId()).thenReturn(3L);
+        when(getEngineExecutionContext().getProcessInstanceId()).thenReturn(2L);
+        when(getEngineExecutionContext().getRootProcessInstanceId()).thenReturn(1L);
+        when(getEngineExecutionContext().getProcessDefinitionId()).thenReturn(4L);
+        when(getEngineExecutionContext().getTaskAssigneeId()).thenReturn(5L);
+
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        mb.withHeader("X-Bonita-Activity-Instance-Id", equalTo("3"));
+        mb.withHeader("X-Bonita-Process-Instance-Id", equalTo("2"));
+        mb.withHeader("X-Bonita-Root-Process-Instance-Id", equalTo("1"));
+        mb.withHeader("X-Bonita-Process-Definition-Id", equalTo("4"));
+        mb.withHeader("X-Bonita-Task-Assignee", equalTo("5"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER, true);
+        parameters.put(AbstractRESTConnectorImpl.BONITA_ACTIVITY_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Activity-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Process-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_ROOT_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Root-Process-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_PROCESS_DEFINITION_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Process-Definition-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_TASK_ASSIGNEE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Task-Assignee");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    @Test
+    public void should_add_bonitaContextHeaders_only_if_header_name_is_set() throws BonitaException {
+        when(getEngineExecutionContext().getActivityInstanceId()).thenReturn(3L);
+
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        mb.withHeader("X-Bonita-Activity-Instance-Id", absent());
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER, true);
+        parameters.put(AbstractRESTConnectorImpl.BONITA_ACTIVITY_INSTANCE_ID_HEADER_INPUT_PARAMETER, "");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Process-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_ROOT_PROCESS_INSTANCE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Root-Process-Instance-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_PROCESS_DEFINITION_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Process-Definition-Id");
+        parameters.put(AbstractRESTConnectorImpl.BONITA_TASK_ASSIGNEE_ID_HEADER_INPUT_PARAMETER, "X-Bonita-Task-Assignee-Id");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    @Test
+    public void should_not_failOn500Error() throws BonitaException {
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+
+        checkResult(executeConnector(parameters), HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    public void should_failOn500Error() throws BonitaException {
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.FAIL_ON_HTTP_5XX_INPUT_PARAMETER, true);
+
+        assertThrows(ConnectorException.class, () -> executeConnector(parameters));
+    }
+
+    @Test
+    public void should_not_failOn404Error() throws BonitaException {
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_NOT_FOUND)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+
+        checkResult(executeConnector(parameters), HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void should_failOn404Error() throws BonitaException {
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_NOT_FOUND)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.FAIL_ON_HTTP_4XX_INPUT_PARAMETER, true);
+
+        assertThrows(ConnectorException.class, () -> executeConnector(parameters));
+    }
+
+    @Test
+    public void should_not_failOnExceptionErrorCodes() throws BonitaException {
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.FAIL_ON_HTTP_4XX_INPUT_PARAMETER, true);
+        parameters.put(AbstractRESTConnectorImpl.FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER, List.of(List.of(Integer.toString(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE))));
+
+        checkResult(executeConnector(parameters), HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    @Test
+    public void should_retry_on500Error() throws BonitaException {
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.FAIL_ON_HTTP_5XX_INPUT_PARAMETER, true);
+        parameters.put(AbstractRESTConnectorImpl.RETRY_ON_HTTP_5XX_INPUT_PARAMETER, true);
+
+        assertThrows(SRetryableException.class, () -> executeConnector(parameters));
+    }
+
+    @Test
+    public void should_retry_on_additionalErrorCodes() throws BonitaException {
+        final MappingBuilder mb = get(urlEqualTo("/"));
+        stubFor(mb.willReturn(aResponse().withStatus(HttpStatus.SC_NOT_FOUND)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(AbstractRESTConnectorImpl.FAIL_ON_HTTP_4XX_INPUT_PARAMETER, true);
+        parameters.put(AbstractRESTConnectorImpl.RETRY_ADDITIONAL_HTTP_CODES_INPUT_PARAMETER, List.of(List.of(Integer.toString(HttpStatus.SC_NOT_FOUND))));
+
+        assertThrows(SRetryableException.class, () -> executeConnector(parameters));
     }
 
     /**

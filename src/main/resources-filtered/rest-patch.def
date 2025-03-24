@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
-  <id>${post.def.id}</id>
-  <version>${post.def.version}</version>
+  <id>${patch.def.id}</id>
+  <version>${patch.def.version}</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   
@@ -39,6 +39,7 @@
   <input name="auth_port" type="java.lang.Integer"/>
   <input name="auth_realm" type="java.lang.String"/>
   <input name="auth_preemptive" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
+  <input name="automatic_proxy_resolution" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
   <input name="proxy_protocol" type="java.lang.String"/>
   <input name="proxy_host" type="java.lang.String"/>
   <input name="proxy_port" type="java.lang.Integer"/>
