@@ -447,7 +447,12 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     private String abbreviateBody(String body) {
-        return StringUtils.abbreviate(body, "...", getMaximumBodyContentPrintedLogs());
+        Integer maximumBodyContentPrintedLogs = getMaximumBodyContentPrintedLogs();
+        if (maximumBodyContentPrintedLogs == 0) {
+            return "Hidden body content";
+        }
+        final String abbrevMarker = "...";
+        return StringUtils.abbreviate(body, abbrevMarker, getMaximumBodyContentPrintedLogs() + abbrevMarker.length());
     }
 
     private void parseResponse(final HttpEntity entity) throws IOException {
@@ -621,8 +626,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             return;
         }
         var lowerCaseName = header.getName().toLowerCase();
-        var value = (SECRET_HEADER_NAMES.stream().anyMatch(lowerCaseName::contains)) ?
-                StringUtils.abbreviate(header.getValue(), header.getValue().length() / 2) :
+        var value = (SECRET_HEADER_NAMES.stream().anyMatch(lowerCaseName::contains) && !getShowSensitiveHeadersInLogs()) ?
+                "Hidden header value" :
                 header.getValue();
         LOGGER.fine(header.getName() + ": " + value);
     }

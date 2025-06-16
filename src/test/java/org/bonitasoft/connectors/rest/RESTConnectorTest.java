@@ -325,6 +325,16 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     @Test
+    public void testShowSensitiveHeaderValuesParameter() throws Exception {
+        var connector =  new RESTConnector(false);
+        Map<String, Object> input = new HashMap<>();
+        input.put(RESTConnector.SENSITIVE_HEADERS_PRINTED_LOGS_PARAMETER, 1);
+        connector.setInputParameters(input);
+
+        assertThrows(ConnectorValidationException.class , () -> connector.validateShowSensitiveHeadersInLogs());
+    }
+
+    @Test
     public void testAutomaticProxyResolutionParameter() throws Exception {
        var connector =  new RESTConnector(false);
        Map<String, Object> input = new HashMap<>();
@@ -947,6 +957,16 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         stubFor(patch(urlEqualTo("/")).willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
 
         checkResultIsPresent(executeConnector(buildMethodParametersSet(PATCH)));
+    }
+
+    @Test
+    public void should_maximumBodyContentPrintedLogsParameter_be_positive_only() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(HEAD);
+        parameters.put(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER, -1);
+        var connector = new RESTConnector(false);
+        connector.setInputParameters(parameters);
+
+        assertThrows(ConnectorValidationException.class,() -> connector.validateInputParameters());
     }
 
     @Test
@@ -2027,6 +2047,25 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
         parameters.put(BODY_INPUT_PARAMETER, "name=value1&token=value2");
         checkResultIsPresent(executeConnector(parameters));
+    }
+
+    @Test
+    public void should_not_throw_exception_when_maximumBodyContentPrintedLogsParameter_is_zero()
+            throws BonitaException {
+        stubFor(
+                post(urlEqualTo("/"))
+                        .withHeader(WM_CONTENT_TYPE, equalTo(JSON + "; " + WM_CHARSET + "=" + UTF8))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withBody("{ \"name\":\"value\" }")
+                                        .withHeader(WM_CONTENT_TYPE, JSON)));
+
+        Map<String, Object> parameters = buildContentTypeParametersSet(JSON);
+        parameters.put(BODY_INPUT_PARAMETER, "{ \"name\":\"value\" }");
+        parameters.put(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER, 0);
+        final Map<String, Object> outputs = executeConnector(parameters);
+        checkResultIsPresent(outputs);
     }
 
     /**

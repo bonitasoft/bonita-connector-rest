@@ -23,6 +23,7 @@
   <input name="retry_on_http_5xx" type="java.lang.Boolean" mandatory="false"/>
   <input name="retry_additional_codes" type="java.util.List" mandatory="false"/>
   <input name="max_body_content_printed" type="java.lang.Integer" defaultValue="1000"/>
+  <input name="sensitive_headers_printed" type="java.lang.Boolean" mandatory="false"/>
   <input name="TLS" type="java.lang.Boolean" mandatory="false" defaultValue="true"/>
   <input name="hostname_verifier" type="java.lang.String" mandatory="false"/>
   <input name="trust_store_file" type="java.lang.String" mandatory="false"/>
@@ -88,6 +89,7 @@
       <colsCaption>Status code</colsCaption>
     </widget>
     <widget xsi:type="definition:Text" id="max_body_content_printed_widget" inputName="max_body_content_printed"/>
+    <widget xsi:type="definition:Checkbox" id="sensitive_headers_printed_widget" inputName="sensitive_headers_printed"/>
   </page>
   <page id="authenticationPage">
     <widget xsi:type="definition:RadioGroup" id="auth_type_radio" inputName="auth_type">

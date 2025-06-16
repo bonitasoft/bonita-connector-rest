@@ -9,7 +9,7 @@ import java.net.ProxySelector;
 import java.net.URI;
 import java.util.Optional;
 
-public class ProxyUtils {
+public final class ProxyUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(ProxyUtils.class);
 

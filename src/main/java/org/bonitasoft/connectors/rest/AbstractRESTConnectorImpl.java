@@ -11,10 +11,7 @@
 package org.bonitasoft.connectors.rest;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -50,6 +47,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String RETRY_ON_HTTP_5XX_INPUT_PARAMETER = "retry_on_http_5xx";
     protected static final String RETRY_ADDITIONAL_HTTP_CODES_INPUT_PARAMETER = "retry_additional_codes";
     protected static final String MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER = "max_body_content_printed";
+    protected static final String SENSITIVE_HEADERS_PRINTED_LOGS_PARAMETER = "sensitive_headers_printed";
     protected static final String TRUST_CERTIFICATE_STRATEGY_INPUT_PARAMETER = "trust_strategy";
     protected static final String TLS_INPUT_PARAMETER = "TLS";
     protected static final String HOSTNAME_VERIFIER_INPUT_PARAMETER = "hostname_verifier";
@@ -137,8 +135,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Boolean getAddBonitaContextHeaders() {
-        final Boolean addContextHeaders = (Boolean) getInputParameter(ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER);
-        return addContextHeaders != null ? addContextHeaders : Boolean.FALSE;
+        return (Boolean) getInputParameter(ADD_BONITA_CONTEXT_HEADERS_INPUT_PARAMETER, Boolean.FALSE);
     }
 
     protected final String getBonitaActivityInstanceIdHeader() {
@@ -170,8 +167,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Boolean getTLS() {
-        final Boolean tlsParam = (Boolean) getInputParameter(TLS_INPUT_PARAMETER);
-        return tlsParam != null ? tlsParam : Boolean.TRUE;
+        return (Boolean) getInputParameter(TLS_INPUT_PARAMETER, Boolean.TRUE);
     }
 
     protected final TrustCertificateStrategy getTrustCertificateStrategy() {
@@ -203,23 +199,19 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Boolean getDoNotFollowRedirect() {
-        final Boolean follozRedirect = (Boolean) getInputParameter(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER);
-        return follozRedirect != null ? follozRedirect : Boolean.FALSE;
+        return (Boolean) getInputParameter(DO_NOT_FOLLOW_REDIRECT_INPUT_PARAMETER, Boolean.FALSE);
     }
 
     protected final Boolean getIgnoreBody() {
-        final Boolean ignoreBody = (Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER);
-        return ignoreBody != null ? ignoreBody : Boolean.FALSE;
+        return (Boolean) getInputParameter(IGNORE_BODY_INPUT_PARAMETER, Boolean.FALSE);
     }
 
     protected final Boolean getFailOnHttp5xx() {
-        final Boolean failOn5xx = (Boolean) getInputParameter(FAIL_ON_HTTP_5XX_INPUT_PARAMETER);
-        return failOn5xx != null ? failOn5xx : Boolean.FALSE;
+        return (Boolean) getInputParameter(FAIL_ON_HTTP_5XX_INPUT_PARAMETER,Boolean.FALSE);
     }
 
     protected final Boolean getFailOnHttp4xx() {
-        final Boolean failOn4xx = (Boolean) getInputParameter(FAIL_ON_HTTP_4XX_INPUT_PARAMETER);
-        return failOn4xx != null ? failOn4xx : Boolean.FALSE;
+        return (Boolean) getInputParameter(FAIL_ON_HTTP_4XX_INPUT_PARAMETER,Boolean.FALSE);
     }
 
     protected final List<String> getFailExceptionHttpCodes() {
@@ -233,8 +225,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Boolean getRetryOnHttp5xx() {
-        final Boolean retryOn5xx = (Boolean) getInputParameter(RETRY_ON_HTTP_5XX_INPUT_PARAMETER);
-        return retryOn5xx != null ? retryOn5xx : Boolean.FALSE;
+        return (Boolean) getInputParameter(RETRY_ON_HTTP_5XX_INPUT_PARAMETER, Boolean.FALSE);
     }
 
     protected final List<String> getRetryAdditionalHttpCodes() {
@@ -248,8 +239,11 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Integer getMaximumBodyContentPrintedLogs() {
-        Integer maxBodyContentPrintedLogs = (Integer) getInputParameter(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER);
-        return maxBodyContentPrintedLogs != null ? maxBodyContentPrintedLogs : 1000;
+        return  (Integer) getInputParameter(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER, 1000);
+    }
+
+    protected final Boolean getShowSensitiveHeadersInLogs() {
+        return (Boolean) getInputParameter(SENSITIVE_HEADERS_PRINTED_LOGS_PARAMETER, Boolean.FALSE);
     }
 
     protected final String getAuthUsername() {
@@ -274,8 +268,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Boolean getAuthPreemptive() {
-        final Boolean preemptive = (Boolean) getInputParameter(AUTH_PREEMPTIVE_INPUT_PARAMETER);
-        return preemptive != null ? preemptive : Boolean.TRUE;
+        return (Boolean) getInputParameter(AUTH_PREEMPTIVE_INPUT_PARAMETER, Boolean.TRUE);
     }
 
     protected final AuthorizationType getAuthType() {
@@ -284,7 +277,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final java.lang.String getProxyProtocol() {
-        if (getAutomaticProxyResolution()) {
+        if (Boolean.TRUE.equals(getAutomaticProxyResolution())) {
             URI url = URI.create(getUrl());
             return url.isAbsolute() ? url.getScheme() : ProxyProtocol.HTTP.toString().toLowerCase();
         }
@@ -292,14 +285,14 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final String getProxyHost() {
-        if (getAutomaticProxyResolution()) {
+        if (Boolean.TRUE.equals(getAutomaticProxyResolution())) {
             return ProxyUtils.hostName(URI.create(getUrl())).orElse(null);
         }
         return (String) getInputParameter(PROXY_HOST_INPUT_PARAMETER);
     }
 
     protected final Integer getProxyPort() {
-        if (getAutomaticProxyResolution()) {
+        if (Boolean.TRUE.equals(getAutomaticProxyResolution())) {
             return ProxyUtils.port(URI.create(getUrl())).orElse(null);
         }
         return (Integer) getInputParameter(PROXY_PORT_INPUT_PARAMETER);
@@ -314,18 +307,15 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     }
 
     protected final Integer getSocketTimeoutMs() {
-        Integer socketTimeoutMs = (Integer) getInputParameter(SOCKET_TIMEOUT_MS_PARAMETER);
-        return socketTimeoutMs != null ? socketTimeoutMs : SOCKET_TIMEOUT_MS_DEFAULT_VALUE;
+        return (Integer) getInputParameter(SOCKET_TIMEOUT_MS_PARAMETER, SOCKET_TIMEOUT_MS_DEFAULT_VALUE);
     }
 
     protected final Integer getConnectionTimeoutMs() {
-        Integer connectionTimeoutMs = (Integer) getInputParameter(CONNECTION_TIMEOUT_MS_PARAMETER);
-        return connectionTimeoutMs != null ? connectionTimeoutMs : CONNECTION_TIMEOUT_MS_DEFAULT_VALUE;
+        return (Integer) getInputParameter(CONNECTION_TIMEOUT_MS_PARAMETER, CONNECTION_TIMEOUT_MS_DEFAULT_VALUE);
     }
 
     protected final Boolean getAutomaticProxyResolution() {
-        final Boolean automaticProxyResolution = (Boolean) getInputParameter(AUTOMATIC_PROXY_RESOLUTION_PARAMETER);
-        return automaticProxyResolution != null ? automaticProxyResolution : Boolean.FALSE;
+        return (Boolean) getInputParameter(AUTOMATIC_PROXY_RESOLUTION_PARAMETER, Boolean.FALSE);
     }
 
     protected void setBody(java.lang.String body) {
@@ -367,6 +357,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         validateRetryOnHttp5xx();
         validateRetryAdditionalHttpCodes();
         validateMaximumBodyContentPrintedLogs();
+        validateShowSensitiveHeadersInLogs();
         validateTLS();
         validateTrustCertificateStrategyInput();
         validateHostnameVerifierInput();
@@ -652,8 +643,6 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
                     throw new ConnectorValidationException(FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER + " type is invalid");
                 }
             }
-        } catch (final ConnectorValidationException e) {
-            throw e;
         } catch (final NumberFormatException|ClassCastException e) {
             throw new ConnectorValidationException(FAILURE_EXCEPTIONS_HTTP_CODES_INPUT_PARAMETER + " type is invalid");
         }
@@ -684,9 +673,20 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
     void validateMaximumBodyContentPrintedLogs() throws ConnectorValidationException {
         try {
-            getMaximumBodyContentPrintedLogs();
+            Integer maxBodyContentPrintedLogs = getMaximumBodyContentPrintedLogs();
+            if (Optional.ofNullable(maxBodyContentPrintedLogs).orElse(0) < 0) {
+                throw new ConnectorValidationException(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER + " must be a positive integer");
+            }
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException(MAXIMUM_BODY_CONTENT_PRINTED_LOGS_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateShowSensitiveHeadersInLogs() throws ConnectorValidationException {
+        try {
+            getShowSensitiveHeadersInLogs();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(SENSITIVE_HEADERS_PRINTED_LOGS_PARAMETER + " type is invalid");
         }
     }
 
