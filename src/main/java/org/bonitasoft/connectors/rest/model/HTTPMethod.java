@@ -7,7 +7,8 @@ public enum HTTPMethod {
   POST,
   PUT,
   DELETE,
-  HEAD;
+  HEAD,
+  PATCH;
 
   /**
    * Get the RESTHTTPMethod based on a value

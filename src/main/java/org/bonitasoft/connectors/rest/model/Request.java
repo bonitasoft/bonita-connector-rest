@@ -42,6 +42,8 @@ public class Request {
   /** The body string. */
   private Serializable body = "";
 
+  private boolean hasBody = false;
+
   private ContentType contentType;
 
   /**
@@ -200,6 +202,18 @@ public class Request {
   }
 
   /**
+   * Set a header couple in the headers after removal of previous existing headers with the same key.
+   *
+   * @param key The key of the new header.
+   * @param value The lonely value of the new header.
+   * @return True if the header has been added or false otherwise.
+   */
+  public boolean setHeader(final String key, final String value) {
+    headers.removeIf(header -> header.getName().equals(key));
+    return addHeader(key, value);
+  }
+
+  /**
    * Add a cookie couple in the cookies.
    *
    * @param key The key of the new cookie.
@@ -226,6 +240,14 @@ public class Request {
    */
   public void setBody(final Serializable body) {
     this.body = body;
+  }
+
+  public boolean hasBody() {
+    return this.hasBody;
+  }
+
+  public void setHasBody(boolean hasBody) {
+    this.hasBody = hasBody;
   }
 
   public void setContentType(final ContentType contentType) {

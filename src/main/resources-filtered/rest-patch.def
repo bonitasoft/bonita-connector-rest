@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
-  <id>${file-put.def.id}</id>
-  <version>${file-put.def.version}</version>
+  <id>${patch.def.id}</id>
+  <version>${patch.def.version}</version>
   <icon>rest.png</icon>
   <category icon="rest.png" id="REST"/>
   
@@ -17,7 +17,7 @@
   <input name="bonita_root_process_instance_id_header" type="java.lang.String" mandatory="false" defaultValue="X-Bonita-Root-Process-Instance-Id"/>
   <input name="bonita_process_definition_id_header" type="java.lang.String" mandatory="false" defaultValue="X-Bonita-Process-Definition-Id"/>
   <input name="bonita_task_assignee_id_header" type="java.lang.String" mandatory="false" defaultValue="X-Bonita-Task-Assignee-Id"/>
-  <input name="documentBody" type="java.lang.String" mandatory="false"/>
+  <input name="body" type="java.lang.String" mandatory="false"/>
   <input name="do_not_follow_redirect" type="java.lang.Boolean" mandatory="false"/>
   <input name="ignore_body" type="java.lang.Boolean" mandatory="false"/>
   <input name="fail_on_http_4xx" type="java.lang.Boolean" mandatory="false"/>
@@ -64,12 +64,13 @@
 		<items>application/json</items>
 		<items>application/octet-stream</items>
 		<items>application/xml</items>
+		<items>application/x-www-form-urlencoded</items>
 		<items>text/html</items>
 		<items>text/plain</items>
 		<items>text/xml</items>
     </widget>
     <widget xsi:type="definition:Text" id="charsetWidget" inputName="charset"/>
-    <widget xsi:type="definition:Text" id="documentBodyWidget" inputName="documentBody" showDocuments="true" />
+    <widget xsi:type="definition:TextArea" id="bodyWidget" inputName="body"/>
   </page>
   <page id="Advanced">
     <widget xsi:type="definition:Array" id="urlHeadersWidget" inputName="urlHeaders" cols="2" fixedCols="true">
