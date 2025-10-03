@@ -16,8 +16,11 @@ __Clone__ or __fork__ this repository, then at the root of the project run:
 
 In order to create a new release:
 - On the release branch, make sure to update the pom version (remove the -SNAPSHOT)
-- Run the action 'Create release', set the version to release as parameter
-- Update the `master` with the next SNAPSHOT version.
+- Run the [release](https://github.com/bonitasoft/bonita-connector-rest/actions/workflows/release.yml) action, set the version to release as parameter. The release will be published to [Maven Central](https://central.sonatype.com/artifact/org.bonitasoft.connectors/bonita-connector-uipath).
+- Update the `master` branch with the next SNAPSHOT version.
+
+Once this is done, update the [Bonita marketplace repository](https://github.com/bonitasoft/bonita-marketplace) with the new version of the connector.
+
 
 ## Contributing
 
