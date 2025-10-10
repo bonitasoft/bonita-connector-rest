@@ -7,7 +7,7 @@
 
 	<groupId>org.bonitasoft.connectors</groupId>
 	<artifactId>bonita-connector-rest</artifactId>
-	<version>1.3.3-SNAPSHOT</version>
+	<version>1.4.0</version>
 
 	<name>Bonita Rest Connector</name>
 	<description>Rest Connector for Bonita</description>
