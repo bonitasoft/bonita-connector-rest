@@ -486,6 +486,22 @@
 		</profile>
 	</profiles>
 
+    <repositories>
+        <!-- Declare Terracotta repository to retrieve latest ehcache 2.x transitive artifacts
+        that are no longer available on Maven Central -->
+        <repository>
+            <id>terracotta</id>
+            <name>terracotta.org</name>
+            <url>https://repo.terracotta.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
 	<scm>
 		<developerConnection>
 			scm:git:git@github.com:bonitasoft/bonita-connector-rest.git</developerConnection>
