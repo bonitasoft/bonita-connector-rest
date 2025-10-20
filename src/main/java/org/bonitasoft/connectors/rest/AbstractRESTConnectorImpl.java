@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014 BonitaSoft S.A. BonitaSoft, 32 rue Gustave Eiffel - 38000 Grenoble This
+ * Copyright (C) 2014-2025 BonitaSoft S.A. BonitaSoft, 32 rue Gustave Eiffel - 38000 Grenoble This
  * library is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation version 2.1 of the
  * License. This library is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -62,6 +62,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String AUTH_PORT_INPUT_PARAMETER = "auth_port";
     protected static final String AUTH_REALM_INPUT_PARAMETER = "auth_realm";
     protected static final String AUTH_PREEMPTIVE_INPUT_PARAMETER = "auth_preemptive";
+    protected static final String OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER = "oauth2_token_endpoint";
+    protected static final String OAUTH2_CLIENT_ID_INPUT_PARAMETER = "oauth2_client_id";
+    protected static final String OAUTH2_CLIENT_SECRET_INPUT_PARAMETER = "oauth2_client_secret";
+    protected static final String OAUTH2_SCOPE_INPUT_PARAMETER = "oauth2_scope";
     protected static final String PROXY_PROTOCOL_INPUT_PARAMETER = "proxy_protocol";
     protected static final String PROXY_HOST_INPUT_PARAMETER = "proxy_host";
     protected static final String PROXY_PORT_INPUT_PARAMETER = "proxy_port";
@@ -276,6 +280,22 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return authType != null ? AuthorizationType.valueOf(authType) : AuthorizationType.NONE;
     }
 
+    protected final String getOAuth2TokenEndpoint() {
+        return (String) getInputParameter(OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER);
+    }
+
+    protected final String getOAuth2ClientId() {
+        return (String) getInputParameter(OAUTH2_CLIENT_ID_INPUT_PARAMETER);
+    }
+
+    protected final String getOAuth2ClientSecret() {
+        return (String) getInputParameter(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER);
+    }
+
+    protected final String getOAuth2Scope() {
+        return (String) getInputParameter(OAUTH2_SCOPE_INPUT_PARAMETER);
+    }
+
     protected final java.lang.String getProxyProtocol() {
         if (Boolean.TRUE.equals(getAutomaticProxyResolution())) {
             URI url = URI.create(getUrl());
@@ -371,6 +391,12 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         validateAuthPort();
         validateAuthRealm();
         validateAuthPreemptive();
+        if (getAuthType() == AuthorizationType.OAUTH2_CLIENT_CREDENTIALS) {
+            validateOAuth2TokenEndpoint();
+            validateOAuth2ClientId();
+            validateOAuth2ClientSecret();
+            validateOAuth2Scope();
+        }
         validateProxyProtocol();
         validateProxyHost();
         validateProxyPort();
@@ -725,6 +751,47 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             getAutomaticProxyResolution();
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException(AUTOMATIC_PROXY_RESOLUTION_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2TokenEndpoint() throws ConnectorValidationException {
+        try {
+            String tokenEndpoint = getOAuth2TokenEndpoint();
+            if (tokenEndpoint == null || tokenEndpoint.trim().isEmpty()) {
+                throw new ConnectorValidationException(OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER + " is required for OAuth2 Client Credentials");
+            }
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2ClientId() throws ConnectorValidationException {
+        try {
+            String clientId = getOAuth2ClientId();
+            if (clientId == null || clientId.trim().isEmpty()) {
+                throw new ConnectorValidationException(OAUTH2_CLIENT_ID_INPUT_PARAMETER + " is required for OAuth2 Client Credentials");
+            }
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(OAUTH2_CLIENT_ID_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2ClientSecret() throws ConnectorValidationException {
+        try {
+            String clientSecret = getOAuth2ClientSecret();
+            if (clientSecret == null || clientSecret.trim().isEmpty()) {
+                throw new ConnectorValidationException(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER + " is required for OAuth2 Client Credentials");
+            }
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2Scope() throws ConnectorValidationException {
+        try {
+            getOAuth2Scope();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(OAUTH2_SCOPE_INPUT_PARAMETER + " type is invalid");
         }
     }
 

@@ -1804,6 +1804,423 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
+     * Test OAuth2 Client Credentials authorization configuration
+     */
+    @Test
+    public void testOAuth2ClientCredentialsAuthorizationConfiguration() throws BonitaException, ClientProtocolException, IOException {
+        Map<String, Object> parameters = buildMethodParametersSet(HEAD);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "my_client_id");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "my_client_secret");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_SCOPE_INPUT_PARAMETER, "read write");
+        var connector = new RESTConnector(false);
+        connector.setInputParameters(parameters);
+
+        var oauth2Authorization = connector.buildOAuth2ClientCredentialsAuthorization();
+
+        assertEquals("https://auth.example.com/oauth/token", oauth2Authorization.getTokenEndpoint());
+        assertEquals("my_client_id", oauth2Authorization.getClientId());
+        assertEquals("my_client_secret", oauth2Authorization.getClientSecret());
+        assertEquals("read write", oauth2Authorization.getScope());
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with successful token acquisition and API request
+     */
+    @Test
+    public void oauth2ClientCredentialsWithSuccessfulRequest() throws BonitaException {
+        // Mock OAuth2 token endpoint
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(containing("client_id=test_client_id"))
+                        .withRequestBody(containing("client_secret=test_secret"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.signature\",\"token_type\":\"Bearer\",\"expires_in\":3600}")));
+
+        // Mock API endpoint that requires Bearer token
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", equalTo("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.signature"))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{\"result\":\"success\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client_id");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with scope parameter
+     */
+    @Test
+    public void oauth2ClientCredentialsWithScope() throws BonitaException {
+        // Mock OAuth2 token endpoint
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(containing("client_id=test_client"))
+                        .withRequestBody(containing("client_secret=test_pass"))
+                        .withRequestBody(containing("scope=read+write+admin"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic2NvcGUiOiJyZWFkIHdyaXRlIGFkbWluIiwiZXhwIjo5OTk5OTk5OTk5fQ.signature\",\"token_type\":\"Bearer\"}")));
+
+        // Mock API endpoint
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", matching("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.*"))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_pass");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_SCOPE_INPUT_PARAMETER, "read write admin");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with token acquisition failure
+     */
+    @Test
+    public void oauth2ClientCredentialsWithTokenAcquisitionFailure() throws BonitaException {
+        // Mock OAuth2 token endpoint returning error
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_UNAUTHORIZED)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"error\":\"invalid_client\",\"error_description\":\"Client authentication failed\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "invalid_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "invalid_secret");
+
+        thrown.expect(ConnectorException.class);
+        thrown.expectMessage("Failed to acquire OAuth2 token");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with token caching (reuse of cached token)
+     */
+    @Test
+    public void oauth2ClientCredentialsWithTokenCaching() throws BonitaException {
+        // Clear any cached tokens first
+        RESTConnector.OAUTH2_ACCESS_TOKENS.clear();
+
+        // Mock OAuth2 token endpoint - should be called only once
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(containing("client_id=cache_test_client"))
+                        .withRequestBody(containing("client_secret=cache_test_secret"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.cached_token\",\"token_type\":\"Bearer\"}")));
+
+        // Mock API endpoint
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", equalTo("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.cached_token"))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{\"result\":\"success\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "cache_test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "cache_test_secret");
+
+        // First request - should acquire token
+        checkResultIsPresent(executeConnector(parameters));
+
+        // Second request - should use cached token (no additional call to /oauth/token)
+        checkResultIsPresent(executeConnector(parameters));
+
+        // Verify token endpoint was called only once
+        verify(1, postRequestedFor(urlEqualTo("/oauth/token")));
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with expired token
+     */
+    @Test
+    public void oauth2ClientCredentialsWithExpiredToken() throws BonitaException {
+        // Clear any cached tokens first
+        RESTConnector.OAUTH2_ACCESS_TOKENS.clear();
+
+        // Create an expired token (exp in the past)
+        long pastTimestamp = (System.currentTimeMillis() / 1000) - 3600; // 1 hour ago
+        String expiredToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOiIgKyBwYXN0VGltZXN0YW1wICsgIn0.expired_signature";
+
+        // Mock OAuth2 token endpoint - should be called twice (once for expired, once for refresh)
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .withRequestBody(containing("client_id=expire_test_client"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.fresh_token\",\"token_type\":\"Bearer\"}")));
+
+        // Mock API endpoint
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", matching("Bearer .*"))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{\"result\":\"success\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "expire_test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "expire_test_secret");
+
+        // Execute connector - should acquire fresh token
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    /**
+     * Test OAuth2 Client Credentials validates proxy configuration (test code path, not actual proxying)
+     */
+    @Test
+    public void oauth2ClientCredentialsWithProxyConfiguration() throws BonitaException {
+        // Mock OAuth2 token endpoint
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(containing("client_id=proxy_test_client"))
+                        .withRequestBody(containing("client_secret=proxy_test_secret"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.proxy_token\",\"token_type\":\"Bearer\"}")));
+
+        // Mock API endpoint
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", equalTo("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJleHAiOjk5OTk5OTk5OTl9.proxy_token"))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK).withBody("{\"result\":\"success\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "proxy_test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "proxy_test_secret");
+
+        // Add proxy configuration pointing to localhost (won't actually proxy, but tests the code path)
+        parameters.put(RESTConnector.PROXY_PROTOCOL_INPUT_PARAMETER, "http");
+        parameters.put(RESTConnector.PROXY_HOST_INPUT_PARAMETER, "localhost");
+        parameters.put(RESTConnector.PROXY_PORT_INPUT_PARAMETER, wireMockServer.port());
+        parameters.put(RESTConnector.PROXY_USERNAME_INPUT_PARAMETER, "proxy_user");
+        parameters.put(RESTConnector.PROXY_PASSWORD_INPUT_PARAMETER, "proxy_pass");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    /**
+     * Test OAuth2 validation - missing token endpoint
+     */
+    @Test
+    public void oauth2ValidationMissingTokenEndpoint() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+        // Missing token endpoint
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_token_endpoint is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - null token endpoint
+     */
+    @Test
+    public void oauth2ValidationNullTokenEndpoint() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, null);
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_token_endpoint is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - empty token endpoint
+     */
+    @Test
+    public void oauth2ValidationEmptyTokenEndpoint() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "   ");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_token_endpoint is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - missing client ID
+     */
+    @Test
+    public void oauth2ValidationMissingClientId() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+        // Missing client ID
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_client_id is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - null client ID
+     */
+    @Test
+    public void oauth2ValidationNullClientId() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, null);
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_client_id is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - empty client ID
+     */
+    @Test
+    public void oauth2ValidationEmptyClientId() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "   ");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_client_id is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - missing client secret
+     */
+    @Test
+    public void oauth2ValidationMissingClientSecret() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        // Missing client secret
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_client_secret is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - null client secret
+     */
+    @Test
+    public void oauth2ValidationNullClientSecret() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, null);
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_client_secret is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 validation - empty client secret
+     */
+    @Test
+    public void oauth2ValidationEmptyClientSecret() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "   ");
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_client_secret is required for OAuth2 Client Credentials");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 with invalid JSON response (not a proper token response)
+     */
+    @Test
+    public void oauth2InvalidTokenResponse() throws BonitaException {
+        // Mock OAuth2 token endpoint returning invalid JSON
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"invalid\":\"response\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+
+        thrown.expect(ConnectorException.class);
+        executeConnector(parameters);
+    }
+
+
+    /**
      * Test the basic auth with username and password
      *
      * @throws BonitaException exception

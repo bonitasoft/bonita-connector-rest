@@ -7,7 +7,7 @@
 
 	<groupId>org.bonitasoft.connectors</groupId>
 	<artifactId>bonita-connector-rest</artifactId>
-	<version>1.4.1-SNAPSHOT</version>
+	<version>1.5.0-SNAPSHOT</version>
 
 	<name>Bonita Rest Connector</name>
 	<description>Rest Connector for Bonita</description>
@@ -39,56 +39,56 @@
 
 		<!--Head Connector -->
 		<head.def.id>rest-head</head.def.id>
-		<head.def.version>1.1.0</head.def.version>
+		<head.def.version>1.2.0</head.def.version>
 		<head.impl.id>${head.def.id}-impl</head.impl.id>
 		<head.impl.version>${project.version}</head.impl.version>
 		<head.main-class>org.bonitasoft.connectors.rest.HeadConnectorImpl</head.main-class>
 
 		<!--Get Connector -->
 		<get.def.id>rest-get</get.def.id>
-		<get.def.version>1.3.0</get.def.version>
+		<get.def.version>1.4.0</get.def.version>
 		<get.impl.id>${get.def.id}-impl</get.impl.id>
 		<get.impl.version>${project.version}</get.impl.version>
 		<get.main-class>org.bonitasoft.connectors.rest.GetConnectorImpl</get.main-class>
 
 		<!--Post Connector -->
 		<post.def.id>rest-post</post.def.id>
-		<post.def.version>1.4.0</post.def.version>
+		<post.def.version>1.5.0</post.def.version>
 		<post.impl.id>${post.def.id}-impl</post.impl.id>
 		<post.impl.version>${project.version}</post.impl.version>
 		<post.main-class>org.bonitasoft.connectors.rest.PostConnectorImpl</post.main-class>
 
 		<!--File Post Connector -->
 		<file-post.def.id>rest-file-post</file-post.def.id>
-		<file-post.def.version>1.1.0</file-post.def.version>
+		<file-post.def.version>1.2.0</file-post.def.version>
 		<file-post.impl.id>${file-post.def.id}-impl</file-post.impl.id>
 		<file-post.impl.version>${project.version}</file-post.impl.version>
 		<file-post.main-class>org.bonitasoft.connectors.rest.PostConnectorImpl</file-post.main-class>
 
 		<!--Put Connector -->
 		<put.def.id>rest-put</put.def.id>
-		<put.def.version>1.4.0</put.def.version>
+		<put.def.version>1.5.0</put.def.version>
 		<put.impl.id>${put.def.id}-impl</put.impl.id>
 		<put.impl.version>${project.version}</put.impl.version>
 		<put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</put.main-class>
 
 		<!--File Put Connector -->
 		<file-put.def.id>rest-file-put</file-put.def.id>
-		<file-put.def.version>1.1.0</file-put.def.version>
+		<file-put.def.version>1.2.0</file-put.def.version>
 		<file-put.impl.id>${file-put.def.id}-impl</file-put.impl.id>
 		<file-put.impl.version>${project.version}</file-put.impl.version>
 		<file-put.main-class>org.bonitasoft.connectors.rest.PutConnectorImpl</file-put.main-class>
 
 		<!--Patch Connector -->
 		<patch.def.id>rest-patch</patch.def.id>
-		<patch.def.version>1.0.0</patch.def.version>
+		<patch.def.version>1.1.0</patch.def.version>
 		<patch.impl.id>${patch.def.id}-impl</patch.impl.id>
 		<patch.impl.version>${project.version}</patch.impl.version>
 		<patch.main-class>org.bonitasoft.connectors.rest.PatchConnectorImpl</patch.main-class>
 
 		<!--Delete Connector -->
 		<delete.def.id>rest-delete</delete.def.id>
-		<delete.def.version>1.3.0</delete.def.version>
+		<delete.def.version>1.4.0</delete.def.version>
 		<delete.impl.id>${delete.def.id}-impl</delete.impl.id>
 		<delete.impl.version>${project.version}</delete.impl.version>
 		<delete.main-class>org.bonitasoft.connectors.rest.DeleteConnectorImpl</delete.main-class>
@@ -193,6 +193,11 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>9.37.3</version>
 		</dependency>
 
 		<!-- tests -->
