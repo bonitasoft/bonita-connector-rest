@@ -37,28 +37,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class RestConnectorIT {
 
-    private static final String REST_HEAD_DEF_VERSION = "1.1.0";
+    private static final String REST_HEAD_DEF_VERSION = "1.2.0";
     private static final String REST_HEAD_DEF_ID = "rest-head";
-    
-    private static final String REST_GET_DEF_VERSION = "1.3.0";
+
+    private static final String REST_GET_DEF_VERSION = "1.4.0";
     private static final String REST_GET_DEF_ID = "rest-get";
-    
-    private static final String REST_POST_DEF_VERSION = "1.4.0";
+
+    private static final String REST_POST_DEF_VERSION = "1.5.0";
     private static final String REST_POST_DEF_ID = "rest-post";
-    
-    private static final String REST_FILE_POST_DEF_VERSION = "1.1.0";
+
+    private static final String REST_FILE_POST_DEF_VERSION = "1.2.0";
     private static final String REST_FILE_POST_DEF_ID = "rest-file-post";
-    
-    private static final String REST_PUT_DEF_VERSION = "1.4.0";
+
+    private static final String REST_PUT_DEF_VERSION = "1.5.0";
     private static final String REST_PUT_DEF_ID = "rest-put";
-    
-    private static final String REST_FILE_PUT_DEF_VERSION = "1.1.0";
+
+    private static final String REST_FILE_PUT_DEF_VERSION = "1.2.0";
     private static final String REST_FILE_PUT_DEF_ID = "rest-file-put";
 
-    private static final String REST_PATCH_DEF_VERSION = "1.0.0";
+    private static final String REST_PATCH_DEF_VERSION = "1.1.0";
     private static final String REST_PATCH_DEF_ID = "rest-patch";
 
-    private static final String REST_DELETE_DEF_VERSION = "1.3.0";
+    private static final String REST_DELETE_DEF_VERSION = "1.4.0";
     private static final String REST_DELETE_DEF_ID = "rest-delete";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestConnectorIT.class);
