@@ -44,6 +44,7 @@
   <input name="oauth2_client_id" type="java.lang.String" mandatory="false"/>
   <input name="oauth2_client_secret" type="java.lang.String" mandatory="false"/>
   <input name="oauth2_scope" type="java.lang.String" mandatory="false"/>
+  <input name="oauth2_token" type="java.lang.String" mandatory="false"/>
   <input name="proxy_protocol" type="java.lang.String"/>
   <input name="proxy_host" type="java.lang.String"/>
   <input name="proxy_port" type="java.lang.Integer"/>
@@ -116,7 +117,8 @@
       <choices>NONE</choices>
       <choices>BASIC</choices>
       <choices>DIGEST</choices>
-      <choices>OAUTH2_CLIENT_CREDENTIALS</choices>
+      <choices>OAUTH2 (Client Credentials)</choices>
+      <choices>OAUTH2 (Bearer)</choices>
     </widget>
     <widget xsi:type="definition:Group" id="auth_basic_digest_group" optional="false">
       <widget xsi:type="definition:Text" id="auth_username_widget" inputName="auth_username"/>
@@ -131,6 +133,9 @@
       <widget xsi:type="definition:Text" id="oauth2_client_id_widget" inputName="oauth2_client_id"/>
       <widget xsi:type="definition:Password" id="oauth2_client_secret_widget" inputName="oauth2_client_secret"/>
       <widget xsi:type="definition:Text" id="oauth2_scope_widget" inputName="oauth2_scope"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="auth_oauth2_bearer_group" optional="false">
+      <widget xsi:type="definition:Text" id="oauth2_token_widget" inputName="oauth2_token"/>
     </widget>
   </page>
   <page id="SSLPage">

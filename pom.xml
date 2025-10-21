@@ -93,6 +93,13 @@
 		<delete.impl.version>${project.version}</delete.impl.version>
 		<delete.main-class>org.bonitasoft.connectors.rest.DeleteConnectorImpl</delete.main-class>
 
+		<!--OAuth Connector -->
+		<oauth.def.id>oauth-auth</oauth.def.id>
+		<oauth.def.version>1.0.0</oauth.def.version>
+		<oauth.impl.id>${oauth.def.id}-impl</oauth.impl.id>
+		<oauth.impl.version>${project.version}</oauth.impl.version>
+		<oauth.main-class>org.bonitasoft.connectors.rest.Oauth2ConnectorImpl</oauth.main-class>
+
 		<!-- Connector dependencies -->
 		<commons-logging.version>1.2</commons-logging.version>
 		<commons-codec.version>1.16.0</commons-codec.version>

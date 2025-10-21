@@ -241,7 +241,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The request bean
      * @throws MalformedURLException
      */
-    private Request buildRequest() throws MalformedURLException, ConnectorException {
+    protected Request buildRequest() throws MalformedURLException, ConnectorException {
         final Request request = new Request();
         request.setUrl(new URL(getUrl()));
         LOGGER.fine(() -> "URL set to: " + request.getUrl().toString());
@@ -302,6 +302,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         } else if (getAuthType() == AuthorizationType.OAUTH2_CLIENT_CREDENTIALS) {
             LOGGER.fine("Add OAuth2 Client Credentials auth");
             request.setAuthorization(buildOAuth2ClientCredentialsAuthorization());
+        } else if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
+            LOGGER.fine("Add OAuth2 Bearer auth");
+            request.setAuthorization(buildOAuth2BearerAuthorization());
         }
         return request;
     }
@@ -340,7 +343,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @return If a Proxy is used or not
      */
-    private boolean isProxySet() {
+    protected boolean isProxySet() {
         return isStringInputValid(getProxyHost()) && isStringInputValid(getProxyProtocol());
     }
 
@@ -401,6 +404,12 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         return authorization;
     }
 
+    OAuth2BearerAuthorization buildOAuth2BearerAuthorization() {
+        final OAuth2BearerAuthorization authorization = new OAuth2BearerAuthorization();
+        authorization.setToken(getOAuth2Token());
+        return authorization;
+    }
+
     /**
      * Build the SSL Req bean for the request builder
      *
@@ -454,11 +463,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param authorization The OAuth2 Client Credentials authorization
      * @param proxy The proxy configuration (may be null)
+     * @param ssl The SSL configuration (may be null)
      * @return The access token
      * @throws Exception if token acquisition fails
      */
-    private String getOAuth2AccessToken(final OAuth2ClientCredentialsAuthorization authorization, final Proxy proxy) throws Exception {
-        final String cacheKey = authorization.getTokenEndpoint() + "#" + authorization.getClientId();
+    protected String getOAuth2AccessToken(final OAuth2ClientCredentialsAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
+        final String cacheKey = authorization.getTokenEndpoint()
+                + "#"
+                + authorization.getClientId()
+                + (authorization.getScope() == null ? "" : "#" + authorization.getScope());
 
         // Check if we have a cached token that's still valid
         String cachedToken = OAUTH2_ACCESS_TOKENS.get(cacheKey);
@@ -469,7 +482,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
         // Acquire a new token
         LOGGER.fine("Acquiring new OAuth2 access token from " + authorization.getTokenEndpoint());
-        final String accessToken = acquireOAuth2Token(authorization, proxy);
+        final String accessToken = acquireOAuth2Token(authorization, proxy, ssl);
 
         // Cache the token
         OAUTH2_ACCESS_TOKENS.put(cacheKey, accessToken);
@@ -483,10 +496,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param authorization The OAuth2 Client Credentials authorization
      * @param proxy The proxy configuration (may be null)
+     * @param ssl The SSL configuration (may be null)
      * @return The access token
      * @throws Exception if token acquisition fails
      */
-    private String acquireOAuth2Token(final OAuth2ClientCredentialsAuthorization authorization, final Proxy proxy) throws Exception {
+    private String acquireOAuth2Token(final OAuth2ClientCredentialsAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
         final HttpPost tokenRequest = new HttpPost(authorization.getTokenEndpoint());
 
         // Build form-urlencoded body
@@ -501,8 +515,21 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         tokenRequest.setEntity(new UrlEncodedFormEntity(params, Charset.forName("UTF-8")));
         tokenRequest.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        // Build HTTP client with proxy support
+        // Configure request timeouts
+        final RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(getConnectionTimeoutMs())
+                .setConnectTimeout(getConnectionTimeoutMs())
+                .setSocketTimeout(getSocketTimeoutMs())
+                .build();
+        tokenRequest.setConfig(requestConfig);
+        LOGGER.fine(() -> "OAuth2 token request configured with timeouts: connect=" + getConnectionTimeoutMs() + "ms, socket=" + getSocketTimeoutMs() + "ms");
+
+        // Build HTTP client with SSL and proxy support
         final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+
+        // Apply SSL configuration
+        setSSL(ssl, httpClientBuilder);
+
         if (proxy != null) {
             final HttpHost proxyHost = new HttpHost(proxy.getHost(), proxy.getPort());
             httpClientBuilder.setProxy(proxyHost);
@@ -583,10 +610,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param response The response of the sent request
      * @param request
-     * @throws
-     * @throws IOException
+     * @throws IOException if an I/O error occurs
      */
-    private void setOutputs(final HttpResponse response, Request request) throws IOException {
+    protected void setOutputs(final HttpResponse response, Request request) throws IOException {
         if (response != null) {
             final HttpEntity entity = response.getEntity();
             if (entity != null) {
@@ -722,6 +748,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     requestBuilder,
                     request.getAuthorization(),
                     request.getProxy(),
+                    request.getSsl(),
                     urlHost,
                     urlPort,
                     urlProtocol,
@@ -1025,6 +1052,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param requestConfigurationBuilder The builder to be set
      * @param authorization The authentication element of the request
      * @param proxy The proxy element of the request
+     * @param ssl The SSL configuration for the request
      * @param urlHost The URL host of the request
      * @param urlPort The URL post of the request
      * @param urlProtocol The URL protocol of the request
@@ -1036,6 +1064,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final RequestBuilder requestBuilder,
             final Authorization authorization,
             final Proxy proxy,
+            final SSL ssl,
             final String urlHost,
             final int urlPort,
             final String urlProtocol,
@@ -1045,19 +1074,22 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             if (authorization instanceof OAuth2ClientCredentialsAuthorization) {
                 final OAuth2ClientCredentialsAuthorization castAuthorization = (OAuth2ClientCredentialsAuthorization) authorization;
                 LOGGER.fine("OAuth2 Client Credentials authorization detected");
-
-                // Get or acquire access token (proxy is passed for token endpoint access)
-                final String accessToken = getOAuth2AccessToken(castAuthorization, proxy);
-
+                // Get or acquire access token (proxy and SSL are passed for token endpoint access)
+                String oauth2Token = getOAuth2AccessToken(castAuthorization, proxy, ssl);
                 // Add Bearer token to request header
-                requestBuilder.addHeader("Authorization", "Bearer " + accessToken);
-                LOGGER.fine("OAuth2 Bearer token added to Authorization header");
-
+                setBearerAuthenticationHeader(requestBuilder, oauth2Token);
+                // Handle proxy credentials for the actual API request (if proxy is configured)
+                httpContext = setProxyCredentialsWithContext(proxy, httpClientBuilder);
+            } else if (authorization instanceof OAuth2BearerAuthorization) {
+                final OAuth2BearerAuthorization castAuthorization = (OAuth2BearerAuthorization) authorization;
+                LOGGER.fine("OAuth2 Bearer authorization detected");
+                String oauth2Token = castAuthorization.getToken();
+                // Add Bearer token to request header
+                setBearerAuthenticationHeader(requestBuilder, oauth2Token);
                 // Handle proxy credentials for the actual API request (if proxy is configured)
                 httpContext = setProxyCredentialsWithContext(proxy, httpClientBuilder);
             } else if (authorization instanceof BasicDigestAuthorization) {
                 final BasicDigestAuthorization castAuthorization = (BasicDigestAuthorization) authorization;
-
                 final List<String> authPrefs = new ArrayList<>();
                 authPrefs.add(castAuthorization.isBasic() ? AuthSchemes.BASIC : AuthSchemes.DIGEST);
                 requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
@@ -1114,6 +1146,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         return httpContext;
     }
 
+    protected void setBearerAuthenticationHeader(RequestBuilder requestBuilder, String oauth2Token) {
+        requestBuilder.addHeader("Authorization", "Bearer " + oauth2Token);
+        LOGGER.fine("OAuth2 Bearer token added to Authorization header");
+    }
+
     /**
      * Generate a request builder based on the given method
      *
@@ -1145,7 +1182,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param e The exception raised
      */
-    private void logException(final Exception e) {
+    protected void logException(final Exception e) {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(e.toString());
         for (final StackTraceElement stackTraceElement : e.getStackTrace()) {

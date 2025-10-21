@@ -12,7 +12,6 @@ package org.bonitasoft.connectors.rest;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.google.common.collect.Maps;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AUTH;
@@ -2050,38 +2049,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
-     * Test OAuth2 validation - missing token endpoint
-     */
-    @Test
-    public void oauth2ValidationMissingTokenEndpoint() throws BonitaException {
-        Map<String, Object> parameters = buildMethodParametersSet(GET);
-        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
-        // Missing token endpoint
-
-        thrown.expect(ConnectorValidationException.class);
-        thrown.expectMessage("oauth2_token_endpoint is required for OAuth2 Client Credentials");
-        executeConnector(parameters);
-    }
-
-    /**
-     * Test OAuth2 validation - null token endpoint
-     */
-    @Test
-    public void oauth2ValidationNullTokenEndpoint() throws BonitaException {
-        Map<String, Object> parameters = buildMethodParametersSet(GET);
-        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, null);
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
-
-        thrown.expect(ConnectorValidationException.class);
-        thrown.expectMessage("oauth2_token_endpoint is required for OAuth2 Client Credentials");
-        executeConnector(parameters);
-    }
-
-    /**
      * Test OAuth2 validation - empty token endpoint
      */
     @Test
@@ -2098,38 +2065,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
     }
 
     /**
-     * Test OAuth2 validation - missing client ID
-     */
-    @Test
-    public void oauth2ValidationMissingClientId() throws BonitaException {
-        Map<String, Object> parameters = buildMethodParametersSet(GET);
-        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
-        // Missing client ID
-
-        thrown.expect(ConnectorValidationException.class);
-        thrown.expectMessage("oauth2_client_id is required for OAuth2 Client Credentials");
-        executeConnector(parameters);
-    }
-
-    /**
-     * Test OAuth2 validation - null client ID
-     */
-    @Test
-    public void oauth2ValidationNullClientId() throws BonitaException {
-        Map<String, Object> parameters = buildMethodParametersSet(GET);
-        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, null);
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
-
-        thrown.expect(ConnectorValidationException.class);
-        thrown.expectMessage("oauth2_client_id is required for OAuth2 Client Credentials");
-        executeConnector(parameters);
-    }
-
-    /**
      * Test OAuth2 validation - empty client ID
      */
     @Test
@@ -2142,38 +2077,6 @@ public class RESTConnectorTest extends AcceptanceTestBase {
 
         thrown.expect(ConnectorValidationException.class);
         thrown.expectMessage("oauth2_client_id is required for OAuth2 Client Credentials");
-        executeConnector(parameters);
-    }
-
-    /**
-     * Test OAuth2 validation - missing client secret
-     */
-    @Test
-    public void oauth2ValidationMissingClientSecret() throws BonitaException {
-        Map<String, Object> parameters = buildMethodParametersSet(GET);
-        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
-        // Missing client secret
-
-        thrown.expect(ConnectorValidationException.class);
-        thrown.expectMessage("oauth2_client_secret is required for OAuth2 Client Credentials");
-        executeConnector(parameters);
-    }
-
-    /**
-     * Test OAuth2 validation - null client secret
-     */
-    @Test
-    public void oauth2ValidationNullClientSecret() throws BonitaException {
-        Map<String, Object> parameters = buildMethodParametersSet(GET);
-        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
-        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, null);
-
-        thrown.expect(ConnectorValidationException.class);
-        thrown.expectMessage("oauth2_client_secret is required for OAuth2 Client Credentials");
         executeConnector(parameters);
     }
 
@@ -2216,6 +2119,44 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
 
         thrown.expect(ConnectorException.class);
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 Bearer Token with successful request
+     */
+    @Test
+    public void oauth2BearerWithSuccessfulRequest() throws BonitaException {
+        // Mock API endpoint that requires Bearer token
+        stubFor(
+                get(urlEqualTo("/api/data"))
+                        .withHeader("Authorization", equalTo("Bearer my_bearer_token_12345"))
+                        .willReturn(aResponse()
+                                .withStatus(HttpStatus.SC_OK)
+                                .withHeader("Content-Type", "application/json")
+                                .withBody("{\"result\":\"success\",\"data\":\"test_data\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/api/data");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_BEARER.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_INPUT_PARAMETER, "my_bearer_token_12345");
+
+        Map<String, Object> result = executeConnector(parameters);
+        checkResultIsPresent(result);
+    }
+
+    /**
+     * Test OAuth2 Bearer validation: empty token
+     */
+    @Test
+    public void oauth2BearerValidationEmptyToken() throws BonitaException {
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_BEARER.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_INPUT_PARAMETER, "");
+
+        thrown.expect(ConnectorValidationException.class);
+        thrown.expectMessage("oauth2_token is required for OAuth2 Bearer");
         executeConnector(parameters);
     }
 

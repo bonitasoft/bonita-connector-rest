@@ -66,6 +66,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String OAUTH2_CLIENT_ID_INPUT_PARAMETER = "oauth2_client_id";
     protected static final String OAUTH2_CLIENT_SECRET_INPUT_PARAMETER = "oauth2_client_secret";
     protected static final String OAUTH2_SCOPE_INPUT_PARAMETER = "oauth2_scope";
+    protected static final String OAUTH2_TOKEN_INPUT_PARAMETER = "oauth2_token";
     protected static final String PROXY_PROTOCOL_INPUT_PARAMETER = "proxy_protocol";
     protected static final String PROXY_HOST_INPUT_PARAMETER = "proxy_host";
     protected static final String PROXY_PORT_INPUT_PARAMETER = "proxy_port";
@@ -277,7 +278,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
     protected final AuthorizationType getAuthType() {
         final String authType = (String) getInputParameter(AUTH_TYPE_PARAMETER);
-        return authType != null ? AuthorizationType.valueOf(authType) : AuthorizationType.NONE;
+        return authType != null ? AuthorizationType.fromString(authType) : AuthorizationType.NONE;
     }
 
     protected final String getOAuth2TokenEndpoint() {
@@ -294,6 +295,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
 
     protected final String getOAuth2Scope() {
         return (String) getInputParameter(OAUTH2_SCOPE_INPUT_PARAMETER);
+    }
+
+    protected final String getOAuth2Token() {
+        return (String) getInputParameter(OAUTH2_TOKEN_INPUT_PARAMETER);
     }
 
     protected final java.lang.String getProxyProtocol() {
@@ -350,11 +355,11 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         setOutputParameter(HEADERS_OUTPUT_PARAMETER, headers);
     }
 
-    protected void setStatusCode(java.lang.Integer statusCode) {
+    protected void setStatusCode(Integer statusCode) {
         setOutputParameter(STATUS_CODE_OUTPUT_PARAMETER, statusCode);
     }
 
-    protected void setStatusMessage(java.lang.String statusMessage) {
+    protected void setStatusMessage(String statusMessage) {
         setOutputParameter(STATUS_MESSAGE_OUTPUT_PARAMETER, statusMessage);
     }
 
@@ -396,6 +401,9 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             validateOAuth2ClientId();
             validateOAuth2ClientSecret();
             validateOAuth2Scope();
+        }
+        if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
+            validateOAuth2Token();
         }
         validateProxyProtocol();
         validateProxyHost();
@@ -792,6 +800,17 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             getOAuth2Scope();
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException(OAUTH2_SCOPE_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2Token() throws ConnectorValidationException {
+        try {
+            String token = getOAuth2Token();
+            if (token == null || token.trim().isEmpty()) {
+                throw new ConnectorValidationException(OAUTH2_TOKEN_INPUT_PARAMETER + " is required for OAuth2 Bearer");
+            }
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(OAUTH2_TOKEN_INPUT_PARAMETER + " type is invalid");
         }
     }
 
