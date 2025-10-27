@@ -5,7 +5,8 @@ public enum AuthorizationType {
   BASIC,
   DIGEST,
   OAUTH2_CLIENT_CREDENTIALS("OAUTH2 (Client Credentials)"),
-  OAUTH2_BEARER("OAUTH2 (Bearer)");
+  OAUTH2_BEARER("OAUTH2 (Bearer)"),
+  OAUTH2_AUTHORIZATION_CODE("OAUTH2 (Authorization Code)");
 
   private final String displayName;
 

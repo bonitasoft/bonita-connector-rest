@@ -71,7 +71,7 @@ AbstractConnector (Bonita Framework)
 
 - **AbstractRESTConnectorImpl** (`src/main/java/org/bonitasoft/connectors/rest/AbstractRESTConnectorImpl.java`):
   - Defines 60+ input parameter getters (URL, auth, SSL, proxy, headers, cookies, timeouts, error handling, retry logic)
-  - OAuth2 parameters: token endpoint, client ID, client secret, scope, pre-obtained token
+  - OAuth2 parameters: token endpoint, client ID, client secret, scope, authorization code, code verifier (PKCE), redirect URI, pre-obtained token
   - Defines 5 output parameter setters (bodyAsString, bodyAsObject, headers, status_code, status_message)
   - Implements comprehensive validation (40+ validation methods)
   - Abstracts `hasBody()` method
@@ -80,8 +80,8 @@ AbstractConnector (Bonita Framework)
   - `executeBusinessLogic()`: Main entry point
   - `buildRequest()`: Constructs Request bean from input parameters
   - `execute()`: Core HTTP execution using Apache HttpClient 4.5+
-  - Handles SSL/TLS configuration, proxy setup, authentication (Basic/Digest/OAuth2 Client Credentials/OAuth2 Bearer)
-  - `getOAuth2AccessToken()`: Acquires and caches OAuth2 access tokens using client credentials flow
+  - Handles SSL/TLS configuration, proxy setup, authentication (Basic/Digest/OAuth2 Client Credentials/OAuth2 Authorization Code/OAuth2 Bearer)
+  - `getOAuth2AccessToken()`: Acquires and caches OAuth2 access tokens using client credentials or authorization code flow
   - Response parsing (JSON auto-detection via Content-Type)
   - Retry/failure strategies with consumer-based callbacks
   - Sensitive data masking in logs (Authorization, Token, Set-Cookie headers)
@@ -93,7 +93,7 @@ AbstractConnector (Bonita Framework)
 
 - **Oauth2ConnectorImpl** (`src/main/java/org/bonitasoft/connectors/rest/Oauth2ConnectorImpl.java`):
   - Dedicated connector for OAuth2 token retrieval (not for making REST API calls)
-  - Uses OAuth2 Client Credentials flow to obtain access tokens
+  - Supports both OAuth2 Client Credentials and Authorization Code flows
   - Outputs token via `OAUTH2_TOKEN_OUTPUT_PARAMETER` for use in subsequent connectors
   - Supports proxy and SSL configuration for token endpoint access
   - ~58 lines of specialized implementation
@@ -112,7 +112,7 @@ rest-get-impl.zip
 
 oauth-auth-impl.zip
   ├── oauth-auth.impl (OAuth2 connector definition)
-  └── classpath/ (JAR files including bonita-connector-rest, nimbus-jose-jwt, and dependencies)
+  └── classpath/ (JAR files including bonita-connector-rest and dependencies)
 ```
 
 ### Connector Definitions
@@ -134,7 +134,9 @@ Located in `src/main/java/org/bonitasoft/connectors/rest/model/`:
   - `Authorization`: Base interface
   - `BasicDigestAuthorization`: Basic/Digest HTTP authentication
   - `HeaderAuthorization`: Custom header-based authentication
-  - `OAuth2ClientCredentialsAuthorization`: OAuth2 Client Credentials flow (acquires token from endpoint)
+  - `OAuth2TokenRequestAuthorization`: Abstract superclass for OAuth2 token request flows (contains tokenEndpoint, clientId, clientSecret)
+  - `OAuth2ClientCredentialsAuthorization`: OAuth2 Client Credentials flow (acquires token from endpoint using client credentials)
+  - `OAuth2AuthorizationCodeAuthorization`: OAuth2 Authorization Code flow (exchanges authorization code for token, supports PKCE)
   - `OAuth2BearerAuthorization`: OAuth2 Bearer token (uses pre-obtained token)
 - **SSL/TLS configuration:**
   - `SSL`, `Store`, `TrustCertificateStrategy`, `SSLVerifier`
@@ -142,7 +144,7 @@ Located in `src/main/java/org/bonitasoft/connectors/rest/model/`:
   - `Proxy`, `ProxyProtocol`
 - **HTTP methods:**
   - `HTTPMethod`: Enum (GET, POST, PUT, DELETE, HEAD, PATCH)
-  - `AuthorizationType`: Enum (NONE, BASIC, DIGEST, OAUTH2_CLIENT_CREDENTIALS, OAUTH2_BEARER)
+  - `AuthorizationType`: Enum (NONE, BASIC, DIGEST, OAUTH2_CLIENT_CREDENTIALS, OAUTH2_AUTHORIZATION_CODE, OAUTH2_BEARER)
 
 ## Testing
 
@@ -224,13 +226,39 @@ The connector will automatically:
 - Add `Authorization: Bearer <token>` header to the API request
 - Handle token expiration based on JWT claims
 
+### Using OAuth2 Authorization Code in REST Connectors
+
+REST connectors (GET, POST, PUT, DELETE, PATCH, HEAD) can exchange authorization codes for access tokens:
+
+1. Set `auth_type` to `OAUTH2_AUTHORIZATION_CODE` or `OAUTH2 (Authorization Code)`
+2. Configure OAuth2 parameters:
+   - `oauth2_token_endpoint`: Token endpoint URL
+   - `oauth2_client_id`: Client ID
+   - `oauth2_client_secret`: Client secret
+   - `oauth2_code`: Authorization code (obtained from OAuth2 provider)
+   - `oauth2_code_verifier`: PKCE code verifier (optional, for PKCE flows)
+   - `oauth2_redirect_uri`: Redirect URI (optional, required by some providers)
+
+The connector will automatically:
+- Exchange the authorization code for an access token
+- Support PKCE (Proof Key for Code Exchange) when code_verifier is provided
+- Cache the token in-memory for reuse (keyed by code hash)
+- Add `Authorization: Bearer <token>` header to the API request
+- Handle token expiration based on JWT claims
+
+**Important Notes:**
+- The authorization code and code_verifier are INPUT parameters (not retrieved by the connector)
+- PKCE support is optional - if `oauth2_code_verifier` is empty, the token request is sent without PKCE
+- The `oauth2_redirect_uri` is optional but required by some OAuth2 providers
+- Authorization codes are typically single-use - the connector caches tokens by code hash to handle retries
+
 ### Using OAuth2 Bearer Authentication
 
 For scenarios where you already have a token or want to manage token lifecycle separately:
 
 1. **Option A - Use dedicated oauth-auth connector:**
    - Add `oauth-auth` connector to retrieve token
-   - Configure with OAuth2 Client Credentials parameters
+   - Configure with OAuth2 Client Credentials or Authorization Code parameters
    - Capture output parameter `token`
    - Pass token to subsequent REST connector via `oauth2_token` input parameter
    - Set REST connector `auth_type` to `OAUTH2_BEARER` or `OAUTH2 (Bearer)`
@@ -253,7 +281,6 @@ The `oauth-auth` connector (`Oauth2ConnectorImpl`) produces:
 - **Mockito version:** Deliberately kept at 1.10.19 for httpclient4 compatibility (see pom.xml line 111)
 - **WireMock version:** Limited to 2.35.1 (requires httpclient4, not httpclient5)
 - **Bonita dependencies:** Use BOM from `bonita-runtime-bom:7.14.0` for version consistency
-- **nimbus-jose-jwt:** Version 9.37.3 - Required for OAuth2 token parsing and JWT handling
 
 ### Dependencies with `provided` Scope
 
@@ -271,10 +298,11 @@ These are supplied by Bonita runtime and must not be bundled:
 5. **Flexible SSL/TLS:** Supports trust strategies (DEFAULT, TRUST_SELF_SIGNED, TRUST_ALL) and hostname verification modes
 6. **Proxy Resolution:** Manual configuration or automatic JVM system properties resolution
 7. **Bonita Context Headers:** Optional injection of process context (activity ID, process ID, etc.) into request headers
-8. **OAuth2 Authentication:** Two modes supported:
+8. **OAuth2 Authentication:** Three modes supported:
    - **OAuth2 Client Credentials:** REST connectors can automatically acquire tokens using client credentials flow (token endpoint, client ID, client secret, optional scopes). Tokens are cached in-memory.
+   - **OAuth2 Authorization Code:** REST connectors can exchange authorization codes for tokens (token endpoint, client ID, client secret, authorization code, optional PKCE code verifier, optional redirect URI). Tokens are cached in-memory by code hash.
    - **OAuth2 Bearer:** REST connectors can use pre-obtained tokens passed as input parameter. Use the dedicated `oauth-auth` connector to retrieve tokens first, then pass to REST connectors.
-9. **Dedicated OAuth2 Connector:** The `oauth-auth` connector (`Oauth2ConnectorImpl`) is specialized for token retrieval and outputs the token for use in subsequent API calls
+9. **Dedicated OAuth2 Connector:** The `oauth-auth` connector (`Oauth2ConnectorImpl`) is specialized for token retrieval using either Client Credentials or Authorization Code flows and outputs the token for use in subsequent API calls
 
 ## Release Process
 

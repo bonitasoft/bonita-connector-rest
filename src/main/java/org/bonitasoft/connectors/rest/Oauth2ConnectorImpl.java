@@ -31,9 +31,19 @@ public class Oauth2ConnectorImpl extends RESTConnector {
     protected void executeBusinessLogic() throws ConnectorException {
         try {
             String oauth2TokenRetrieved = null;
+            OAuth2TokenRequestAuthorization authorization = null;
+
             if (getAuthType() == AuthorizationType.OAUTH2_CLIENT_CREDENTIALS) {
                 LOGGER.fine("Add OAuth2 Client Credentials auth");
-                OAuth2ClientCredentialsAuthorization authorization = buildOAuth2ClientCredentialsAuthorization();
+                authorization = buildOAuth2ClientCredentialsAuthorization();
+            } else if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
+                LOGGER.fine("Add OAuth2 Authorization Code auth");
+                authorization = buildOAuth2AuthorizationCodeAuthorization();
+            } else {
+                throw new ConnectorException("Unsupported authorization type for OAuth2: " + getAuthType());
+            }
+
+            if (authorization != null) {
                 Proxy proxy = null;
                 if (isProxySet()) {
                     proxy = buildProxy();
@@ -43,6 +53,7 @@ public class Oauth2ConnectorImpl extends RESTConnector {
                 LOGGER.fine("Add the SSL options");
                 oauth2TokenRetrieved = getOAuth2AccessToken(authorization, proxy, ssl);
             }
+
             if (oauth2TokenRetrieved != null) {
                 setOAuth2TokenOutput(oauth2TokenRetrieved);
                 LOGGER.fine("OAuth2 token output set");
@@ -55,14 +66,21 @@ public class Oauth2ConnectorImpl extends RESTConnector {
 
     @Override
     public void validateInputParameters() throws ConnectorValidationException {
-        // Validate OAuth2 Client Credentials authentication parameters
+        // Validate OAuth2 authentication parameters based on type
         if (getAuthType() == AuthorizationType.OAUTH2_CLIENT_CREDENTIALS) {
             validateOAuth2TokenEndpoint();
             validateOAuth2ClientId();
             validateOAuth2ClientSecret();
             validateOAuth2Scope();
+        } else if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
+            validateOAuth2TokenEndpoint();
+            validateOAuth2ClientId();
+            validateOAuth2ClientSecret();
+            validateOAuth2Code();
+            validateOAuth2CodeVerifier();
+            validateOAuth2RedirectUri();
         } else {
-            throw new ConnectorValidationException("OAuth2 connector requires auth_type to be OAUTH2_CLIENT_CREDENTIALS");
+            throw new ConnectorValidationException("OAuth2 connector requires auth_type to be OAUTH2_CLIENT_CREDENTIALS or OAUTH2_AUTHORIZATION_CODE");
         }
 
         // Validate SSL/TLS configuration

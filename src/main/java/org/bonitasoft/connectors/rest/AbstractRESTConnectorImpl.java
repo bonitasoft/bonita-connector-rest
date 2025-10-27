@@ -67,6 +67,9 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String OAUTH2_CLIENT_SECRET_INPUT_PARAMETER = "oauth2_client_secret";
     protected static final String OAUTH2_SCOPE_INPUT_PARAMETER = "oauth2_scope";
     protected static final String OAUTH2_TOKEN_INPUT_PARAMETER = "oauth2_token";
+    protected static final String OAUTH2_CODE_INPUT_PARAMETER = "oauth2_code";
+    protected static final String OAUTH2_CODE_VERIFIER_INPUT_PARAMETER = "oauth2_code_verifier";
+    protected static final String OAUTH2_REDIRECT_URI_INPUT_PARAMETER = "oauth2_redirect_uri";
     protected static final String PROXY_PROTOCOL_INPUT_PARAMETER = "proxy_protocol";
     protected static final String PROXY_HOST_INPUT_PARAMETER = "proxy_host";
     protected static final String PROXY_PORT_INPUT_PARAMETER = "proxy_port";
@@ -301,6 +304,18 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return (String) getInputParameter(OAUTH2_TOKEN_INPUT_PARAMETER);
     }
 
+    protected final String getOAuth2Code() {
+        return (String) getInputParameter(OAUTH2_CODE_INPUT_PARAMETER);
+    }
+
+    protected final String getOAuth2CodeVerifier() {
+        return (String) getInputParameter(OAUTH2_CODE_VERIFIER_INPUT_PARAMETER);
+    }
+
+    protected final String getOAuth2RedirectUri() {
+        return (String) getInputParameter(OAUTH2_REDIRECT_URI_INPUT_PARAMETER);
+    }
+
     protected final java.lang.String getProxyProtocol() {
         if (Boolean.TRUE.equals(getAutomaticProxyResolution())) {
             URI url = URI.create(getUrl());
@@ -404,6 +419,14 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         }
         if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
             validateOAuth2Token();
+        }
+        if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
+            validateOAuth2TokenEndpoint();
+            validateOAuth2ClientId();
+            validateOAuth2ClientSecret();
+            validateOAuth2Code();
+            validateOAuth2CodeVerifier();
+            validateOAuth2RedirectUri();
         }
         validateProxyProtocol();
         validateProxyHost();
@@ -811,6 +834,39 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             }
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException(OAUTH2_TOKEN_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2Code() throws ConnectorValidationException {
+        try {
+            String code = getOAuth2Code();
+            if (code == null || code.trim().isEmpty()) {
+                throw new ConnectorValidationException(
+                    OAUTH2_CODE_INPUT_PARAMETER + " is required for OAuth2 Authorization Code");
+            }
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(
+                OAUTH2_CODE_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2CodeVerifier() throws ConnectorValidationException {
+        try {
+            // Code verifier is optional (PKCE is not mandatory) - just validate type
+            getOAuth2CodeVerifier();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(
+                OAUTH2_CODE_VERIFIER_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2RedirectUri() throws ConnectorValidationException {
+        try {
+            // Redirect URI is optional - just validate type
+            getOAuth2RedirectUri();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(
+                OAUTH2_REDIRECT_URI_INPUT_PARAMETER + " type is invalid");
         }
     }
 

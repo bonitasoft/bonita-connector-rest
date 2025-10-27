@@ -28,6 +28,7 @@ import org.bonitasoft.connectors.rest.model.HTTPMethod;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 import org.bonitasoft.engine.exception.BonitaException;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -38,6 +39,14 @@ public class Oauth2ConnectorImplTest extends AcceptanceTestBase {
 
     private static final String TEST_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjo5OTk5OTk5OTk5fQ.test_signature";
     private static final String OAUTH2_TOKEN_ENDPOINT_PATH = "/oauth/token";
+
+    /**
+     * Clear the OAuth2 token cache before each test to ensure clean state
+     */
+    @Before
+    public void clearTokenCache() {
+        RESTConnector.OAUTH2_ACCESS_TOKENS.clear();
+    }
 
     // ========== Validation Tests ==========
 
@@ -128,7 +137,7 @@ public class Oauth2ConnectorImplTest extends AcceptanceTestBase {
             ConnectorValidationException.class,
             () -> connector.validateInputParameters()
         );
-        assertEquals("OAuth2 connector requires auth_type to be OAUTH2_CLIENT_CREDENTIALS", exception.getMessage());
+        assertEquals("OAuth2 connector requires auth_type to be OAUTH2_CLIENT_CREDENTIALS or OAUTH2_AUTHORIZATION_CODE", exception.getMessage());
     }
 
     @Test
@@ -284,6 +293,176 @@ public class Oauth2ConnectorImplTest extends AcceptanceTestBase {
         parameters.put(OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, tokenEndpoint);
         parameters.put(OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client_id");
         parameters.put(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_client_secret");
+        return parameters;
+    }
+
+    // ========== OAuth2 Authorization Code Flow Tests ==========
+
+    @Test
+    public void should_validate_with_valid_oauth2_authorization_code_parameters() throws Exception {
+        Oauth2ConnectorImpl connector = new Oauth2ConnectorImpl();
+        Map<String, Object> parameters = buildValidAuthorizationCodeParameters();
+        connector.setInputParameters(parameters);
+
+        // Should not throw exception
+        connector.validateInputParameters();
+    }
+
+    @Test
+    public void should_fail_validation_when_authorization_code_is_missing() throws Exception {
+        Oauth2ConnectorImpl connector = new Oauth2ConnectorImpl();
+        Map<String, Object> parameters = buildValidAuthorizationCodeParameters();
+        parameters.remove(OAUTH2_CODE_INPUT_PARAMETER);
+        connector.setInputParameters(parameters);
+
+        assertThrows(ConnectorValidationException.class, () -> connector.validateInputParameters());
+    }
+
+    @Test
+    public void should_fail_validation_when_authorization_code_is_empty() throws Exception {
+        Oauth2ConnectorImpl connector = new Oauth2ConnectorImpl();
+        Map<String, Object> parameters = buildValidAuthorizationCodeParameters();
+        parameters.put(OAUTH2_CODE_INPUT_PARAMETER, "");
+        connector.setInputParameters(parameters);
+
+        assertThrows(ConnectorValidationException.class, () -> connector.validateInputParameters());
+    }
+
+    @Test
+    public void should_validate_authorization_code_without_code_verifier() throws Exception {
+        Oauth2ConnectorImpl connector = new Oauth2ConnectorImpl();
+        Map<String, Object> parameters = buildValidAuthorizationCodeParameters();
+        parameters.remove(OAUTH2_CODE_VERIFIER_INPUT_PARAMETER);
+        connector.setInputParameters(parameters);
+
+        // Should not throw exception - code_verifier is optional
+        connector.validateInputParameters();
+    }
+
+    @Test
+    public void should_validate_authorization_code_without_redirect_uri() throws Exception {
+        Oauth2ConnectorImpl connector = new Oauth2ConnectorImpl();
+        Map<String, Object> parameters = buildValidAuthorizationCodeParameters();
+        parameters.remove(OAUTH2_REDIRECT_URI_INPUT_PARAMETER);
+        connector.setInputParameters(parameters);
+
+        // Should not throw exception - redirect_uri is optional
+        connector.validateInputParameters();
+    }
+
+    @Test
+    public void should_retrieve_token_with_authorization_code_and_pkce() throws BonitaException {
+        // Given: Mock OAuth2 token endpoint for authorization code exchange
+        stubFor(post(urlEqualTo(OAUTH2_TOKEN_ENDPOINT_PATH))
+                .withRequestBody(containing("grant_type=authorization_code"))
+                .withRequestBody(containing("code=test_auth_code"))
+                .withRequestBody(containing("code_verifier=test_code_verifier"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(String.format(
+                                "{\"access_token\":\"%s\",\"token_type\":\"Bearer\",\"expires_in\":3600}",
+                                TEST_ACCESS_TOKEN))));
+
+        // When: Execute OAuth2 connector with Authorization Code
+        String tokenEndpoint = String.format("http://localhost:%d%s", wireMockServer.port(), OAUTH2_TOKEN_ENDPOINT_PATH);
+        Map<String, Object> parameters = buildAuthorizationCodeParametersWithEndpoint(tokenEndpoint);
+        Map<String, Object> outputs = executeOAuth2Connector(parameters);
+
+        // Then: Verify token was retrieved
+        assertThat(outputs).containsKey(Oauth2ConnectorImpl.OAUTH2_TOKEN_OUTPUT_PARAMETER);
+        String retrievedToken = (String) outputs.get(Oauth2ConnectorImpl.OAUTH2_TOKEN_OUTPUT_PARAMETER);
+        assertThat(retrievedToken).isEqualTo(TEST_ACCESS_TOKEN);
+
+        // Verify code_verifier was included in request
+        verify(1, postRequestedFor(urlEqualTo(OAUTH2_TOKEN_ENDPOINT_PATH))
+                .withRequestBody(containing("code_verifier=test_code_verifier")));
+    }
+
+    @Test
+    public void should_retrieve_token_with_authorization_code_without_pkce() throws BonitaException {
+        // Given: Mock OAuth2 token endpoint for authorization code exchange without PKCE
+        stubFor(post(urlEqualTo(OAUTH2_TOKEN_ENDPOINT_PATH))
+                .withRequestBody(containing("grant_type=authorization_code"))
+                .withRequestBody(containing("code=test_auth_code"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(String.format(
+                                "{\"access_token\":\"%s\",\"token_type\":\"Bearer\",\"expires_in\":3600}",
+                                TEST_ACCESS_TOKEN))));
+
+        // When: Execute OAuth2 connector without code_verifier
+        String tokenEndpoint = String.format("http://localhost:%d%s", wireMockServer.port(), OAUTH2_TOKEN_ENDPOINT_PATH);
+        Map<String, Object> parameters = buildAuthorizationCodeParametersWithEndpoint(tokenEndpoint);
+        parameters.remove(OAUTH2_CODE_VERIFIER_INPUT_PARAMETER);
+        Map<String, Object> outputs = executeOAuth2Connector(parameters);
+
+        // Then: Verify token was retrieved
+        assertThat(outputs).containsKey(Oauth2ConnectorImpl.OAUTH2_TOKEN_OUTPUT_PARAMETER);
+        String retrievedToken = (String) outputs.get(Oauth2ConnectorImpl.OAUTH2_TOKEN_OUTPUT_PARAMETER);
+        assertThat(retrievedToken).isEqualTo(TEST_ACCESS_TOKEN);
+
+        // Verify code_verifier was NOT included in request
+        verify(1, postRequestedFor(urlEqualTo(OAUTH2_TOKEN_ENDPOINT_PATH))
+                .withRequestBody(notMatching(".*code_verifier.*")));
+    }
+
+    @Test
+    public void should_retrieve_token_with_authorization_code_and_redirect_uri() throws BonitaException {
+        // Given: Mock OAuth2 token endpoint requiring redirect_uri
+        stubFor(post(urlEqualTo(OAUTH2_TOKEN_ENDPOINT_PATH))
+                .withRequestBody(containing("grant_type=authorization_code"))
+                .withRequestBody(containing("code=test_auth_code"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(String.format(
+                                "{\"access_token\":\"%s\",\"token_type\":\"Bearer\",\"expires_in\":3600}",
+                                TEST_ACCESS_TOKEN))));
+
+        // When: Execute OAuth2 connector with redirect_uri
+        String tokenEndpoint = String.format("http://localhost:%d%s", wireMockServer.port(), OAUTH2_TOKEN_ENDPOINT_PATH);
+        Map<String, Object> parameters = buildAuthorizationCodeParametersWithEndpoint(tokenEndpoint);
+        parameters.put(OAUTH2_REDIRECT_URI_INPUT_PARAMETER, "https://app.example.com/callback");
+        Map<String, Object> outputs = executeOAuth2Connector(parameters);
+
+        // Then: Verify token was retrieved
+        assertThat(outputs).containsKey(Oauth2ConnectorImpl.OAUTH2_TOKEN_OUTPUT_PARAMETER);
+
+        // Verify redirect_uri was included in request
+        verify(1, postRequestedFor(urlEqualTo(OAUTH2_TOKEN_ENDPOINT_PATH))
+                .withRequestBody(containing("redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback")));
+    }
+
+    /**
+     * Builds a valid set of OAuth2 Authorization Code parameters for validation testing
+     */
+    private Map<String, Object> buildValidAuthorizationCodeParameters() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_AUTHORIZATION_CODE.name());
+        parameters.put(OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, "https://auth.example.com/oauth/token");
+        parameters.put(OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client_id");
+        parameters.put(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_client_secret");
+        parameters.put(OAUTH2_CODE_INPUT_PARAMETER, "test_auth_code");
+        parameters.put(OAUTH2_CODE_VERIFIER_INPUT_PARAMETER, "test_code_verifier");
+        return parameters;
+    }
+
+    /**
+     * Build OAuth2 Authorization Code parameters for execution testing with custom endpoint
+     *
+     * @param tokenEndpoint The OAuth2 token endpoint URL
+     * @return Map of connector input parameters
+     */
+    private Map<String, Object> buildAuthorizationCodeParametersWithEndpoint(String tokenEndpoint) {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put(AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_AUTHORIZATION_CODE.name());
+        parameters.put(OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER, tokenEndpoint);
+        parameters.put(OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client_id");
+        parameters.put(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_client_secret");
+        parameters.put(OAUTH2_CODE_INPUT_PARAMETER, "test_auth_code");
+        parameters.put(OAUTH2_CODE_VERIFIER_INPUT_PARAMETER, "test_code_verifier");
         return parameters;
     }
 }

@@ -10,16 +10,37 @@
  */
 package org.bonitasoft.connectors.rest.model;
 
-/** This class represents OAuth2 Client Credentials authorization information. */
-public class OAuth2ClientCredentialsAuthorization extends OAuth2TokenRequestAuthorization {
+/**
+ * Base class for OAuth2 authorization types that require token exchange at a token endpoint.
+ * This includes Client Credentials and Authorization Code flows.
+ */
+public abstract class OAuth2TokenRequestAuthorization implements Authorization {
 
-  private String scope;
+  private String tokenEndpoint;
+  private String clientId;
+  private String clientSecret;
 
-  public String getScope() {
-    return scope;
+  public String getTokenEndpoint() {
+    return tokenEndpoint;
   }
 
-  public void setScope(final String scope) {
-    this.scope = scope;
+  public void setTokenEndpoint(final String tokenEndpoint) {
+    this.tokenEndpoint = tokenEndpoint;
+  }
+
+  public String getClientId() {
+    return clientId;
+  }
+
+  public void setClientId(final String clientId) {
+    this.clientId = clientId;
+  }
+
+  public String getClientSecret() {
+    return clientSecret;
+  }
+
+  public void setClientSecret(final String clientSecret) {
+    this.clientSecret = clientSecret;
   }
 }

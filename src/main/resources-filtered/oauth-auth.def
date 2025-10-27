@@ -17,6 +17,9 @@
   <input name="oauth2_client_id" type="java.lang.String" mandatory="false"/>
   <input name="oauth2_client_secret" type="java.lang.String" mandatory="false"/>
   <input name="oauth2_scope" type="java.lang.String" mandatory="false"/>
+  <input name="oauth2_code" type="java.lang.String" mandatory="false"/>
+  <input name="oauth2_code_verifier" type="java.lang.String" mandatory="false"/>
+  <input name="oauth2_redirect_uri" type="java.lang.String" mandatory="false"/>
   <input name="proxy_protocol" type="java.lang.String"/>
   <input name="proxy_host" type="java.lang.String"/>
   <input name="proxy_port" type="java.lang.Integer"/>
@@ -38,12 +41,21 @@
   <page id="authenticationPage">
     <widget xsi:type="definition:RadioGroup" id="auth_type_radio" inputName="auth_type">
       <choices>OAUTH2 (Client Credentials)</choices>
+      <choices>OAUTH2 (Authorization Code)</choices>
     </widget>
     <widget xsi:type="definition:Group" id="auth_oauth2_client_cred_group" optional="false">
       <widget xsi:type="definition:Text" id="oauth2_token_endpoint_widget" inputName="oauth2_token_endpoint"/>
       <widget xsi:type="definition:Text" id="oauth2_client_id_widget" inputName="oauth2_client_id"/>
       <widget xsi:type="definition:Password" id="oauth2_client_secret_widget" inputName="oauth2_client_secret"/>
       <widget xsi:type="definition:Text" id="oauth2_scope_widget" inputName="oauth2_scope"/>
+    </widget>
+    <widget xsi:type="definition:Group" id="auth_oauth2_authcode_group" optional="false">
+      <widget xsi:type="definition:Text" id="oauth2_token_endpoint_authcode_widget" inputName="oauth2_token_endpoint"/>
+      <widget xsi:type="definition:Text" id="oauth2_client_id_authcode_widget" inputName="oauth2_client_id"/>
+      <widget xsi:type="definition:Password" id="oauth2_client_secret_authcode_widget" inputName="oauth2_client_secret"/>
+      <widget xsi:type="definition:Text" id="oauth2_code_widget" inputName="oauth2_code"/>
+      <widget xsi:type="definition:Text" id="oauth2_code_verifier_widget" inputName="oauth2_code_verifier"/>
+      <widget xsi:type="definition:Text" id="oauth2_redirect_uri_widget" inputName="oauth2_redirect_uri"/>
     </widget>
   </page>
   <page id="SSLPage">

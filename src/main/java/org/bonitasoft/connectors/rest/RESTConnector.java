@@ -13,8 +13,6 @@ package org.bonitasoft.connectors.rest;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.auth.AuthScope;
@@ -94,10 +92,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     static final String DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY = "org.bonitasoft.connectors.rest.response.fallbackToJVMCharset";
 
     /**
-     * OAuth2 access token cache (key: tokenEndpoint#clientId, value: access token JWT)
+     * OAuth2 access token cache (key: tokenEndpoint#clientId, value: TokenWithExpiration)
      * Package-private for testing
      */
-    static final Map<String, String> OAUTH2_ACCESS_TOKENS = Collections.synchronizedMap(new HashMap<>());
+    static final Map<String, TokenWithExpiration> OAUTH2_ACCESS_TOKENS = Collections.synchronizedMap(new HashMap<>());
 
     /**
      * Clock skew for anticipating token expiration (60 seconds before actual expiration)
@@ -305,6 +303,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         } else if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
             LOGGER.fine("Add OAuth2 Bearer auth");
             request.setAuthorization(buildOAuth2BearerAuthorization());
+        } else if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
+            LOGGER.fine("Add OAuth2 Authorization Code auth");
+            request.setAuthorization(buildOAuth2AuthorizationCodeAuthorization());
         }
         return request;
     }
@@ -411,6 +412,22 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     /**
+     * Build the OAuth2 Authorization Code Auth bean for the request builder
+     *
+     * @return The OAuth2 Authorization Code Auth according to the input values
+     */
+    OAuth2AuthorizationCodeAuthorization buildOAuth2AuthorizationCodeAuthorization() {
+        final OAuth2AuthorizationCodeAuthorization authorization = new OAuth2AuthorizationCodeAuthorization();
+        authorization.setTokenEndpoint(getOAuth2TokenEndpoint());
+        authorization.setClientId(getOAuth2ClientId());
+        authorization.setClientSecret(getOAuth2ClientSecret());
+        authorization.setCode(getOAuth2Code());
+        authorization.setCodeVerifier(getOAuth2CodeVerifier());
+        authorization.setRedirectUri(getOAuth2RedirectUri());
+        return authorization;
+    }
+
+    /**
      * Build the SSL Req bean for the request builder
      *
      * @return The SSL Req according to the input values
@@ -461,55 +478,91 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     /**
      * Get or acquire an OAuth2 access token for the given authorization
      *
-     * @param authorization The OAuth2 Client Credentials authorization
+     * @param authorization The OAuth2 Token Request authorization (Client Credentials or Authorization Code)
      * @param proxy The proxy configuration (may be null)
      * @param ssl The SSL configuration (may be null)
      * @return The access token
      * @throws Exception if token acquisition fails
      */
-    protected String getOAuth2AccessToken(final OAuth2ClientCredentialsAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
-        final String cacheKey = authorization.getTokenEndpoint()
-                + "#"
-                + authorization.getClientId()
-                + (authorization.getScope() == null ? "" : "#" + authorization.getScope());
+    protected String getOAuth2AccessToken(final OAuth2TokenRequestAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
+        // Build cache key based on authorization type and log
+        String cacheKey = authorization.getTokenEndpoint() + "#" + authorization.getClientId();
+
+        if (authorization instanceof OAuth2ClientCredentialsAuthorization) {
+            LOGGER.fine("OAuth2 Client Credentials authorization detected");
+            final OAuth2ClientCredentialsAuthorization clientCreds = (OAuth2ClientCredentialsAuthorization) authorization;
+            cacheKey += (clientCreds.getScope() == null ? "" : "#" + clientCreds.getScope());
+        } else if (authorization instanceof OAuth2AuthorizationCodeAuthorization) {
+            LOGGER.fine("OAuth2 Authorization Code authorization detected");
+            final OAuth2AuthorizationCodeAuthorization authCode = (OAuth2AuthorizationCodeAuthorization) authorization;
+            // For auth code, include code hash to ensure single-use per code
+            cacheKey += "#authcode#" + authCode.getCode().hashCode();
+        }
 
         // Check if we have a cached token that's still valid
-        String cachedToken = OAUTH2_ACCESS_TOKENS.get(cacheKey);
-        if (cachedToken != null && !isOAuth2TokenExpired(cachedToken)) {
+        TokenWithExpiration cachedTokenWithExpiration = OAUTH2_ACCESS_TOKENS.get(cacheKey);
+        if (cachedTokenWithExpiration != null && !cachedTokenWithExpiration.isExpired(OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS)) {
             LOGGER.fine("Using cached OAuth2 access token");
-            return cachedToken;
+            return cachedTokenWithExpiration.getAccessToken();
         }
 
         // Acquire a new token
         LOGGER.fine("Acquiring new OAuth2 access token from " + authorization.getTokenEndpoint());
-        final String accessToken = acquireOAuth2Token(authorization, proxy, ssl);
+        final TokenWithExpiration tokenWithExpiration = acquireOAuth2Token(authorization, proxy, ssl);
 
         // Cache the token
-        OAUTH2_ACCESS_TOKENS.put(cacheKey, accessToken);
+        OAUTH2_ACCESS_TOKENS.put(cacheKey, tokenWithExpiration);
         LOGGER.fine("OAuth2 access token acquired and cached");
 
-        return accessToken;
+        return tokenWithExpiration.getAccessToken();
     }
 
     /**
      * Acquire a new OAuth2 access token from the token endpoint
      *
-     * @param authorization The OAuth2 Client Credentials authorization
+     * @param authorization The OAuth2 Token Request authorization (Client Credentials or Authorization Code)
      * @param proxy The proxy configuration (may be null)
      * @param ssl The SSL configuration (may be null)
-     * @return The access token
+     * @return The access token with expiration information
      * @throws Exception if token acquisition fails
      */
-    private String acquireOAuth2Token(final OAuth2ClientCredentialsAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
+    private TokenWithExpiration acquireOAuth2Token(final OAuth2TokenRequestAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
         final HttpPost tokenRequest = new HttpPost(authorization.getTokenEndpoint());
 
-        // Build form-urlencoded body
+        // Build form-urlencoded body based on grant type
         final List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("grant_type", "client_credentials"));
-        params.add(new BasicNameValuePair("client_id", authorization.getClientId()));
-        params.add(new BasicNameValuePair("client_secret", authorization.getClientSecret()));
-        if (isStringInputValid(authorization.getScope())) {
-            params.add(new BasicNameValuePair("scope", authorization.getScope()));
+
+        if (authorization instanceof OAuth2ClientCredentialsAuthorization) {
+            // Client Credentials flow
+            final OAuth2ClientCredentialsAuthorization clientCreds = (OAuth2ClientCredentialsAuthorization) authorization;
+            params.add(new BasicNameValuePair("grant_type", "client_credentials"));
+            params.add(new BasicNameValuePair("client_id", clientCreds.getClientId()));
+            params.add(new BasicNameValuePair("client_secret", clientCreds.getClientSecret()));
+            if (isStringInputValid(clientCreds.getScope())) {
+                params.add(new BasicNameValuePair("scope", clientCreds.getScope()));
+            }
+        } else if (authorization instanceof OAuth2AuthorizationCodeAuthorization) {
+            // Authorization Code flow with optional PKCE
+            final OAuth2AuthorizationCodeAuthorization authCode = (OAuth2AuthorizationCodeAuthorization) authorization;
+            params.add(new BasicNameValuePair("grant_type", "authorization_code"));
+            params.add(new BasicNameValuePair("client_id", authCode.getClientId()));
+
+            // Client secret is optional for public clients in PKCE flow
+            if (isStringInputValid(authCode.getClientSecret())) {
+                params.add(new BasicNameValuePair("client_secret", authCode.getClientSecret()));
+            }
+
+            params.add(new BasicNameValuePair("code", authCode.getCode()));
+
+            // Code verifier is optional (PKCE is not mandatory)
+            if (isStringInputValid(authCode.getCodeVerifier())) {
+                params.add(new BasicNameValuePair("code_verifier", authCode.getCodeVerifier()));
+            }
+
+            // Redirect URI may be required by some OAuth2 providers
+            if (isStringInputValid(authCode.getRedirectUri())) {
+                params.add(new BasicNameValuePair("redirect_uri", authCode.getRedirectUri()));
+            }
         }
 
         tokenRequest.setEntity(new UrlEncodedFormEntity(params, Charset.forName("UTF-8")));
@@ -566,42 +619,19 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     throw new ConnectorException("No access_token in OAuth2 token response");
                 }
 
-                LOGGER.fine("OAuth2 token acquired successfully");
-                return accessToken;
+                // Extract expires_in (in seconds) from the response
+                // Default to 1 hour (3600 seconds) if not provided
+                final Integer expiresInSeconds = tokenResponse.get("expires_in") != null
+                    ? ((Number) tokenResponse.get("expires_in")).intValue()
+                    : 3600;
+
+                // Calculate expiration time in milliseconds
+                final long expirationTimeMillis = System.currentTimeMillis() + (expiresInSeconds * 1000L);
+
+                LOGGER.fine(() -> "OAuth2 token acquired successfully. Expires in " + expiresInSeconds + " seconds");
+
+                return new TokenWithExpiration(accessToken, expirationTimeMillis);
             }
-        }
-    }
-
-    /**
-     * Check if an OAuth2 access token (JWT) is expired using Nimbus JOSE JWT library
-     *
-     * @param accessToken The JWT access token
-     * @return true if the token is expired (or will expire within clock skew), false otherwise
-     */
-    private boolean isOAuth2TokenExpired(final String accessToken) {
-        try {
-            // Parse the JWT
-            final JWT jwt = JWTParser.parse(accessToken);
-            final Date expirationTime = jwt.getJWTClaimsSet().getExpirationTime();
-
-            if (expirationTime == null) {
-                LOGGER.fine("No expiration time in JWT, treating as expired");
-                return true;
-            }
-
-            // Check if token is expired (with clock skew)
-            final long nowMillis = System.currentTimeMillis();
-            final long expirationMillis = expirationTime.getTime() - (OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS * 1000);
-            final boolean isExpired = expirationMillis <= nowMillis;
-
-            if (isExpired) {
-                LOGGER.fine(() -> "OAuth2 token is expired or will expire soon. exp=" + expirationTime + ", now=" + new Date(nowMillis));
-            }
-
-            return isExpired;
-        } catch (Exception e) {
-            LOGGER.warning("Failed to parse OAuth2 token expiration, treating as expired: " + e.getMessage());
-            return true;
         }
     }
 
@@ -1071,9 +1101,8 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             final HttpClientBuilder httpClientBuilder) throws Exception {
         HttpContext httpContext = HttpClientContext.create();
         if (authorization != null) {
-            if (authorization instanceof OAuth2ClientCredentialsAuthorization) {
-                final OAuth2ClientCredentialsAuthorization castAuthorization = (OAuth2ClientCredentialsAuthorization) authorization;
-                LOGGER.fine("OAuth2 Client Credentials authorization detected");
+            if (authorization instanceof OAuth2TokenRequestAuthorization) {
+                final OAuth2TokenRequestAuthorization castAuthorization = (OAuth2TokenRequestAuthorization) authorization;
                 // Get or acquire access token (proxy and SSL are passed for token endpoint access)
                 String oauth2Token = getOAuth2AccessToken(castAuthorization, proxy, ssl);
                 // Add Bearer token to request header
