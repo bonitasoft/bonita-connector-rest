@@ -1919,7 +1919,36 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "invalid_secret");
 
         thrown.expect(ConnectorException.class);
-        thrown.expectMessage("Failed to acquire OAuth2 token");
+        thrown.expectMessage("OAuth2 token request failed");
+        executeConnector(parameters);
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with 200 status but error response (RFC 6749 Section 5.2)
+     * Some OAuth2 providers return 200 status code with error field in JSON response
+     */
+    @Test
+    public void oauth2ClientCredentialsWithErrorInSuccessResponse() throws BonitaException {
+        // Mock OAuth2 token endpoint returning 200 with error field
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"error\":\"invalid_grant\",\"error_description\":\"The provided authorization grant is invalid, expired, or revoked\"}")));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+
+        thrown.expect(ConnectorException.class);
+        thrown.expectMessage("OAuth2 token request failed. Error: invalid_grant");
+        thrown.expectMessage("Description: The provided authorization grant is invalid, expired, or revoked");
         executeConnector(parameters);
     }
 

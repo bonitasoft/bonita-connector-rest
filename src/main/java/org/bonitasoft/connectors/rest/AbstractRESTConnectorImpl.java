@@ -416,11 +416,9 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             validateOAuth2ClientId();
             validateOAuth2ClientSecret();
             validateOAuth2Scope();
-        }
-        if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
+        } else if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
             validateOAuth2Token();
-        }
-        if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
+        } else if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
             validateOAuth2TokenEndpoint();
             validateOAuth2ClientId();
             validateOAuth2ClientSecret();
@@ -810,9 +808,15 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     void validateOAuth2ClientSecret() throws ConnectorValidationException {
         try {
             String clientSecret = getOAuth2ClientSecret();
-            if (clientSecret == null || clientSecret.trim().isEmpty()) {
-                throw new ConnectorValidationException(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER + " is required for OAuth2 Client Credentials");
+
+            // Client secret is required only for Client Credentials flow
+            // For Authorization Code flow, it's optional (supports PKCE public clients)
+            if (getAuthType() == AuthorizationType.OAUTH2_CLIENT_CREDENTIALS) {
+                if (clientSecret == null || clientSecret.trim().isEmpty()) {
+                    throw new ConnectorValidationException(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER + " is required for OAuth2 Client Credentials");
+                }
             }
+            // For other OAuth2 flows, client secret is optional - no validation needed
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException(OAUTH2_CLIENT_SECRET_INPUT_PARAMETER + " type is invalid");
         }

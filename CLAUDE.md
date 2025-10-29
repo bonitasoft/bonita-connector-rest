@@ -8,8 +8,7 @@ Bonita REST Connector is a multi-connector factory that produces 9 separate conn
 - **8 REST connectors:** GET, POST, PUT, DELETE, PATCH, HEAD, file-post, file-put
 - **1 OAuth2 connector:** oauth-auth (for OAuth2 token retrieval)
 
-**Current Version:** 1.5.0-SNAPSHOT
-**Target:** Bonita 7.14.0
+**Target:** Bonita 9.0.0
 **Java Version:** 11
 
 ## Build Commands
@@ -222,9 +221,9 @@ REST connectors (GET, POST, PUT, DELETE, PATCH, HEAD) can automatically acquire 
 
 The connector will automatically:
 - Request an access token from the endpoint
-- Cache the token in-memory for reuse
+- Cache the token in-memory for reuse (LRU cache with 100-token limit)
 - Add `Authorization: Bearer <token>` header to the API request
-- Handle token expiration based on JWT claims
+- Handle token expiration with 60-second clock skew (tokens expire 60 seconds before actual expiration)
 
 ### Using OAuth2 Authorization Code in REST Connectors
 
@@ -242,15 +241,15 @@ REST connectors (GET, POST, PUT, DELETE, PATCH, HEAD) can exchange authorization
 The connector will automatically:
 - Exchange the authorization code for an access token
 - Support PKCE (Proof Key for Code Exchange) when code_verifier is provided
-- Cache the token in-memory for reuse (keyed by code hash)
+- Store the token in the connector instance for retry handling (NOT cached globally)
 - Add `Authorization: Bearer <token>` header to the API request
-- Handle token expiration based on JWT claims
+- Handle token expiration with 60-second clock skew (tokens expire 60 seconds before actual expiration)
 
 **Important Notes:**
 - The authorization code and code_verifier are INPUT parameters (not retrieved by the connector)
 - PKCE support is optional - if `oauth2_code_verifier` is empty, the token request is sent without PKCE
 - The `oauth2_redirect_uri` is optional but required by some OAuth2 providers
-- Authorization codes are typically single-use - the connector caches tokens by code hash to handle retries
+- Authorization codes are typically single-use - tokens are stored per connector instance for retries, but NOT in the global cache
 
 ### Using OAuth2 Bearer Authentication
 
@@ -273,6 +272,78 @@ For scenarios where you already have a token or want to manage token lifecycle s
 The `oauth-auth` connector (`Oauth2ConnectorImpl`) produces:
 - **Output parameter:** `token` (String) - The access token retrieved from the OAuth2 provider
 - **Use case:** Chain multiple API calls with same token without re-authentication
+
+### OAuth2 Token Caching Details
+
+**Client Credentials Flow Caching:**
+- Tokens are cached in a synchronized `LinkedHashMap` with LRU (Least Recently Used) eviction
+- **Cache limit:** 100 tokens maximum (`MAX_CACHED_TOKENS` constant in `RESTConnector.java:98`)
+- **Cache key format:** `tokenEndpoint#clientId#scope` (scope is optional)
+- **Eviction policy:** When cache exceeds 100 entries, the least recently accessed token is automatically removed
+- **Clock skew:** Tokens are considered expired 60 seconds before their actual expiration time (`OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS` constant in `RESTConnector.java:118`)
+- **Thread-safety:** Cache operations are synchronized to prevent race conditions in concurrent scenarios
+- **Default expiration:** If OAuth2 provider doesn't return `expires_in`, tokens default to 3600 seconds (1 hour)
+
+**Authorization Code Flow Storage:**
+- Tokens are NOT stored in the global cache (authorization codes are single-use)
+- Token is stored in the `userTokenSavedForRetry` instance variable (`RESTConnector.java:130`)
+- Only used for retry handling within the same connector execution
+- Each new connector instance requires a fresh token acquisition
+
+### OAuth2 Troubleshooting
+
+**Common OAuth2 Errors:**
+
+1. **"OAuth2 token request failed. Error: invalid_client, Description: Client authentication failed"**
+   - **Cause:** Invalid client credentials (client_id or client_secret)
+   - **Solution:** Verify client_id and client_secret are correct in OAuth2 provider console
+   - **Test location:** `RESTConnectorTest.java:1903` (`oauth2ClientCredentialsWithTokenAcquisitionFailure`)
+
+2. **"OAuth2 token request failed. Error: invalid_grant, Description: The provided authorization grant is invalid, expired, or revoked"**
+   - **Cause:** Authorization code has already been used, expired, or is invalid
+   - **Solution:** Generate a new authorization code from the OAuth2 provider
+   - **Note:** Authorization codes are typically single-use and expire quickly (5-10 minutes)
+
+3. **"Failed to acquire OAuth2 token. Status: 401, Response: ..."**
+   - **Cause:** Token endpoint returned 401 but response is not valid JSON or doesn't contain OAuth2 error fields
+   - **Solution:** Check token endpoint URL, network connectivity, and OAuth2 provider status
+   - **Implementation:** Generic fallback error when JSON parsing fails (`RESTConnector.java:668`)
+
+4. **"Neither access_token nor error in OAuth2 token response"**
+   - **Cause:** OAuth2 provider returned 200 status but response doesn't contain `access_token` or `error` fields
+   - **Solution:** Check OAuth2 provider API documentation for correct response format
+   - **Implementation:** Response validation at `RESTConnector.java:681-682`
+
+5. **Token expires prematurely**
+   - **Expected behavior:** Tokens expire 60 seconds before actual expiration (clock skew protection)
+   - **Reason:** Prevents race conditions where token expires during request execution
+   - **Configuration:** Cannot be changed (hardcoded in `OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS`)
+
+**Default Token Expiration:**
+- If OAuth2 provider does not return `expires_in`, tokens default to **3600 seconds (1 hour)** expiration
+- Constant: `DEFAULT_TOKEN_EXPIRES_IN` in `RESTConnector.java:137`
+- This default applies to both Client Credentials and Authorization Code flows
+
+6. **Cache not working / Tokens not reused**
+   - **Check cache key:** Ensure `tokenEndpoint`, `clientId`, and `scope` are identical across requests
+   - **Authorization Code:** This flow intentionally does NOT use the cache (single-use codes)
+   - **Cache limit:** If you have >100 unique token configurations, LRU eviction occurs automatically
+
+7. **SSL/TLS errors when connecting to token endpoint**
+   - **Solution:** Configure SSL parameters: `ssl_trust_self_signed_certificate`, `truststore_file`, `truststore_password`
+   - **Trust strategies:** DEFAULT, TRUST_SELF_SIGNED, TRUST_ALL
+   - **Hostname verification:** Can be disabled via `ssl_hostname_verifier` parameter
+
+8. **Proxy issues with token endpoint**
+   - **Solution:** Configure proxy parameters: `proxy_protocol`, `proxy_host`, `proxy_port`, `proxy_username`, `proxy_password`
+   - **Note:** Proxy configuration applies to both token acquisition and API requests
+
+**Debugging Tips:**
+
+- Enable FINE logging to see OAuth2 token acquisition attempts: `LOGGER.fine()` statements in `RESTConnector.java:518-528`
+- Check `getOAuth2AccessToken()` method at `RESTConnector.java:514` for flow-specific logic
+- Review `handleErrorResponse()` method at `RESTConnector.java:728` for OAuth2 RFC 6749 Section 5.2 error handling
+- Authorization/Token headers are automatically masked in logs for security - look for `[REDACTED]` in log output
 
 ## Important Notes
 
@@ -299,8 +370,8 @@ These are supplied by Bonita runtime and must not be bundled:
 6. **Proxy Resolution:** Manual configuration or automatic JVM system properties resolution
 7. **Bonita Context Headers:** Optional injection of process context (activity ID, process ID, etc.) into request headers
 8. **OAuth2 Authentication:** Three modes supported:
-   - **OAuth2 Client Credentials:** REST connectors can automatically acquire tokens using client credentials flow (token endpoint, client ID, client secret, optional scopes). Tokens are cached in-memory.
-   - **OAuth2 Authorization Code:** REST connectors can exchange authorization codes for tokens (token endpoint, client ID, client secret, authorization code, optional PKCE code verifier, optional redirect URI). Tokens are cached in-memory by code hash.
+   - **OAuth2 Client Credentials:** REST connectors can automatically acquire tokens using client credentials flow (token endpoint, client ID, client secret, optional scopes). Tokens are cached in-memory using LRU cache with 100-token limit. Tokens expire 60 seconds before actual expiration (clock skew).
+   - **OAuth2 Authorization Code:** REST connectors can exchange authorization codes for tokens (token endpoint, client ID, client secret, authorization code, optional PKCE code verifier, optional redirect URI). Tokens are stored per connector instance for retry handling only (NOT in global cache).
    - **OAuth2 Bearer:** REST connectors can use pre-obtained tokens passed as input parameter. Use the dedicated `oauth-auth` connector to retrieve tokens first, then pass to REST connectors.
 9. **Dedicated OAuth2 Connector:** The `oauth-auth` connector (`Oauth2ConnectorImpl`) is specialized for token retrieval using either Client Credentials or Authorization Code flows and outputs the token for use in subsequent API calls
 

@@ -1,8 +1,6 @@
 package org.bonitasoft.connectors.rest;
 
-import org.apache.http.HttpResponse;
 import org.bonitasoft.connectors.rest.model.*;
-import org.bonitasoft.engine.commons.exceptions.SRetryableException;
 import org.bonitasoft.engine.connector.ConnectorException;
 import org.bonitasoft.engine.connector.ConnectorValidationException;
 
@@ -16,10 +14,8 @@ public class Oauth2ConnectorImpl extends RESTConnector {
     /** The class logger */
     private static final Logger LOGGER = Logger.getLogger(Oauth2ConnectorImpl.class.getName());
 
-   private static final boolean NO_BODY = true;
-
     public Oauth2ConnectorImpl() {
-        super(NO_BODY);
+        super(true);
     }
 
     @Override
