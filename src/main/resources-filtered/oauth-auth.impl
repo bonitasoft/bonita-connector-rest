@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<implementation:connectorImplementation xmlns:implementation="http://www.bonitasoft.org/ns/connector/implementation/6.0">
+  <implementationId>${oauth.impl.id}</implementationId>
+  <implementationVersion>${oauth.impl.version}</implementationVersion>
+  <definitionId>${oauth.def.id}</definitionId>
+  <definitionVersion>${oauth.def.version}</definitionVersion>
+  <implementationClassname>${oauth.main-class}</implementationClassname>
+  <hasSources>false</hasSources>
+  <description>The implementation of the OAuth2 authentication Connector allowing to retrieve an access token.</description>
+
+<!-- retrieved from the pom.xml at build time -->
+${connector-dependencies}
+
+</implementation:connectorImplementation>

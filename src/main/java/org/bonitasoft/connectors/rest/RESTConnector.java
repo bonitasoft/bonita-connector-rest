@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2014 BonitaSoft S.A. BonitaSoft, 32 rue Gustave Eiffel - 38000 Grenoble This
+ * Copyright (C) 2014-2025 BonitaSoft S.A. BonitaSoft, 32 rue Gustave Eiffel - 38000 Grenoble This
  * library is free software; you can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License as published by the Free Software Foundation version 2.1 of the
  * License. This library is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -25,9 +25,12 @@ import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.config.RequestConfig.Builder;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -63,6 +66,7 @@ import java.nio.charset.Charset;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -87,6 +91,85 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * is used as fallback, as specified in the specification.
      */
     static final String DEFAULT_JVM_CHARSET_FALLBACK_PROPERTY = "org.bonitasoft.connectors.rest.response.fallbackToJVMCharset";
+
+    /**
+     * Maximum number of cached OAuth2 tokens. When this limit is exceeded,
+     * the least recently used (LRU) entries are automatically removed.
+     */
+    protected static final int MAX_CACHED_TOKENS = 100;
+
+    /**
+     * OAuth2 access token cache (key: tokenEndpoint#clientId#scope, value: TokenWithExpiration) for Client Credentials flow.
+     * Uses synchronized LinkedHashMap with access-order LRU eviction to prevent unbounded growth.
+     * The 'true' parameter enables access-order mode, making this an LRU cache.
+     *
+     * Note: When cache entries are evicted, we intentionally do NOT remove corresponding locks
+     * from {@link #OAUTH2_TOKEN_ACQUISITION_LOCKS} to avoid race conditions. See that field's JavaDoc for details.
+     *
+     * Package-private for testing
+     */
+    static final Map<String, TokenWithExpiration> OAUTH2_ACCESS_TOKENS =
+        Collections.synchronizedMap(new LinkedHashMap<String, TokenWithExpiration>(16, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, TokenWithExpiration> eldest) {
+                // Evict eldest entry when cache exceeds max size
+                // Note: We intentionally do NOT remove locks here to avoid race conditions
+                return size() > MAX_CACHED_TOKENS;
+            }
+        });
+
+    /**
+     * Maximum number of locks to keep in the lock map before triggering cleanup.
+     *
+     * When this limit is exceeded, we perform a cleanup that removes locks for
+     * cache keys that no longer exist in the token cache. This prevents unbounded
+     * growth while avoiding the race condition.
+     */
+    private static final int MAX_CACHED_LOCKS = MAX_CACHED_TOKENS * 2; // 200 locks
+
+    /**
+     * Per-cache-key locks to prevent concurrent token acquisitions for the same credentials.
+     * This allows parallel acquisitions for different credentials while preventing race conditions.
+     *
+     * Bounded Growth Strategy:
+     * - Locks are created on-demand via computeIfAbsent
+     * - When map size exceeds {@link #MAX_CACHED_LOCKS}, cleanup is triggered
+     * - Cleanup removes locks for keys NOT in the token cache (safe because no ongoing acquisition)
+     * - This prevents unbounded growth while avoiding the race condition
+     *
+     * Why This Approach is Safe:
+     *
+     * - We only remove locks for keys that are NOT in the token cache
+     * - If a key is not in cache, no thread should be waiting on its lock
+     * - Worst case: Lock is removed between cache check and computeIfAbsent → new lock created
+     * - This is harmless - just means we might create a new lock unnecessarily
+     *
+     * Memory Overhead: Bounded to ~200 locks = ~3-6 KB max
+     */
+    static final Map<String, Object> OAUTH2_TOKEN_ACQUISITION_LOCKS = new ConcurrentHashMap<>();
+
+    /**
+     * Clock skew for anticipating token expiration (60 seconds before actual expiration)
+     */
+    private static final long OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS = 60;
+
+    /**
+     * Default token expiration time in seconds if not provided by the OAuth2 provider
+     */
+    public static final int DEFAULT_TOKEN_EXPIRES_IN = 3600;
+
+    /**
+     * Shared ObjectMapper instance for JSON parsing (thread-safe).
+     * Used for both OAuth2 token responses and REST API response parsing.
+     */
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+
+    /**
+     * Used for saving OAuth2 access tokens obtained from Authorization Code flow
+     * In case of retryable exception during connector execution, if token was already acquired it can be reused
+     * This is especially useful since authorization codes are single-use only
+     */
+    private String userTokenSavedForRetry;
 
     /**
      * Whether a the given HTTP method has a body payload
@@ -225,7 +308,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @return The request bean
      * @throws MalformedURLException
      */
-    private Request buildRequest() throws MalformedURLException, ConnectorException {
+    protected Request buildRequest() throws MalformedURLException, ConnectorException {
         final Request request = new Request();
         request.setUrl(new URL(getUrl()));
         LOGGER.fine(() -> "URL set to: " + request.getUrl().toString());
@@ -283,6 +366,15 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         } else if (getAuthType() == AuthorizationType.DIGEST) {
             LOGGER.fine("Add digest auth");
             request.setAuthorization(buildDigestAuthorization());
+        } else if (getAuthType() == AuthorizationType.OAUTH2_CLIENT_CREDENTIALS) {
+            LOGGER.fine("Add OAuth2 Client Credentials auth");
+            request.setAuthorization(buildOAuth2ClientCredentialsAuthorization());
+        } else if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
+            LOGGER.fine("Add OAuth2 Bearer auth");
+            request.setAuthorization(buildOAuth2BearerAuthorization());
+        } else if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
+            LOGGER.fine("Add OAuth2 Authorization Code auth");
+            request.setAuthorization(buildOAuth2AuthorizationCodeAuthorization());
         }
         return request;
     }
@@ -321,7 +413,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @return If a Proxy is used or not
      */
-    private boolean isProxySet() {
+    protected boolean isProxySet() {
         return isStringInputValid(getProxyHost()) && isStringInputValid(getProxyProtocol());
     }
 
@@ -365,6 +457,42 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         }
         authorization.setPreemptive(getAuthPreemptive());
 
+        return authorization;
+    }
+
+    /**
+     * Build the OAuth2 Client Credentials Auth bean for the request builder
+     *
+     * @return The OAuth2 Client Credentials Auth according to the input values
+     */
+    OAuth2ClientCredentialsAuthorization buildOAuth2ClientCredentialsAuthorization() {
+        final OAuth2ClientCredentialsAuthorization authorization = new OAuth2ClientCredentialsAuthorization();
+        authorization.setTokenEndpoint(getOAuth2TokenEndpoint());
+        authorization.setClientId(getOAuth2ClientId());
+        authorization.setClientSecret(getOAuth2ClientSecret());
+        authorization.setScope(getOAuth2Scope());
+        return authorization;
+    }
+
+    OAuth2BearerAuthorization buildOAuth2BearerAuthorization() {
+        final OAuth2BearerAuthorization authorization = new OAuth2BearerAuthorization();
+        authorization.setToken(getOAuth2Token());
+        return authorization;
+    }
+
+    /**
+     * Build the OAuth2 Authorization Code Auth bean for the request builder
+     *
+     * @return The OAuth2 Authorization Code Auth according to the input values
+     */
+    OAuth2AuthorizationCodeAuthorization buildOAuth2AuthorizationCodeAuthorization() {
+        final OAuth2AuthorizationCodeAuthorization authorization = new OAuth2AuthorizationCodeAuthorization();
+        authorization.setTokenEndpoint(getOAuth2TokenEndpoint());
+        authorization.setClientId(getOAuth2ClientId());
+        authorization.setClientSecret(getOAuth2ClientSecret());
+        authorization.setCode(getOAuth2Code());
+        authorization.setCodeVerifier(getOAuth2CodeVerifier());
+        authorization.setRedirectUri(getOAuth2RedirectUri());
         return authorization;
     }
 
@@ -417,14 +545,286 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
     }
 
     /**
+     * Get or acquire an OAuth2 access token for the given authorization
+     *
+     * @param authorization The OAuth2 Token Request authorization (Client Credentials or Authorization Code)
+     * @param proxy The proxy configuration (may be null)
+     * @param ssl The SSL configuration (may be null)
+     * @return The access token
+     * @throws Exception if token acquisition fails
+     */
+    protected String getOAuth2AccessToken(final OAuth2TokenRequestAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
+        // Authorization codes are single-use - they cannot be used in a cache key but save the token in the connector instance for retries
+        if (authorization instanceof OAuth2AuthorizationCodeAuthorization) {
+            if (userTokenSavedForRetry != null) {
+                LOGGER.fine("Reusing previously acquired OAuth2 access token from retry cache");
+            } else {
+                LOGGER.fine("OAuth2 Authorization Code flow detected - acquiring fresh token (no caching for single-use codes)");
+                userTokenSavedForRetry = acquireOAuth2Token(authorization, proxy, ssl).getAccessToken();
+            }
+            return userTokenSavedForRetry;
+        }
+
+        // For Client Credentials flow, use cached tokens
+        if (authorization instanceof OAuth2ClientCredentialsAuthorization) {
+            LOGGER.fine("OAuth2 Client Credentials authorization detected");
+            final OAuth2ClientCredentialsAuthorization clientCreds = (OAuth2ClientCredentialsAuthorization) authorization;
+
+            // Build cache key
+            String cacheKey = authorization.getTokenEndpoint() + "#" + authorization.getClientId();
+            cacheKey += (clientCreds.getScope() == null ? "" : "#" + clientCreds.getScope());
+
+            // Check cache without lock (fast path)
+            TokenWithExpiration cachedToken = OAUTH2_ACCESS_TOKENS.get(cacheKey);
+            if (cachedToken != null && !cachedToken.isExpired(OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS)) {
+                return cachedToken.getAccessToken();
+            }
+
+            // Get or create a per-key lock to prevent concurrent acquisitions for the same credentials
+            final Object lock = OAUTH2_TOKEN_ACQUISITION_LOCKS.computeIfAbsent(cacheKey, k -> new Object());
+
+            // Trigger cleanup if lock map is getting too large
+            if (OAUTH2_TOKEN_ACQUISITION_LOCKS.size() > MAX_CACHED_LOCKS) {
+                cleanupOrphanedLocks();
+            }
+
+            // Synchronize on per-key lock to prevent parallel acquisitions with same credentials
+            synchronized (lock) {
+                // Double-check: another thread might have acquired token while we were waiting for the lock
+                cachedToken = OAUTH2_ACCESS_TOKENS.get(cacheKey);
+                if (cachedToken != null && !cachedToken.isExpired(OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS)) {
+                    return cachedToken.getAccessToken();
+                }
+
+                // Acquire token (only one thread per cache key will reach here)
+                TokenWithExpiration newToken = acquireOAuth2Token(authorization, proxy, ssl);
+                OAUTH2_ACCESS_TOKENS.put(cacheKey, newToken);
+                return newToken.getAccessToken();
+            }
+        }
+
+        // Fallback for unknown authorization types
+        throw new ConnectorException("Unsupported OAuth2 authorization type: " + authorization.getClass().getName());
+    }
+
+    /**
+     * Clean up orphaned locks for cache keys that no longer exist in the token cache.
+     * This is safe because if a key is not in the cache, no thread should be waiting on its lock.
+     * Called when lock map size exceeds MAX_CACHED_LOCKS.
+     *
+     * Thread-safety: Synchronizes on OAUTH2_ACCESS_TOKENS to ensure the snapshot of cache keys
+     * is consistent and atomic with respect to cache modifications.
+     */
+    private void cleanupOrphanedLocks() {
+        // Take a consistent snapshot of cache keys while synchronized to prevent race conditions
+        // where a lock could be removed while another thread is about to use it
+        synchronized (OAUTH2_ACCESS_TOKENS) {
+            Set<String> cacheKeys = new HashSet<>(OAUTH2_ACCESS_TOKENS.keySet());
+            OAUTH2_TOKEN_ACQUISITION_LOCKS.keySet().removeIf(key -> !cacheKeys.contains(key));
+        }
+    }
+
+    /**
+     * Acquire a new OAuth2 access token from the token endpoint
+     *
+     * @param authorization The OAuth2 Token Request authorization (Client Credentials or Authorization Code)
+     * @param proxy The proxy configuration (may be null)
+     * @param ssl The SSL configuration (may be null)
+     * @return The access token with expiration information
+     * @throws Exception if token acquisition fails
+     */
+    private TokenWithExpiration acquireOAuth2Token(final OAuth2TokenRequestAuthorization authorization, final Proxy proxy, final SSL ssl) throws Exception {
+        final HttpPost tokenRequest = new HttpPost(authorization.getTokenEndpoint());
+
+        // Build form-urlencoded body based on grant type
+        final List<NameValuePair> params = new ArrayList<>();
+
+        if (authorization instanceof OAuth2ClientCredentialsAuthorization) {
+            // Client Credentials flow
+            final OAuth2ClientCredentialsAuthorization clientCreds = (OAuth2ClientCredentialsAuthorization) authorization;
+            params.add(new BasicNameValuePair("grant_type", "client_credentials"));
+            params.add(new BasicNameValuePair("client_id", clientCreds.getClientId()));
+            params.add(new BasicNameValuePair("client_secret", clientCreds.getClientSecret()));
+            if (isStringInputValid(clientCreds.getScope())) {
+                params.add(new BasicNameValuePair("scope", clientCreds.getScope()));
+            }
+        } else if (authorization instanceof OAuth2AuthorizationCodeAuthorization) {
+            // Authorization Code flow with optional PKCE
+            final OAuth2AuthorizationCodeAuthorization authCode = (OAuth2AuthorizationCodeAuthorization) authorization;
+            params.add(new BasicNameValuePair("grant_type", "authorization_code"));
+            params.add(new BasicNameValuePair("client_id", authCode.getClientId()));
+
+            // Client secret is optional for public clients in PKCE flow
+            if (isStringInputValid(authCode.getClientSecret())) {
+                params.add(new BasicNameValuePair("client_secret", authCode.getClientSecret()));
+            }
+
+            params.add(new BasicNameValuePair("code", authCode.getCode()));
+
+            // Code verifier is optional (PKCE is not mandatory)
+            if (isStringInputValid(authCode.getCodeVerifier())) {
+                params.add(new BasicNameValuePair("code_verifier", authCode.getCodeVerifier()));
+            }
+
+            // Redirect URI may be required by some OAuth2 providers
+            if (isStringInputValid(authCode.getRedirectUri())) {
+                params.add(new BasicNameValuePair("redirect_uri", authCode.getRedirectUri()));
+            }
+        }
+
+        tokenRequest.setEntity(new UrlEncodedFormEntity(params, Charset.forName("UTF-8")));
+        tokenRequest.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        // Configure request timeouts
+        final RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectionRequestTimeout(getConnectionTimeoutMs())
+                .setConnectTimeout(getConnectionTimeoutMs())
+                .setSocketTimeout(getSocketTimeoutMs())
+                .build();
+        tokenRequest.setConfig(requestConfig);
+        LOGGER.fine(() -> "OAuth2 token request configured with timeouts: connect=" + getConnectionTimeoutMs() + "ms, socket=" + getSocketTimeoutMs() + "ms");
+
+        // Build HTTP client with SSL and proxy support
+        final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+
+        // Apply SSL configuration
+        setSSL(ssl, httpClientBuilder);
+
+        if (proxy != null) {
+            final HttpHost proxyHost = new HttpHost(proxy.getHost(), proxy.getPort());
+            httpClientBuilder.setProxy(proxyHost);
+
+            // Add proxy credentials if provided
+            if (proxy.hasCredentials()) {
+                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(
+                        new AuthScope(proxy.getHost(), proxy.getPort()),
+                        new UsernamePasswordCredentials(
+                                proxy.getUsername(), proxy.getPassword() == null ? "" : proxy.getPassword()));
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+                LOGGER.fine("OAuth2 token request configured with proxy authentication");
+            }
+            LOGGER.fine(() -> "OAuth2 token request configured to use proxy: " + proxy.getHost() + ":" + proxy.getPort());
+        }
+
+        // Execute the token request
+        try (final CloseableHttpClient httpClient = httpClientBuilder.build()) {
+            try (final CloseableHttpResponse response = httpClient.execute(tokenRequest)) {
+                return handleTokenResponse(response);
+            }
+        }
+    }
+
+    private TokenWithExpiration handleTokenResponse(CloseableHttpResponse response) throws IOException, ConnectorException {
+        final int statusCode = response.getStatusLine().getStatusCode();
+
+        // Parse the JSON response
+        final String responseBody = EntityUtils.toString(response.getEntity());
+        final ContentType responseContentType = ContentType.get(response.getEntity());
+
+        // Check if response is JSON before attempting to parse error details
+        boolean isJsonResponse = responseContentType != null
+            && ContentType.APPLICATION_JSON.getMimeType().equals(responseContentType.getMimeType());
+
+        if (statusCode != 200) {
+            // If response is JSON, try to parse OAuth2 error details
+            if (isJsonResponse) {
+                try {
+                    final Map<String, Object> errorResponse = JSON_MAPPER.readValue(responseBody, HashMap.class);
+
+                    // Check and handle OAuth2 error responses (RFC 6749 Section 5.2)
+                    checkForErrorResponse(errorResponse);
+                } catch (JsonParseException | JsonMappingException e) {
+                    // Fall through to generic error message if JSON parsing fails
+                    LOGGER.fine(() -> "Could not parse JSON error in token response. Response: " + abbreviateBody(responseBody) + ", Error: " + e.getMessage());
+                }
+            }
+            // Generic error message if response is not JSON or parsing failed
+            throw new ConnectorException("Failed to acquire OAuth2 token. Status: " + statusCode + ", Response: " + abbreviateBody(responseBody));
+        }
+
+        // Status code is 200 - parse successful token response
+        try {
+            final Map<String, Object> tokenResponse = JSON_MAPPER.readValue(responseBody, HashMap.class);
+
+            // Check and handle OAuth2 error responses (RFC 6749 Section 5.2)
+            // Some providers return 200 status with error field like {"error": "invalid_grant"}
+            checkForErrorResponse(tokenResponse);
+
+            final String accessToken = (String) tokenResponse.get("access_token");
+            if (accessToken == null || accessToken.isEmpty()) {
+                throw new ConnectorException("Neither access_token nor error in OAuth2 token response. Response: " + abbreviateBody(responseBody));
+            }
+
+            // Extract expires_in (in seconds) from the response
+            // Default to DEFAULT_TOKEN_EXPIRES_IN if not provided
+            // Handle both Number and String types (some OAuth2 providers return strings)
+            Integer expiresInSeconds = null;
+            if (tokenResponse.get("expires_in") != null) {
+                Object expiresInValue = tokenResponse.get("expires_in");
+                if (expiresInValue instanceof Number) {
+                    expiresInSeconds = ((Number) expiresInValue).intValue();
+                } else if (expiresInValue instanceof String) {
+                    try {
+                        expiresInSeconds = Integer.parseInt((String) expiresInValue);
+                    } catch (NumberFormatException e) {
+                        if (LOGGER.isLoggable(Level.WARNING)) {
+                            LOGGER.warning("Invalid expires_in value: " + expiresInValue + ". Defaulting to " + DEFAULT_TOKEN_EXPIRES_IN + " seconds.");
+                        }
+                    }
+                } else {
+                    if (LOGGER.isLoggable(Level.WARNING)) {
+                        LOGGER.warning("Unexpected expires_in type: " + expiresInValue.getClass().getName() + ". Defaulting to " + DEFAULT_TOKEN_EXPIRES_IN + " seconds.");
+                    }
+                }
+            }
+            if (expiresInSeconds == null) {
+                if (LOGGER.isLoggable(Level.WARNING)) {
+                    LOGGER.warning("OAuth2 provider did not return expires_in. Defaulting to " + DEFAULT_TOKEN_EXPIRES_IN + " seconds.");
+                }
+                expiresInSeconds = DEFAULT_TOKEN_EXPIRES_IN;
+            }
+
+            // Calculate expiration time in milliseconds
+            final long expirationTimeMillis = System.currentTimeMillis() + (expiresInSeconds * 1000L);
+
+            if (LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.fine("OAuth2 token acquired successfully. Expires in " + expiresInSeconds + " seconds");
+            }
+
+            return new TokenWithExpiration(accessToken, expirationTimeMillis);
+        } catch (JsonParseException | JsonMappingException e) {
+            LOGGER.severe(() -> "Could not parse token response: " + e.getMessage());
+            // Generic error message if response is not JSON or parsing failed
+            throw new ConnectorException("Failed to acquire OAuth2 token. Status: " + statusCode + ", Response: " + abbreviateBody(responseBody));
+        }
+    }
+
+    private void checkForErrorResponse(Map<String, Object> tokenResponse) throws ConnectorException {
+        if (tokenResponse.containsKey("error")) {
+            final String error = (String) tokenResponse.get("error");
+            final String errorDescription = (String) tokenResponse.get("error_description");
+            final String errorUri = (String) tokenResponse.get("error_uri");
+
+            StringBuilder errorMessage = new StringBuilder("OAuth2 token request failed. Error: " + error);
+            if (errorDescription != null && !errorDescription.isEmpty()) {
+                errorMessage.append(", Description: ").append(errorDescription);
+            }
+            if (errorUri != null && !errorUri.isEmpty()) {
+                errorMessage.append(", URI: ").append(errorUri);
+            }
+            throw new ConnectorException(errorMessage.toString());
+        }
+    }
+
+    /**
      * Extracts the response of the HTTP transaction
      *
      * @param response The response of the sent request
      * @param request
-     * @throws
-     * @throws IOException
+     * @throws IOException if an I/O error occurs
      */
-    private void setOutputs(final HttpResponse response, Request request) throws IOException {
+    protected void setOutputs(final HttpResponse response, Request request) throws IOException {
         if (response != null) {
             final HttpEntity entity = response.getEntity();
             if (entity != null) {
@@ -468,11 +868,11 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 && ContentType.APPLICATION_JSON.getMimeType().equals(contentType.getMimeType())) {
             try {
                 if (bodyResponse.startsWith("[")) {
-                    setBody(new ObjectMapper().readValue(bodyResponse, List.class));
+                    setBody(JSON_MAPPER.readValue(bodyResponse, List.class));
                 } else if (bodyResponse.startsWith("{")) {
-                    setBody(new ObjectMapper().readValue(bodyResponse, HashMap.class));
+                    setBody(JSON_MAPPER.readValue(bodyResponse, HashMap.class));
                 } else {
-                    setBody(new ObjectMapper().readValue(bodyResponse, Object.class));
+                    setBody(JSON_MAPPER.readValue(bodyResponse, Object.class));
                 }
             } catch (JsonParseException | JsonMappingException e) {
                 LOGGER.warning(
@@ -557,8 +957,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
 
             final HttpContext httpContext = setAuthorizations(
                     requestConfigurationBuilder,
+                    requestBuilder,
                     request.getAuthorization(),
                     request.getProxy(),
+                    request.getSsl(),
                     urlHost,
                     urlPort,
                     urlProtocol,
@@ -772,7 +1174,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param proxy The request Proxy options
      * @param credentialsProvider The request builder credentials provider
      */
-    private void setProxyCrendentials(
+    private void setProxyCredentials(
             final Proxy proxy, final CredentialsProvider credentialsProvider) {
         if (proxy != null && proxy.hasCredentials()) {
             credentialsProvider.setCredentials(
@@ -780,6 +1182,43 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                     new UsernamePasswordCredentials(
                             proxy.getUsername(), proxy.getPassword() == null ? "" : proxy.getPassword()));
         }
+    }
+
+    /**
+     * Set proxy credentials with preemptive authentication and return HttpContext
+     *
+     * @param proxy The request Proxy options
+     * @param httpClientBuilder The HTTP client builder to configure
+     * @return HttpContext with preemptive proxy authentication if proxy has credentials, or default context otherwise
+     */
+    private HttpContext setProxyCredentialsWithContext(
+            final Proxy proxy, final HttpClientBuilder httpClientBuilder) {
+        if (proxy != null && proxy.hasCredentials()) {
+            final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            setProxyCredentials(proxy, credentialsProvider);
+            httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+
+            // Make proxy authentication preemptive
+            HttpContext httpContext = createProxyAuthContext(proxy);
+            LOGGER.fine("Proxy credentials configured with preemptive authentication");
+            return httpContext;
+        }
+        return HttpClientContext.create();
+    }
+
+    /**
+     * Create an HttpContext with preemptive proxy authentication
+     *
+     * @param proxy The proxy configuration
+     * @return HttpContext with preemptive proxy authentication configured
+     */
+    private HttpContext createProxyAuthContext(final Proxy proxy) {
+        final AuthCache authenticationCache = new BasicAuthCache();
+        final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
+        authenticationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
+        final HttpClientContext localContext = HttpClientContext.create();
+        localContext.setAuthCache(authenticationCache);
+        return localContext;
     }
 
     /**
@@ -825,6 +1264,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      * @param requestConfigurationBuilder The builder to be set
      * @param authorization The authentication element of the request
      * @param proxy The proxy element of the request
+     * @param ssl The SSL configuration for the request
      * @param urlHost The URL host of the request
      * @param urlPort The URL post of the request
      * @param urlProtocol The URL protocol of the request
@@ -833,17 +1273,34 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      */
     private HttpContext setAuthorizations(
             final Builder requestConfigurationBuilder,
+            final RequestBuilder requestBuilder,
             final Authorization authorization,
             final Proxy proxy,
+            final SSL ssl,
             final String urlHost,
             final int urlPort,
             final String urlProtocol,
-            final HttpClientBuilder httpClientBuilder) {
+            final HttpClientBuilder httpClientBuilder) throws Exception {
         HttpContext httpContext = HttpClientContext.create();
         if (authorization != null) {
-            if (authorization instanceof BasicDigestAuthorization) {
+            if (authorization instanceof OAuth2TokenRequestAuthorization) {
+                final OAuth2TokenRequestAuthorization castAuthorization = (OAuth2TokenRequestAuthorization) authorization;
+                // Get or acquire access token (proxy and SSL are passed for token endpoint access)
+                String oauth2Token = getOAuth2AccessToken(castAuthorization, proxy, ssl);
+                // Add Bearer token to request header
+                setBearerAuthenticationHeader(requestBuilder, oauth2Token);
+                // Handle proxy credentials for the actual API request (if proxy is configured)
+                httpContext = setProxyCredentialsWithContext(proxy, httpClientBuilder);
+            } else if (authorization instanceof OAuth2BearerAuthorization) {
+                final OAuth2BearerAuthorization castAuthorization = (OAuth2BearerAuthorization) authorization;
+                LOGGER.fine("OAuth2 Bearer authorization detected");
+                String oauth2Token = castAuthorization.getToken();
+                // Add Bearer token to request header
+                setBearerAuthenticationHeader(requestBuilder, oauth2Token);
+                // Handle proxy credentials for the actual API request (if proxy is configured)
+                httpContext = setProxyCredentialsWithContext(proxy, httpClientBuilder);
+            } else if (authorization instanceof BasicDigestAuthorization) {
                 final BasicDigestAuthorization castAuthorization = (BasicDigestAuthorization) authorization;
-
                 final List<String> authPrefs = new ArrayList<>();
                 authPrefs.add(castAuthorization.isBasic() ? AuthSchemes.BASIC : AuthSchemes.DIGEST);
                 requestConfigurationBuilder.setTargetPreferredAuthSchemes(authPrefs);
@@ -867,7 +1324,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                 final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
                 credentialsProvider.setCredentials(
                         new AuthScope(host, port, realm), new UsernamePasswordCredentials(username, password));
-                setProxyCrendentials(proxy, credentialsProvider);
+                setProxyCredentials(proxy, credentialsProvider);
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 
                 if (castAuthorization.isPreemptive() || proxy != null) {
@@ -878,31 +1335,31 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
                         authenticationCache.put(new HttpHost(host, port, urlProtocol), authorizationScheme);
                     }
                     if (proxy != null) {
-                        final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
-                        authenticationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
+                        httpContext = createProxyAuthContext(proxy);
+                    } else {
+                        final HttpClientContext localContext = HttpClientContext.create();
+                        localContext.setAuthCache(authenticationCache);
+                        httpContext = localContext;
                     }
-                    final HttpClientContext localContext = HttpClientContext.create();
-                    localContext.setAuthCache(authenticationCache);
-                    httpContext = localContext;
                 }
             }
         } else if (proxy != null) {
             final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            setProxyCrendentials(proxy, credentialsProvider);
+            setProxyCredentials(proxy, credentialsProvider);
             httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
 
             // Make it preemptive
             if (proxy.hasCredentials()) {
-                final AuthCache authoriationCache = new BasicAuthCache();
-                final BasicScheme basicScheme = new BasicScheme(ChallengeState.PROXY);
-                authoriationCache.put(new HttpHost(proxy.getHost(), proxy.getPort()), basicScheme);
-                final HttpClientContext localContext = HttpClientContext.create();
-                localContext.setAuthCache(authoriationCache);
-                httpContext = localContext;
+                httpContext = createProxyAuthContext(proxy);
             }
         }
 
         return httpContext;
+    }
+
+    protected void setBearerAuthenticationHeader(RequestBuilder requestBuilder, String oauth2Token) {
+        requestBuilder.addHeader("Authorization", "Bearer " + oauth2Token);
+        LOGGER.fine("OAuth2 Bearer token added to Authorization header");
     }
 
     /**
@@ -936,7 +1393,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
      *
      * @param e The exception raised
      */
-    private void logException(final Exception e) {
+    protected void logException(final Exception e) {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(e.toString());
         for (final StackTraceElement stackTraceElement : e.getStackTrace()) {
