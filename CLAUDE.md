@@ -70,7 +70,7 @@ AbstractConnector (Bonita Framework)
 
 - **AbstractRESTConnectorImpl** (`src/main/java/org/bonitasoft/connectors/rest/AbstractRESTConnectorImpl.java`):
   - Defines 60+ input parameter getters (URL, auth, SSL, proxy, headers, cookies, timeouts, error handling, retry logic)
-  - OAuth2 parameters: token endpoint, client ID, client secret, scope, authorization code, code verifier (PKCE), redirect URI, pre-obtained token
+  - OAuth2 parameters: token endpoint, client ID, client secret, scope, audience, authorization code, code verifier (PKCE), redirect URI, pre-obtained token
   - Defines 5 output parameter setters (bodyAsString, bodyAsObject, headers, status_code, status_message)
   - Implements comprehensive validation (40+ validation methods)
   - Abstracts `hasBody()` method
@@ -218,6 +218,7 @@ REST connectors (GET, POST, PUT, DELETE, PATCH, HEAD) can automatically acquire 
    - `oauth2_client_id`: Client ID
    - `oauth2_client_secret`: Client secret
    - `oauth2_scope`: Optional space-separated scopes
+   - `oauth2_audience`: Optional audience parameter (required by some providers)
 
 The connector will automatically:
 - Request an access token from the endpoint
@@ -278,7 +279,7 @@ The `oauth-auth` connector (`Oauth2ConnectorImpl`) produces:
 **Client Credentials Flow Caching:**
 - Tokens are cached in a synchronized `LinkedHashMap` with LRU (Least Recently Used) eviction
 - **Cache limit:** 100 tokens maximum (`MAX_CACHED_TOKENS` constant in `RESTConnector.java:98`)
-- **Cache key format:** `tokenEndpoint#clientId#scope` (scope is optional)
+- **Cache key format:** `tokenEndpoint#clientId#scope#audience` (scope and audience are optional)
 - **Eviction policy:** When cache exceeds 100 entries, the least recently accessed token is automatically removed
 - **Clock skew:** Tokens are considered expired 60 seconds before their actual expiration time (`OAUTH2_TOKEN_EXPIRATION_CLOCK_SKEW_SECONDS` constant in `RESTConnector.java:118`)
 - **Thread-safety:** Cache operations are synchronized to prevent race conditions in concurrent scenarios
@@ -325,7 +326,7 @@ The `oauth-auth` connector (`Oauth2ConnectorImpl`) produces:
 - This default applies to both Client Credentials and Authorization Code flows
 
 6. **Cache not working / Tokens not reused**
-   - **Check cache key:** Ensure `tokenEndpoint`, `clientId`, and `scope` are identical across requests
+   - **Check cache key:** Ensure `tokenEndpoint`, `clientId`, `scope`, and `audience` are identical across requests
    - **Authorization Code:** This flow intentionally does NOT use the cache (single-use codes)
    - **Cache limit:** If you have >100 unique token configurations, LRU eviction occurs automatically
 
@@ -370,7 +371,7 @@ These are supplied by Bonita runtime and must not be bundled:
 6. **Proxy Resolution:** Manual configuration or automatic JVM system properties resolution
 7. **Bonita Context Headers:** Optional injection of process context (activity ID, process ID, etc.) into request headers
 8. **OAuth2 Authentication:** Three modes supported:
-   - **OAuth2 Client Credentials:** REST connectors can automatically acquire tokens using client credentials flow (token endpoint, client ID, client secret, optional scopes). Tokens are cached in-memory using LRU cache with 100-token limit. Tokens expire 60 seconds before actual expiration (clock skew).
+   - **OAuth2 Client Credentials:** REST connectors can automatically acquire tokens using client credentials flow (token endpoint, client ID, client secret, optional scopes, optional audience). Tokens are cached in-memory using LRU cache with 100-token limit. Tokens expire 60 seconds before actual expiration (clock skew).
    - **OAuth2 Authorization Code:** REST connectors can exchange authorization codes for tokens (token endpoint, client ID, client secret, authorization code, optional PKCE code verifier, optional redirect URI). Tokens are stored per connector instance for retry handling only (NOT in global cache).
    - **OAuth2 Bearer:** REST connectors can use pre-obtained tokens passed as input parameter. Use the dedicated `oauth-auth` connector to retrieve tokens first, then pass to REST connectors.
 9. **Dedicated OAuth2 Connector:** The `oauth-auth` connector (`Oauth2ConnectorImpl`) is specialized for token retrieval using either Client Credentials or Authorization Code flows and outputs the token for use in subsequent API calls
