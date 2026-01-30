@@ -574,6 +574,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             // Build cache key
             String cacheKey = authorization.getTokenEndpoint() + "#" + authorization.getClientId();
             cacheKey += (clientCreds.getScope() == null ? "" : "#" + clientCreds.getScope());
+            cacheKey += (clientCreds.getAudience() == null ? "" : "#" + clientCreds.getAudience());
 
             // Check cache without lock (fast path)
             TokenWithExpiration cachedToken = OAUTH2_ACCESS_TOKENS.get(cacheKey);
