@@ -14,6 +14,7 @@ package org.bonitasoft.connectors.rest.model;
 public class OAuth2ClientCredentialsAuthorization extends OAuth2TokenRequestAuthorization {
 
   private String scope;
+  private String audience;
 
   public String getScope() {
     return scope;
@@ -21,5 +22,13 @@ public class OAuth2ClientCredentialsAuthorization extends OAuth2TokenRequestAuth
 
   public void setScope(final String scope) {
     this.scope = scope;
+  }
+
+  public String getAudience() {
+    return audience;
+  }
+
+  public void setAudience(final String audience) {
+    this.audience = audience;
   }
 }

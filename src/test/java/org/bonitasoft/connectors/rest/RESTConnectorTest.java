@@ -1813,6 +1813,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "my_client_id");
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "my_client_secret");
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_SCOPE_INPUT_PARAMETER, "read write");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_AUDIENCE_INPUT_PARAMETER, "https://api.example.com");
         var connector = new RESTConnector(false);
         connector.setInputParameters(parameters);
 
@@ -1822,6 +1823,7 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         assertEquals("my_client_id", oauth2Authorization.getClientId());
         assertEquals("my_client_secret", oauth2Authorization.getClientSecret());
         assertEquals("read write", oauth2Authorization.getScope());
+        assertEquals("https://api.example.com", oauth2Authorization.getAudience());
     }
 
     /**
@@ -1892,6 +1894,84 @@ public class RESTConnectorTest extends AcceptanceTestBase {
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_pass");
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_SCOPE_INPUT_PARAMETER, "read write admin");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with audience parameter (RFC 8693)
+     * The audience parameter indicates the intended recipient of the token (resource server).
+     * Required by some providers like Auth0.
+     */
+    @Test
+    public void oauth2ClientCredentialsWithAudience() throws BonitaException {
+        // Mock OAuth2 token endpoint expecting audience parameter
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(containing("client_id=test_client"))
+                        .withRequestBody(containing("client_secret=test_pass"))
+                        .withRequestBody(containing("audience=https%3A%2F%2Fapi.example.com"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiYXVkIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20iLCJleHAiOjk5OTk5OTk5OTl9.signature\",\"token_type\":\"Bearer\"}")));
+
+        // Mock API endpoint
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", matching("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.*"))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_pass");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_AUDIENCE_INPUT_PARAMETER, "https://api.example.com");
+
+        checkResultIsPresent(executeConnector(parameters));
+    }
+
+    /**
+     * Test OAuth2 Client Credentials with both scope and audience parameters
+     */
+    @Test
+    public void oauth2ClientCredentialsWithScopeAndAudience() throws BonitaException {
+        // Mock OAuth2 token endpoint expecting both scope and audience parameters
+        stubFor(
+                post(urlEqualTo("/oauth/token"))
+                        .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
+                        .withRequestBody(containing("grant_type=client_credentials"))
+                        .withRequestBody(containing("client_id=test_client"))
+                        .withRequestBody(containing("client_secret=test_pass"))
+                        .withRequestBody(containing("scope=read+write"))
+                        .withRequestBody(containing("audience=https%3A%2F%2Fapi.example.com"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(HttpStatus.SC_OK)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody("{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiYXVkIjoiaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20iLCJzY29wZSI6InJlYWQgd3JpdGUiLCJleHAiOjk5OTk5OTk5OTl9.signature\",\"token_type\":\"Bearer\"}")));
+
+        // Mock API endpoint
+        stubFor(
+                get(urlEqualTo("/"))
+                        .withHeader("Authorization", matching("Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.*"))
+                        .willReturn(aResponse().withStatus(HttpStatus.SC_OK)));
+
+        Map<String, Object> parameters = buildMethodParametersSet(GET);
+        parameters.put(RESTConnector.URL_INPUT_PARAMETER, "http://localhost:" + wireMockServer.port() + "/");
+        parameters.put(RESTConnector.AUTH_TYPE_PARAMETER, AuthorizationType.OAUTH2_CLIENT_CREDENTIALS.name());
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_TOKEN_ENDPOINT_INPUT_PARAMETER,
+                "http://localhost:" + wireMockServer.port() + "/oauth/token");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_pass");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_SCOPE_INPUT_PARAMETER, "read write");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_AUDIENCE_INPUT_PARAMETER, "https://api.example.com");
 
         checkResultIsPresent(executeConnector(parameters));
     }

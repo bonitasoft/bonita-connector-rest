@@ -66,6 +66,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
     protected static final String OAUTH2_CLIENT_ID_INPUT_PARAMETER = "oauth2_client_id";
     protected static final String OAUTH2_CLIENT_SECRET_INPUT_PARAMETER = "oauth2_client_secret";
     protected static final String OAUTH2_SCOPE_INPUT_PARAMETER = "oauth2_scope";
+    protected static final String OAUTH2_AUDIENCE_INPUT_PARAMETER = "oauth2_audience";
     protected static final String OAUTH2_TOKEN_INPUT_PARAMETER = "oauth2_token";
     protected static final String OAUTH2_CODE_INPUT_PARAMETER = "oauth2_code";
     protected static final String OAUTH2_CODE_VERIFIER_INPUT_PARAMETER = "oauth2_code_verifier";
@@ -300,6 +301,10 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
         return (String) getInputParameter(OAUTH2_SCOPE_INPUT_PARAMETER);
     }
 
+    protected final String getOAuth2Audience() {
+        return (String) getInputParameter(OAUTH2_AUDIENCE_INPUT_PARAMETER);
+    }
+
     protected final String getOAuth2Token() {
         return (String) getInputParameter(OAUTH2_TOKEN_INPUT_PARAMETER);
     }
@@ -416,6 +421,7 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             validateOAuth2ClientId();
             validateOAuth2ClientSecret();
             validateOAuth2Scope();
+            validateOAuth2Audience();
         } else if (getAuthType() == AuthorizationType.OAUTH2_BEARER) {
             validateOAuth2Token();
         } else if (getAuthType() == AuthorizationType.OAUTH2_AUTHORIZATION_CODE) {
@@ -827,6 +833,14 @@ public abstract class AbstractRESTConnectorImpl extends AbstractConnector {
             getOAuth2Scope();
         } catch (final ClassCastException cce) {
             throw new ConnectorValidationException(OAUTH2_SCOPE_INPUT_PARAMETER + " type is invalid");
+        }
+    }
+
+    void validateOAuth2Audience() throws ConnectorValidationException {
+        try {
+            getOAuth2Audience();
+        } catch (final ClassCastException cce) {
+            throw new ConnectorValidationException(OAUTH2_AUDIENCE_INPUT_PARAMETER + " type is invalid");
         }
     }
 

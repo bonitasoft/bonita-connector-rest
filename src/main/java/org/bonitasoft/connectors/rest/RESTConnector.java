@@ -471,6 +471,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         authorization.setClientId(getOAuth2ClientId());
         authorization.setClientSecret(getOAuth2ClientSecret());
         authorization.setScope(getOAuth2Scope());
+        authorization.setAudience(getOAuth2Audience());
         return authorization;
     }
 
@@ -647,6 +648,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             params.add(new BasicNameValuePair("client_secret", clientCreds.getClientSecret()));
             if (isStringInputValid(clientCreds.getScope())) {
                 params.add(new BasicNameValuePair("scope", clientCreds.getScope()));
+            }
+            if (isStringInputValid(clientCreds.getAudience())) {
+                params.add(new BasicNameValuePair("audience", clientCreds.getAudience()));
             }
         } else if (authorization instanceof OAuth2AuthorizationCodeAuthorization) {
             // Authorization Code flow with optional PKCE
