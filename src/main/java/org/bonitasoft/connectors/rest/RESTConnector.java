@@ -571,10 +571,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             LOGGER.fine("OAuth2 Client Credentials authorization detected");
             final OAuth2ClientCredentialsAuthorization clientCreds = (OAuth2ClientCredentialsAuthorization) authorization;
 
-            // Build cache key
+            // Build cache key (use isStringInputValid to be consistent with token request logic)
             String cacheKey = authorization.getTokenEndpoint() + "#" + authorization.getClientId();
-            cacheKey += (clientCreds.getScope() == null ? "" : "#" + clientCreds.getScope());
-            cacheKey += (clientCreds.getAudience() == null ? "" : "#" + clientCreds.getAudience());
+            cacheKey += (!isStringInputValid(clientCreds.getScope()) ? "" : "#" + clientCreds.getScope());
+            cacheKey += (!isStringInputValid(clientCreds.getAudience()) ? "" : "#" + clientCreds.getAudience());
 
             // Check cache without lock (fast path)
             TokenWithExpiration cachedToken = OAUTH2_ACCESS_TOKENS.get(cacheKey);

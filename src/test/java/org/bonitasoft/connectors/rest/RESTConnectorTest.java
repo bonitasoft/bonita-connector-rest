@@ -1857,8 +1857,13 @@ public class RESTConnectorTest extends AcceptanceTestBase {
                 "http://localhost:" + wireMockServer.port() + "/oauth/token");
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_ID_INPUT_PARAMETER, "test_client_id");
         parameters.put(AbstractRESTConnectorImpl.OAUTH2_CLIENT_SECRET_INPUT_PARAMETER, "test_secret");
+        parameters.put(AbstractRESTConnectorImpl.OAUTH2_AUDIENCE_INPUT_PARAMETER, ""); // Empty audience should not be sent
 
         checkResultIsPresent(executeConnector(parameters));
+
+        // Verify that audience parameter was NOT sent when empty
+        verify(postRequestedFor(urlEqualTo("/oauth/token"))
+                .withRequestBody(notContaining("audience=")));
     }
 
     /**
