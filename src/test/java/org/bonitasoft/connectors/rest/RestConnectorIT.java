@@ -41,34 +41,29 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 
 public class RestConnectorIT {
 
-    private static final String REST_HEAD_DEF_VERSION = "1.2.0";
+    private static final String REST_HEAD_DEF_VERSION = "1.2.1";
     private static final String REST_HEAD_DEF_ID = "rest-head";
 
-    private static final String REST_GET_DEF_VERSION = "1.4.0";
+    private static final String REST_GET_DEF_VERSION = "1.4.1";
     private static final String REST_GET_DEF_ID = "rest-get";
 
-    private static final String REST_POST_DEF_VERSION = "1.5.0";
+    private static final String REST_POST_DEF_VERSION = "1.5.1";
     private static final String REST_POST_DEF_ID = "rest-post";
 
-    private static final String REST_FILE_POST_DEF_VERSION = "1.2.0";
+    private static final String REST_FILE_POST_DEF_VERSION = "1.2.1";
     private static final String REST_FILE_POST_DEF_ID = "rest-file-post";
 
-    private static final String REST_PUT_DEF_VERSION = "1.5.0";
+    private static final String REST_PUT_DEF_VERSION = "1.5.1";
     private static final String REST_PUT_DEF_ID = "rest-put";
 
-    private static final String REST_FILE_PUT_DEF_VERSION = "1.2.0";
+    private static final String REST_FILE_PUT_DEF_VERSION = "1.2.1";
     private static final String REST_FILE_PUT_DEF_ID = "rest-file-put";
 
-    private static final String REST_PATCH_DEF_VERSION = "1.1.0";
+    private static final String REST_PATCH_DEF_VERSION = "1.1.1";
     private static final String REST_PATCH_DEF_ID = "rest-patch";
 
-    private static final String REST_DELETE_DEF_VERSION = "1.4.0";
+    private static final String REST_DELETE_DEF_VERSION = "1.4.1";
     private static final String REST_DELETE_DEF_ID = "rest-delete";
-
-    private static final String OAUTH_AUTH_DEF_VERSION = "1.0.0";
-    private static final String OAUTH_AUTH_DEF_ID = "oauth-auth";
-
-    private static final String INTEGRATION_TEST_ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkludGVncmF0aW9uIFRlc3QiLCJpYXQiOjE1MTYyMzkwMjIsImV4cCI6OTk5OTk5OTk5OX0.integration_token";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestConnectorIT.class);
 
