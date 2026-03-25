@@ -471,6 +471,7 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
         authorization.setClientId(getOAuth2ClientId());
         authorization.setClientSecret(getOAuth2ClientSecret());
         authorization.setScope(getOAuth2Scope());
+        authorization.setAudience(getOAuth2Audience());
         return authorization;
     }
 
@@ -570,9 +571,10 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             LOGGER.fine("OAuth2 Client Credentials authorization detected");
             final OAuth2ClientCredentialsAuthorization clientCreds = (OAuth2ClientCredentialsAuthorization) authorization;
 
-            // Build cache key
+            // Build cache key (use isStringInputValid to be consistent with token request logic)
             String cacheKey = authorization.getTokenEndpoint() + "#" + authorization.getClientId();
-            cacheKey += (clientCreds.getScope() == null ? "" : "#" + clientCreds.getScope());
+            cacheKey += (!isStringInputValid(clientCreds.getScope()) ? "" : "#" + clientCreds.getScope());
+            cacheKey += (!isStringInputValid(clientCreds.getAudience()) ? "" : "#" + clientCreds.getAudience());
 
             // Check cache without lock (fast path)
             TokenWithExpiration cachedToken = OAUTH2_ACCESS_TOKENS.get(cacheKey);
@@ -647,6 +649,9 @@ public class RESTConnector extends AbstractRESTConnectorImpl {
             params.add(new BasicNameValuePair("client_secret", clientCreds.getClientSecret()));
             if (isStringInputValid(clientCreds.getScope())) {
                 params.add(new BasicNameValuePair("scope", clientCreds.getScope()));
+            }
+            if (isStringInputValid(clientCreds.getAudience())) {
+                params.add(new BasicNameValuePair("audience", clientCreds.getAudience()));
             }
         } else if (authorization instanceof OAuth2AuthorizationCodeAuthorization) {
             // Authorization Code flow with optional PKCE
