@@ -112,7 +112,7 @@
 		<!-- WARNING: Above version depends on httpclient5+ -->
 		<!--Do not update until Bonita platfotm updates to httpclient5+ -->
 		<wiremock.version>2.35.1</wiremock.version>
-		<assertj.version>3.24.2</assertj.version>
+		<assertj.version>3.27.7</assertj.version>
 		<junit.version>4.13.2</junit.version>
 		<jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
 		<sonar-maven-plugin.version>3.10.0.2594</sonar-maven-plugin.version>
