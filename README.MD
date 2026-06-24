@@ -157,7 +157,7 @@ In order to create a new release:
 - Run the [release](https://github.com/bonitasoft/bonita-connector-rest/actions/workflows/release.yml) action, set the version to release as parameter. The release will be published to [Maven Central](https://central.sonatype.com/artifact/org.bonitasoft.connectors/bonita-connector-uipath).
 - Update the `master` branch with the next SNAPSHOT version.
 
-Once this is done, update the [Bonita marketplace repository](https://github.com/bonitasoft/bonita-marketplace) with the new version of the connector.
+Once this is done, go to the [Bonita marketplace repository](https://github.com/bonitasoft/bonita-marketplace) and validate the Pull Request declaring the new version of the connector.
 
 ## Contributing
 
