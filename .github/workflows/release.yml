@@ -9,6 +9,10 @@ on:
         description: 'The version of the release. Used as tag name.'
         required: true
         default: 'x.y.z'
+      update_marketplace:
+        description: 'Open a PR in the marketplace for this release.'
+        type: boolean
+        default: true
 
 jobs:
   release:
