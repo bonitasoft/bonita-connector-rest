@@ -21,6 +21,8 @@ jobs:
     needs: release
     if: ${{ inputs.update_marketplace }}
     runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ inputs.version }}
     steps:
       - name: Notify marketplace
         uses: peter-evans/repository-dispatch@v4
@@ -31,6 +33,6 @@ jobs:
           client-payload: >-
             {
               "artifactId": "bonita-connector-rest",
-              "version": "${{ inputs.version }}",
+              "version": "${{ env.VERSION }}",
               "bonitaMinVersion": "9.0.0"
             }
