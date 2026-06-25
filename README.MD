@@ -154,7 +154,7 @@ Always increment implementation version (via project version) for:
 
 In order to create a new release:
 - On the release branch, make sure to update the pom version (remove the -SNAPSHOT)
-- Run the [release](https://github.com/bonitasoft/bonita-connector-rest/actions/workflows/release.yml) action, set the version to release as parameter. The release will be published to [Maven Central](https://central.sonatype.com/artifact/org.bonitasoft.connectors/bonita-connector-uipath).
+- Run the [release](https://github.com/bonitasoft/bonita-connector-rest/actions/workflows/release.yml) action, set the version to release as a parameter. The release will be published to [Maven Central](https://central.sonatype.com/artifact/org.bonitasoft.connectors/bonita-connector-rest).
 - Update the `master` branch with the next SNAPSHOT version.
 
 Once this is done, go to the [Bonita marketplace repository](https://github.com/bonitasoft/bonita-marketplace) and validate the Pull Request declaring the new version of the connector.
