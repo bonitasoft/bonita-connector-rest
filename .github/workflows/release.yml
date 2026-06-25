@@ -18,7 +18,7 @@ jobs:
   release:
     uses: bonitasoft/github-workflows/.github/workflows/_reusable_release_connector.yml@main
     with:
-      release-version: ${{ github.event.inputs.version }}
+      release-version: ${{ inputs.version }}
     secrets: inherit
 
   notify-marketplace:
