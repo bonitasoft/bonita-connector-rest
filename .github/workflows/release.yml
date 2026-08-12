@@ -1,6 +1,6 @@
 name: Release
 
-run-name: ${{ github.event.inputs.version }} Release
+run-name: ${{ inputs.version }} Release
 
 on:
   workflow_dispatch:
@@ -9,10 +9,34 @@ on:
         description: 'The version of the release. Used as tag name.'
         required: true
         default: 'x.y.z'
+      update_marketplace:
+        description: 'Open a PR in the marketplace for this release.'
+        type: boolean
+        default: true
 
 jobs:
   release:
     uses: bonitasoft/github-workflows/.github/workflows/_reusable_release_connector.yml@main
     with:
-      release-version: ${{ github.event.inputs.version }}
+      release-version: ${{ inputs.version }}
     secrets: inherit
+
+  notify-marketplace:
+    needs: release
+    if: ${{ inputs.update_marketplace }}
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Notify marketplace
+        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
+        with:
+          token: ${{ secrets.GH_PAT }}
+          repository: bonitasoft/bonita-marketplace
+          event-type: new-connector-release
+          client-payload: >-
+            {
+              "artifactId": "bonita-connector-rest",
+              "version": "${{ env.VERSION }}",
+              "bonitaMinVersion": "9.0.0"
+            }
