@@ -68,14 +68,14 @@ public class RestConnectorIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(RestConnectorIT.class);
 
     private static final String ARTIFACT_ID = "bonita-connector-rest";
-    private static final String BONITA_VERSION = Objects.requireNonNull(System.getProperty("bonita.version"), "'bonita.version' system property not defined !");
+    private static final String BONITA_IMAGE = Objects.requireNonNull(System.getProperty("bonita.image"), "'bonita.image' system property not defined !");
 
     @ClassRule
     public static WireMockRule wireMockServer = new WireMockRule(wireMockConfig().dynamicPort());
 
     @ClassRule
     public static GenericContainer<?> BONITA_CONTAINER = new GenericContainer<>(
-            DockerImageName.parse(String.format("bonita:%s", BONITA_VERSION)))
+            DockerImageName.parse(BONITA_IMAGE))
                     .withExposedPorts(8080)
                     .waitingFor(Wait.forHttp("/bonita"))
                     .withLogConsumer(new Slf4jLogConsumer(LOGGER));

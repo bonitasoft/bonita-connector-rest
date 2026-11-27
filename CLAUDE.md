@@ -8,8 +8,8 @@ Bonita REST Connector is a multi-connector factory that produces 9 separate conn
 - **8 REST connectors:** GET, POST, PUT, DELETE, PATCH, HEAD, file-post, file-put
 - **1 OAuth2 connector:** oauth-auth (for OAuth2 token retrieval)
 
-**Target:** Bonita 9.0.0
-**Java Version:** 11
+**Target:** Bonita 12.0+ (2.x; Bonita 7.13 - 11.x use the 1.x versions)
+**Java Version:** 17
 
 ## Build Commands
 
@@ -167,9 +167,8 @@ Located in `src/main/java/org/bonitasoft/connectors/rest/model/`:
 
 ### Integration Test Configuration
 
-Integration tests run against multiple Bonita versions (configured in pom.xml):
-- `integration-tests-7.13` (Bonita 7.13.0)
-- `integration-tests-7.14` (Bonita 7.14.0)
+Integration tests run against the Bonita Docker image given by the `bonita.image` property in pom.xml
+(currently `bonitasoft.jfrog.io/docker-snapshots/bonita-community:12.0-SNAPSHOT`).
 
 ## Adding a New HTTP Method
 
@@ -350,16 +349,18 @@ The `oauth-auth` connector (`Oauth2ConnectorImpl`) produces:
 
 ### Dependency Constraints
 
-- **Mockito version:** Deliberately kept at 1.10.19 for httpclient4 compatibility (see pom.xml line 111)
+- **Mockito version:** Deliberately kept at 1.10.19 for httpclient4 compatibility; on Java 17 surefire opens `java.base/java.lang` for its cglib proxies
 - **WireMock version:** Limited to 2.35.1 (requires httpclient4, not httpclient5)
-- **Bonita dependencies:** Use BOM from `bonita-runtime-bom:7.14.0` for version consistency
+- **Bonita dependencies:** Use BOM from `bonita-runtime-bom` (`bonita-runtime.version`, 12.0) for version consistency
 
 ### Dependencies with `provided` Scope
 
 These are supplied by Bonita runtime and must not be bundled:
-- bonita-common, bonita-server
-- commons-logging, commons-codec, commons-io
-- httpclient, jackson-core
+- bonita-common, bonita-server (`SRetryableException`, which asks the engine to retry the connector)
+- the logging facades commons-logging and slf4j-api (bundled, they would not reach the runtime logging backend)
+
+Everything else the connector uses (httpclient/httpcore, commons-codec, jackson-core/databind, commons-lang3) is
+bundled in the connector archives (`compile` scope).
 
 ### Key Features to Understand
 
