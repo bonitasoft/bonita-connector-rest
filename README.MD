@@ -8,6 +8,16 @@ A multi-connector project for the Bonita BPM platform to execute REST requests f
 [![Maven Central](https://img.shields.io/maven-central/v/org.bonitasoft.connectors/bonita-connector-rest.svg?label=Maven%20Central&color=orange)](https://search.maven.org/search?q=g:%22org.bonitasoft.connectors%22%20AND%20a:%22bonita-connector-rest%22)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-yellow.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 
+## Compatibility
+
+| Connector           | Bonita          | Java          |
+|---------------------|-----------------|---------------|
+| 2.x (`master`)      | 12.0 and later  | 17 and later  |
+| 1.x (up to 1.5.1)   | 7.13 to 11.x    | 11 and later  |
+
+The connector definitions and their inputs/outputs are unchanged. 2.x bundles its libraries (Apache HttpClient 4.5,
+Jackson, Commons Lang, Commons Codec) instead of relying on the versions the Bonita runtime happens to provide.
+
 ---
 
 ## 📦 Available Connectors
@@ -77,9 +87,9 @@ This project builds **9 distinct connector packages** from one unified codebase:
 ## 🔧 Build
 
 ### Requirements
-- **Java:** 11+
+- **Java:** 17+
 - **Maven:** 3.6+ (wrapper included)
-- **Target Bonita:** 7.14.0
+- **Target Bonita:** 12.0+
 
 #### Clone or fork this repository
 `git clone https://github.com/bonitasoft/bonita-connector-rest.git`
